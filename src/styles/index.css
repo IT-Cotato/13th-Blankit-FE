@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+/* 1. Pretendard 폰트 전역 정의 */
+@font-face {
+  font-family: 'Pretendard';
+  src: url('/fonts/Pretendard-Regular.woff') format('woff');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 2. 디자인 기준 등록 */
+@theme {
+  /* 기본 폰트를 Pretendard로 지정 */
+  --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+  /* 디자인팀 피그마 커스텀 컬러 등록 */
+  --color-green-100: #D6F8DD;
+  --color-green-200: #ADF2BB;
+  --color-green-300: #84EB99;
+  --color-green-400: #5BE478;
+  --color-green-500: #32DE56;
+  --color-green-600: #28B145;
+  --color-green-700: #1E8533;
+  --color-green-800: #145922;
+  --color-green-900: #0A2C11;
+
+  --color-lime-100: #F4FED9;
+  --color-lime-200: #E9FDB2;
+  --color-lime-300: #DEFC8C;
+  --color-lime-400: #D3FB65;
+  --color-lime-500: #C8FA3F;
+  --color-lime-600: #A0C832;
+  --color-lime-700: #789626;
+  --color-lime-800: #506419;
+  --color-lime-900: #28320D;
+
+  --color-purple-100: #F0F1FE;
+  --color-purple-200: #E1E4FD;
+  --color-purple-300: #D1D6FC;
+  --color-purple-400: #C2C9FB;
+  --color-purple-500: #B3BBFA;
+  --color-purple-600: #8F96C8;
+  --color-purple-700: #6B7096;
+  --color-purple-800: #484B64;
+  --color-purple-900: #242532;
+
+  --color-orange-100: #FFE6CC;
+  --color-orange-200: #FFCD99;
+  --color-orange-300: #FFB366;
+  --color-orange-400: #FF9A33;
+  --color-orange-500: #FF8100;
+  --color-orange-600: #CC6700;
+  --color-orange-700: #994D00;
+  --color-orange-800: #663400;
+  --color-orange-900: #331A00;
+
+  --color-red-100: #FED7D7;
+  --color-red-200: #FEAFAF;
+  --color-red-300: #FD8787;
+  --color-red-400: #FC5F5F;
+  --color-red-500: #FC3737;
+  --color-red-600: #C92C2C;
+  --color-red-700: #972121;
+  --color-red-800: #651616;
+  --color-red-900: #320B0B;
+
+  --color-black-100: #FBFBFB;
+  --color-black-200: #EDEEEF;
+  --color-black-300: #DFE1E4;
+  --color-black-400: #C5C9CD;
+  --color-black-500: #ACB1B6;
+  --color-black-600: #9499A0;
+  --color-black-650: #9499A0;
+  --color-black-700: #505459;
+  --color-black-750: #3C3F43;
+  --color-black-800: #282C2F;
+  --color-black-850: #1A1C1F;
+  --color-black-900: #0C0D0E;
+}
