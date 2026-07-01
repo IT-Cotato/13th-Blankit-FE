@@ -15,30 +15,30 @@ Blankit 프론트엔드 프로젝트입니다.
 
 ## 시작하기
 
-> **Note**: 이 프로젝트는 **npm**을 패키지 매니저로 사용합니다.
+> **Note**: 이 프로젝트는 **pnpm**을 패키지 매니저로 사용합니다.
 
-### 0. npm 설치 (없는 경우)
+### 0. pnpm 설치 (없는 경우)
 
 ```bash
-npm install npm
+npm install -g pnpm
 ```
 
 ### 1. 패키지 설치
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### 2. 개발 서버 실행
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 ### 3. 스토리북 실행 (UI 컴포넌트 도감)
 
 ```bash
-npm run storybook
+pnpm run storybook
 ```
 
 ---
