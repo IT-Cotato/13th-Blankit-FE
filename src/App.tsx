@@ -1,13 +1,24 @@
-import './App.css'
+import { Route, Routes } from "react-router-dom";
+
+import { BottomNavigation } from "./components/layout/BottomNavigation";
+import { HomePage } from "./pages/home/HomePage";
+import { CalendarPage } from "./pages/calendar/CalendarPage";
+import { MyPage } from "./pages/mypage/MyPage";
 
 function App() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100">
-      <h1 className="text-3xl font-bold text-blue-600 underline">
-        Tailwind 되는 중
-      </h1>
-    </div>
+    <>
+      <main className="min-h-screen px-5 pb-[calc(90px+env(safe-area-inset-bottom))]">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/mypage" element={<MyPage />} />
+        </Routes>
+      </main>
+
+      <BottomNavigation />
+    </>
   );
 }
 
-export default App
+export default App;
