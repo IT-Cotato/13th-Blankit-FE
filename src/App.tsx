@@ -8,7 +8,7 @@ import { MyPage } from "./pages/mypage/MyPage";
 function App() {
   return (
     <>
-      <main className="min-h-screen px-5 pb-[calc(90px+env(safe-area-inset-bottom))]">
+      <main className="min-h-screen pb-[calc(90px+env(safe-area-inset-bottom))]">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/calendar" element={<CalendarPage />} />
