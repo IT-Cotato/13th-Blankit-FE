@@ -43,7 +43,7 @@ export function BottomNavigation() {
                 <img
                 src={isActive ? item.activeIcon : item.icon}
                 alt=""
-                className="h-[30px] w-[30px]"
+                className="h-5 w-5 md:h-7 md:w-7 lg:h-8 lg:w-8"
                 />
             )}
             </NavLink>
