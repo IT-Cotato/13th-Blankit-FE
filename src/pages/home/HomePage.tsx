@@ -1,4 +1,13 @@
-// src/pages/home/HomePage.tsx
+import { HomeTopBar } from "@/components/home/HomeTopBar";
+
 export function HomePage() {
-    return <div>홈 페이지입니다.</div>;
+    return (
+      <>
+      <HomeTopBar />
+
+      <main>
+        <div> it's home</div>
+      </main>
+    </>
+    )
   }

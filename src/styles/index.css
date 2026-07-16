@@ -1,19 +1,17 @@
 @import "tailwindcss";
-
-/* 1. Pretendard 폰트 전역 정의 */
-@font-face {
-  font-family: 'Pretendard';
-  src: url('/fonts/Pretendard-Regular.woff') format('woff');
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
+@import "pretendard/dist/web/variable/pretendardvariable.css";
 
 /* 2. 디자인 기준 등록 */
 @theme {
   /* 기본 폰트를 Pretendard로 지정 */
-  --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-
+  --font-sans:
+  "Pretendard Variable",
+  "Pretendard",
+  -apple-system,
+  BlinkMacSystemFont,
+  system-ui,
+  sans-serif;
+  
   /* 디자인팀 피그마 커스텀 컬러 등록 */
   --color-green-100: #D6F8DD;
   --color-green-200: #ADF2BB;
