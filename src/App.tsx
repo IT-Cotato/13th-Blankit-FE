@@ -5,6 +5,7 @@ import { HomePage } from "./pages/home/HomePage";
 import { CalendarPage } from "./pages/calendar/CalendarPage";
 import { MyPage } from "./pages/mypage/MyPage";
 import { SearchPage } from "./pages/home/SearchPage";
+import { TaskPlaylistPage } from "./pages/task-playlist/TaskPlaylistPage";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/home/search" element={<SearchPage />} />
+          <Route path="/task-playlist" element={<TaskPlaylistPage />} />
         </Routes>
       </main>
 
