@@ -1,13 +1,5 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
 @import "tailwindcss";
-
-/* 1. Pretendard 폰트 전역 정의 */
-@font-face {
-  font-family: 'Pretendard';
-  src: url('/fonts/Pretendard-Regular.woff') format('woff');
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
 
 /* 2. 디자인 기준 등록 */
 @theme {
@@ -71,10 +63,16 @@
   --color-black-400: #C5C9CD;
   --color-black-500: #ACB1B6;
   --color-black-600: #9499A0;
-  --color-black-650: #9499A0;
+  --color-black-650: #72767C;
   --color-black-700: #505459;
   --color-black-750: #3C3F43;
   --color-black-800: #282C2F;
   --color-black-850: #1A1C1F;
   --color-black-900: #0C0D0E;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+  }
 }
