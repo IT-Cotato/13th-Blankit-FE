@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { DockedTaskTimeBar } from "@/components/home/DockedTaskTimeBar";
 import { HomeTopBar } from "@/components/home/HomeTopBar";
@@ -10,6 +11,7 @@ import { mockTasks } from "@/mocks/tasks";
 const HOME_TOP_BAR_HEIGHT = 50;
 
 export function HomePage() {
+  const navigate = useNavigate();
   const taskCardRef = useRef<HTMLDivElement>(null);
   const [showDockedBar, setShowDockedBar] = useState(false);
 
@@ -55,7 +57,7 @@ export function HomePage() {
         <TodayRecommendedTasks
           tasks={mockTasks}
           onViewAll={() => {
-            console.log("전체보기");
+            navigate("/task-recommendations");
           }}
           onTaskClick={(taskId) => {
             console.log("선택한 과업:", taskId);
