@@ -80,9 +80,9 @@ export function TaskChip({
       onClick={onClick}
       aria-label={
         isDone
-          ? `${title}, 완료`
-          : `${title}, 진행도 ${progressLevel}`
-      }
+            ? `${title}, 완료, 메모: ${memo}`
+            : `${title}, 진행도 ${progressLevel}, 메모: ${memo}`
+        }
       className="
         flex w-full items-center gap-4
         rounded-[12px] bg-black-850
