@@ -80,5 +80,13 @@
 @layer base {
   html {
     font-family: var(--font-sans);
+    background-color: var(--color-black-900);
+  }
+
+  body,
+  #root {
+    min-height: 100dvh;
+    margin: 0;
+    background-color: var(--color-black-900);
   }
 }
