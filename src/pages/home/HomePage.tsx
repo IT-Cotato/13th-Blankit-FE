@@ -4,6 +4,8 @@ import { DockedTaskTimeBar } from "@/components/home/DockedTaskTimeBar";
 import { HomeTopBar } from "@/components/home/HomeTopBar";
 import { RecommendedTaskTimeCard } from "@/components/home/RecommendedTaskTimeCard";
 import { WeeklyCalendar } from "@/components/home/WeeklyCalendar";
+import { TodayRecommendedTasks } from "@/components/task/TodayRecommendedTasks";
+import { mockTasks } from "@/mocks/tasks";
 
 const HOME_TOP_BAR_HEIGHT = 50;
 
@@ -49,6 +51,16 @@ export function HomePage() {
         <div ref={taskCardRef}>
           <RecommendedTaskTimeCard />
         </div>
+
+        <TodayRecommendedTasks
+          tasks={mockTasks}
+          onViewAll={() => {
+            console.log("전체보기");
+          }}
+          onTaskClick={(taskId) => {
+            console.log("선택한 과업:", taskId);
+          }}
+        />
       </main>
 
       {showDockedBar && <DockedTaskTimeBar />}
