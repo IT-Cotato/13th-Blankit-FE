@@ -13,7 +13,7 @@ const HOME_TOP_BAR_HEIGHT = 50;
 
 function HomeEmptyState() {
   return (
-    <main className="flex min-h-[calc(100dvh-140px-env(safe-area-inset-top)-env(safe-area-inset-bottom))] items-center justify-center px-5">
+    <div className="flex min-h-[calc(100dvh-140px-env(safe-area-inset-top)-env(safe-area-inset-bottom))] items-center justify-center px-5">
       <div className="flex flex-col items-center text-center">
         <img
           src={sadBunnyIcon}
@@ -31,7 +31,7 @@ function HomeEmptyState() {
           중요한 일과 오늘의 권장 시간을 추천해드려요.
         </p>
       </div>
-    </main>
+    </div>
   );
 }
 
@@ -90,7 +90,7 @@ export function HomePage() {
     <>
       <HomeTopBar />
 
-      <main className="flex flex-col gap-5 px-5 pt-5">
+      <div className="flex flex-col gap-5 px-5 pt-5">
         <WeeklyCalendar />
 
         <div ref={taskCardRef}>
@@ -106,7 +106,7 @@ export function HomePage() {
             console.log("선택한 과업:", taskId);
           }}
         />
-      </main>
+      </div>
 
       {showDockedBar && <DockedTaskTimeBar />}
     </>

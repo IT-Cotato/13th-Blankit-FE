@@ -80,7 +80,7 @@ export function TaskRecommendationsPage() {
         </div>
       </TopBarShell>
 
-      <main className="px-5 pt-5">
+      <div className="px-5 pt-5">
         <div
           role="tablist"
           aria-label="과업 우선순위"
@@ -136,7 +136,7 @@ export function TaskRecommendationsPage() {
             </li>
           ))}
         </ul>
-      </main>
+      </div>
     </>
   );
 }
