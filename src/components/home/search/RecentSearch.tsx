@@ -1,5 +1,5 @@
 import clockIcon from "@/assets/icons/search/search-clock.svg";
-import clearIcon from "@/assets/icons/x.svg";
+import clearIcon from "@/assets/icons/x-black-700.svg";
 import type { SearchHistory } from "@/types/search";
 
 type RecentSearchesProps = {

@@ -3,7 +3,7 @@ import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
 import backIcon from "@/assets/icons/back-button-black-700.svg";
-import clearIcon from "@/assets/icons/x.svg";
+import clearIcon from "@/assets/icons/x-black-700.svg";
 import { TopBarShell } from "@/components/layout/top-bar/TopBarShell";
 
 type SearchBarProps = {
