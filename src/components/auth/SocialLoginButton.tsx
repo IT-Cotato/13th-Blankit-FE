@@ -23,7 +23,7 @@ export const SocialLoginButton = ({
             style={{ backgroundColor, color: textColor }}
         >
             {icon}
-            <span className="text-[14px] font-medium leading-[150%] tracking-[-0.21px]">
+            <span className="whitespace-nowrap text-[14px] font-medium leading-[150%] tracking-[-0.21px]">
                 {label}
             </span>
         </button>

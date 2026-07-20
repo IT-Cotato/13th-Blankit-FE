@@ -1,8 +1,8 @@
 import googleIcon from "@/assets/icons/login-btn/google-icon.svg";
-// import kakaoIcon from "@/assets/icons/kakao.svg";
+import kakaoIcon from "@/assets/icons/login-btn/kakaotalk-icon.svg";
 
 import { SocialLoginButton } from "@/components/auth/SocialLoginButton";
-import logoImage from "@/assets/icons/logo/blankit-logo.svg";
+import logoImage from "@/assets/logo/blankit-logo.svg";
 
 export const LoginPage = () => {
     const handleGoogleLogin = () => {
@@ -22,23 +22,23 @@ export const LoginPage = () => {
                 <img
                     src={logoImage}
                     alt="Blankit 로고"
-                    className="aspect-square h-[192px] w-[192px]"
+                    className="aspect-square h-[81.85px] w-[81.66px]"
                 />
             </div>
             <div className="flex w-[163px] flex-col items-start gap-5 pb-10">
                 <SocialLoginButton
                     icon={<img src={googleIcon} alt="" className="h-5 w-5" />}
                     label="구글로 로그인"
-                    backgroundColor="#FBFBFB"
-                    textColor="#0C0D0E"
+                    backgroundColor="var(--color-black-100)"
+                    textColor="var(--color-black-850)"
                     onClick={handleGoogleLogin}
                 />
 
                 <SocialLoginButton
-                    icon={<img src={googleIcon} alt="" className="h-5 w-5" />} // 카카오톡 아이콘 대신 구글 아이콘으로 일단 채워넣음
+                    icon={<img src={kakaoIcon} alt="" className="h-5 w-5" />} // 카카오톡 아이콘 대신 구글 아이콘으로 일단 채워넣음
                     label="카카오로 로그인"
                     backgroundColor="#FEE500"
-                    textColor="#0C0D0E"
+                    textColor="var(--color-black-850)"
                     onClick={handleKakaoLogin}
                 />
             </div>
