@@ -48,7 +48,6 @@ export function HomePage() {
 
   useEffect(() => {
     if (!hasTasks) {
-      setShowDockedBar(false);
       return;
     }
 
