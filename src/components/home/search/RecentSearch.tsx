@@ -17,7 +17,7 @@ export function RecentSearch({
 
   if (visibleSearches.length === 0) {
     return (
-      <div className="pointer-events-none fixed inset-0 flex items-center justify-center">
+      <div className="pointer-events-none flex flex-1 items-center justify-center">
         <p className="text-[16px] font-medium text-black-100">
           검색 결과가 없습니다.
         </p>
