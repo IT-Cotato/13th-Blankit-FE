@@ -12,7 +12,7 @@ import { SearchPage } from "./pages/home/SearchPage";
 import { MyPage } from "./pages/mypage/MyPage";
 import { TaskPlaylistPage } from "./pages/task-playlist/TaskPlaylistPage";
 
-import { TaskRecommendationsPage } from "./components/task/TaskRecommendationsPage";
+import { TaskRecommendationsPage } from "./pages/home/TaskRecommendationsPage";
 
 const PAGES_WITHOUT_BOTTOM_NAVIGATION = [
   "/task-recommendations",
