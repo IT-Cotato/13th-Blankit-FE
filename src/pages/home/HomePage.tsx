@@ -40,9 +40,11 @@ export function HomePage() {
   const taskCardRef = useRef<HTMLDivElement>(null);
   const [showDockedBar, setShowDockedBar] = useState(false);
 
-  const hasTasks = mockTasks.length > 0;
-  //const hasTasks = false;
-  //등록된 과업 없는 화면 테스트용
+  // 빈 화면 테스트 시 두 선언의 주석 전환
+  const tasks = mockTasks;
+  // const tasks = mockTasks.slice(0, 0);
+
+  const hasTasks = tasks.length > 0;
 
   useEffect(() => {
     if (!hasTasks) {
@@ -98,7 +100,7 @@ export function HomePage() {
         </div>
 
         <TodayRecommendedTasks
-          tasks={mockTasks}
+          tasks={tasks}
           onViewAll={() => {
             navigate("/task-recommendations");
           }}
