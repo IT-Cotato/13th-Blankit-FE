@@ -7,6 +7,7 @@ import { CalendarPage } from "./pages/calendar/CalendarPage";
 import { MyPage } from "./pages/mypage/MyPage";
 
 import { SplashScreen } from "./components/splash/SplashScreen";
+import { OnboardingPage } from "./pages/onboarding/OnboardingPage";
 import { LoginPage } from "./pages/login/LoginPage";
 
 function MainLayout() {
@@ -36,12 +37,13 @@ function App() {
         <Routes>
             {/* 네비게이션이 보이는 페이지들 */}
             <Route element={<MainLayout />}>
-                <Route path="/" element={<HomePage />} />
+                <Route path="/home" element={<HomePage />} />
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/mypage" element={<MyPage />} />
             </Route>
 
             {/* 네비게이션이 없는 페이지들 */}
+            <Route path="/" element={<OnboardingPage />} />
             <Route path="/login" element={<LoginPage />} />
         </Routes>
     );
