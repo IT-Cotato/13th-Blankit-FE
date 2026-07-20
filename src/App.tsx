@@ -1,4 +1,5 @@
-import { Route, Routes } from "react-router-dom";
+import { Outlet, Route, Routes } from "react-router-dom";
+import { useState } from "react";
 
 import { BottomNavigation } from "./components/layout/BottomNavigation";
 import { HomePage } from "./pages/home/HomePage";
@@ -6,7 +7,19 @@ import { CalendarPage } from "./pages/calendar/CalendarPage";
 import { MyPage } from "./pages/mypage/MyPage";
 
 import { SplashScreen } from "./components/splash/SplashScreen";
-import { useState } from "react";
+import { LoginPage } from "./pages/login/LoginPage";
+
+function MainLayout() {
+    return (
+        <>
+            <main className="min-h-screen pb-[calc(90px+env(safe-area-inset-bottom))]">
+                <Outlet />
+            </main>
+
+            <BottomNavigation />
+        </>
+    );
+}
 
 function App() {
     const [isAppReady, setIsAppReady] = useState(false);
@@ -20,17 +33,17 @@ function App() {
     }
 
     return (
-        <>
-            <main className="min-h-screen pb-[calc(90px+env(safe-area-inset-bottom))]">
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/calendar" element={<CalendarPage />} />
-                    <Route path="/mypage" element={<MyPage />} />
-                </Routes>
-            </main>
+        <Routes>
+            {/* 네비게이션이 보이는 페이지들 */}
+            <Route element={<MainLayout />}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/mypage" element={<MyPage />} />
+            </Route>
 
-            <BottomNavigation />
-        </>
+            {/* 네비게이션이 없는 페이지들 */}
+            <Route path="/login" element={<LoginPage />} />
+        </Routes>
     );
 }
 
