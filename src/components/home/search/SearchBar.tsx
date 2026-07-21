@@ -1,5 +1,13 @@
-import { useRef, useState } from "react";
-import type { FormEvent } from "react";
+import {
+  useRef,
+  useState,
+} from "react";
+
+import type {
+  ChangeEvent,
+  SubmitEvent,
+} from "react";
+
 import { useNavigate } from "react-router-dom";
 
 import backIcon from "@/assets/icons/back-button-black-700.svg";
@@ -8,9 +16,13 @@ import { TopBarShell } from "@/components/layout/top-bar/TopBarShell";
 
 type SearchBarProps = {
   onSearch: (keyword: string) => void;
+  onSearchTextChange: (searchText: string) => void;
 };
 
-export function SearchBar({ onSearch }: SearchBarProps) {
+export function SearchBar({
+  onSearch,
+  onSearchTextChange,
+}: SearchBarProps) {
   const [searchText, setSearchText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -19,12 +31,24 @@ export function SearchBar({ onSearch }: SearchBarProps) {
     navigate(-1);
   };
 
+  const handleSearchTextChange = (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const nextSearchText = event.target.value;
+
+    setSearchText(nextSearchText);
+    onSearchTextChange(nextSearchText);
+  };
+
   const handleClear = () => {
     setSearchText("");
+    onSearchTextChange("");
     inputRef.current?.focus();
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (
+    event: SubmitEvent<HTMLFormElement>,
+  ) => {
     event.preventDefault();
 
     const trimmedKeyword = searchText.trim();
@@ -40,13 +64,20 @@ export function SearchBar({ onSearch }: SearchBarProps) {
     <TopBarShell>
       <form
         onSubmit={handleSubmit}
-        className="grid w-full grid-cols-[24px_minmax(0,1fr)_28px] items-center gap-x-3"
+        className="
+          grid w-full
+          grid-cols-[24px_minmax(0,1fr)_28px]
+          items-center gap-x-3
+        "
       >
         <button
           type="button"
           onClick={handleGoBack}
           aria-label="이전 페이지로 이동"
-          className="flex h-6 w-6 items-center justify-center"
+          className="
+            flex h-6 w-6
+            items-center justify-center
+          "
         >
           <img
             src={backIcon}
@@ -62,7 +93,8 @@ export function SearchBar({ onSearch }: SearchBarProps) {
             inputMode="search"
             enterKeyHint="search"
             value={searchText}
-            onChange={(event) => setSearchText(event.target.value)}
+            onChange={handleSearchTextChange}
+            aria-label="검색어"
             placeholder="검색어 입력"
             className="
               h-[42px] w-full rounded-[6px]
@@ -81,7 +113,7 @@ export function SearchBar({ onSearch }: SearchBarProps) {
               aria-label="검색어 지우기"
               className="
                 absolute right-4 top-1/2
-                flex h-2.5 w-2.5
+                flex h-6 w-6
                 -translate-y-1/2
                 items-center justify-center
               "

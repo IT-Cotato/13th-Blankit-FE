@@ -30,17 +30,6 @@ async function searchTasks({
   const normalizedKeyword = keyword
     .trim()
     .toLowerCase();
-  
-  if (!normalizedKeyword) {
-    return {
-      code: "SEARCH400",
-      message: "검색어를 입력해주세요.",
-      data: {
-        totalCount: 0,
-        tasks: [],
-      },
-    };
-  }
 
   const filteredTasks = mockTasks.filter((task) =>
     task.title
@@ -96,6 +85,7 @@ export function SearchPage() {
     useState<SearchTaskData | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
+
   const [errorMessage, setErrorMessage] =
     useState<string | null>(null);
 
@@ -112,7 +102,8 @@ export function SearchPage() {
       searchedAt: new Date().toISOString(),
     };
 
-    // 같은 검색어가 있으면 기존 항목을 제거하고 맨 위로 이동합니다.
+    // 같은 검색어가 있으면 기존 항목을 제거하고
+    // 새로운 검색 기록을 맨 앞으로 옮깁니다.
     setRecentSearches((previousSearches) => [
       newSearchHistory,
       ...previousSearches.filter(
@@ -120,7 +111,7 @@ export function SearchPage() {
           search.keyword.toLowerCase() !==
           trimmedKeyword.toLowerCase(),
       ),
-    ].slice(0, 5));
+    ]);
 
     setIsLoading(true);
     setErrorMessage(null);
@@ -128,8 +119,6 @@ export function SearchPage() {
     try {
       const response = await searchTasks({
         keyword: trimmedKeyword,
-        page: 0,
-        size: 20,
       });
 
       setSearchResult(response.data);
@@ -142,6 +131,11 @@ export function SearchPage() {
       setIsLoading(false);
     }
   };
+
+  const handleSearchTextChange = () => {
+    setSearchResult(null);
+    setErrorMessage(null);
+  }
 
   const handleRemoveSearch = (
     searchHistoryId: number,
@@ -158,14 +152,24 @@ export function SearchPage() {
     setRecentSearches([]);
   };
 
+  const handleTaskClick = (taskId: number) => {
+    console.log("선택한 과업 ID:", taskId);
+  };
+
   const hasSearched = searchResult !== null;
 
   return (
-    <div className="
-      flex 
-      min-h-[calc(100dvh_-_90px_-_env(safe-area-inset-bottom))] 
-      flex-col">
-      <SearchBar onSearch={handleSearch} />
+    <div
+      className="
+        flex
+        min-h-[calc(100dvh_-_90px_-_env(safe-area-inset-bottom))]
+        flex-col
+      "
+    >
+      <SearchBar
+        onSearch={handleSearch}
+        onSearchTextChange={handleSearchTextChange}
+      />
 
       {isLoading && (
         <div className="flex flex-1 items-center justify-center">
@@ -222,6 +226,9 @@ export function SearchPage() {
                     progressRate={task.progressRate}
                     priority={task.priority}
                     status={task.status}
+                    onClick={() =>
+                      handleTaskClick(task.taskId)
+                    }
                   />
                 </li>
               ))}
