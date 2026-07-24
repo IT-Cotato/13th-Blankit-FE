@@ -8,53 +8,58 @@ import mypageBlackIcon from "@/assets/icons/bottom-nav/mypage-black.svg";
 import mypageGreenIcon from "@/assets/icons/bottom-nav/mypage-green.svg";
 
 const bottomNavItems = [
-    {
-      label: "home",
-      to: "/",
-      icon: homeBlackIcon,
-      activeIcon: homeGreenIcon,
-    },
-    {
-      label: "calendar",
-      to: "/calendar",
-      icon: calendarBlackIcon,
-      activeIcon: calendarGreenIcon,
-    },
-    {
-      label: "mypage",
-      to: "/mypage",
-      icon: mypageBlackIcon,
-      activeIcon: mypageGreenIcon,
-    },
+  {
+    label: "home",
+    to: "/",
+    activePaths: ["/", "/home/search"],
+    icon: homeBlackIcon,
+    activeIcon: homeGreenIcon,
+  },
+  {
+    label: "calendar",
+    to: "/calendar",
+    activePaths: ["/calendar"],
+    icon: calendarBlackIcon,
+    activeIcon: calendarGreenIcon,
+  },
+  {
+    label: "mypage",
+    to: "/mypage",
+    activePaths: ["/mypage"],
+    icon: mypageBlackIcon,
+    activeIcon: mypageGreenIcon,
+  },
 ];
 
 export function BottomNavigation() {
   const { pathname } = useLocation();
 
-  if (!["/", "/calendar", "/mypage"].includes(pathname)) {
-    return null;
-  }
-
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 h-[90px] bg-black-900 pb-[env(safe-area-inset-bottom)]">
       <div className="flex h-full w-full">
-        {bottomNavItems.map((item) => (
+        {bottomNavItems.map((item) => {
+          const isItemActive = item.activePaths.some(
+            (path) =>
+              pathname === path ||
+              (path !== "/" && pathname.startsWith(`${path}/`)),
+          );
+
+          return (
             <NavLink
-            key={item.to}
-            to={item.to}
-            aria-label={item.label}
-            className="flex h-full flex-1 items-center justify-center active:scale-95"
+              key={item.to}
+              to={item.to}
+              aria-label={item.label}
+              className="flex h-full flex-1 items-center justify-center active:scale-95"
             >
-            {({ isActive }) => (
-                <img
-                src={isActive ? item.activeIcon : item.icon}
+              <img
+                src={isItemActive ? item.activeIcon : item.icon}
                 alt=""
                 className="h-5 w-5 md:h-7 md:w-7 lg:h-8 lg:w-8"
-                />
-            )}
+              />
             </NavLink>
-        ))}
-        </div>
+          );
+        })}
+      </div>
     </nav>
   );
 }
