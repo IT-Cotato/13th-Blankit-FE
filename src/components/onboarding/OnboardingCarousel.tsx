@@ -1,8 +1,8 @@
-// src/components/onboarding/OnboardingCarousel.tsx
 import { useRef } from "react";
 import type { OnboardingCard } from "@/types/onboarding";
 
 const SWIPE_THRESHOLD_PX = 50;
+const TEXT_WRAPPER_HEIGHT_PX = 90;
 
 interface OnboardingCarouselProps {
     cards: OnboardingCard[];
@@ -48,7 +48,7 @@ export const OnboardingCarousel = ({
 
     return (
         <div
-            className="flex flex-1 flex-col items-center justify-center"
+            className="flex flex-col items-center"
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
             onMouseDown={handleMouseDown}
@@ -57,25 +57,30 @@ export const OnboardingCarousel = ({
             <img
                 src={currentCard.image}
                 alt=""
-                className="mb-8 aspect-[3/4] w-full max-w-[280px] rounded-2xl bg-black-800 object-cover"
+                className="mb-1 h-[363px] w-[234px]  object-cover"
             />
 
-            <h1 className="text-center text-[20px] font-bold text-black-100">
-                {currentCard.title}
-            </h1>
+            <div
+                className="flex flex-col items-center justify-start gap-3"
+                style={{ height: `${TEXT_WRAPPER_HEIGHT_PX}px` }}
+            >
+                <h1 className="text-center text-[20px] font-semibold text-black-100">
+                    {currentCard.title}
+                </h1>
 
-            <p className="mt-3 whitespace-pre-line text-center text-[14px] font-medium leading-[150%] text-black-600">
-                {currentCard.content}
-            </p>
+                <p className="whitespace-pre-line text-center text-[14px] font-normal leading-[150%] text-black-600">
+                    {currentCard.content}
+                </p>
+            </div>
 
-            <div className="mt-6 flex gap-2">
+            <div className="mt-16 flex gap-2 pb-5">
                 {cards.map((card, index) => (
                     <span
                         key={card.id}
                         className={`h-2 w-2 rounded-full ${
                             index === currentIndex
-                                ? "bg-black-100"
-                                : "bg-black-700"
+                                ? "bg-black-650"
+                                : "bg-black-800"
                         }`}
                     />
                 ))}

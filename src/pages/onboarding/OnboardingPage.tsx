@@ -20,35 +20,38 @@ export const OnboardingPage = () => {
 
     return (
         <div className="flex min-h-screen flex-col bg-black-900 px-5 py-6">
+            <div className="h-[19.591px] w-full flex-1" /> {/* 상단 여백 */}
             <OnboardingCarousel
                 cards={onboardingCards}
                 currentIndex={currentIndex}
                 onIndexChange={setCurrentIndex}
             />
-
-            <button
-                type="button"
-                onClick={handleStartClick}
-                disabled={!isLastCard}
-                className={`h-[52px] w-full rounded-lg text-[16px] font-bold ${
-                    isLastCard
-                        ? "bg-black-100 text-black-900"
-                        : "bg-black-800 text-black-600"
-                }`}
-            >
-                시작하기
-            </button>
-
-            <p className="mt-4 text-center text-[13px] text-black-600">
-                이미 계정이 있으신가요?{" "}
+            <div className="flex flex-col items-center gap-4">
                 <button
                     type="button"
-                    onClick={handleLoginLinkClick}
-                    className="font-medium text-black-100 underline"
+                    onClick={handleStartClick}
+                    disabled={!isLastCard}
+                    className={`h-[48px] w-[312px] rounded-lg text-[14px] ${
+                        isLastCard
+                            ? "bg-green-500 text-black-900 font-semibold"
+                            : "bg-black-800 text-black-600"
+                    }`}
                 >
-                    바로 로그인하세요
+                    시작하기
                 </button>
-            </p>
+
+                <p className="text-center text-[13px] text-black-600">
+                    이미 계정이 있으신가요?{" "}
+                    <button
+                        type="button"
+                        onClick={handleLoginLinkClick}
+                        className="font-semibold text-green-500"
+                    >
+                        바로 로그인하세요
+                    </button>
+                </p>
+            </div>
+            <div className="h-[31.875px] w-full flex-1" /> {/* 하단 여백 */}
         </div>
     );
 };
