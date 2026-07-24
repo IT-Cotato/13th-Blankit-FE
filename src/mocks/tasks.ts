@@ -18,7 +18,7 @@ export const mockTasks: Task[] = [
   },
   {
     taskId: 2,
-    title: "팀 프로젝트 발표 준비",
+    title: "팀 물리프로젝트 발표 준비",
     categoryId: 2,
     categoryName: "프로젝트",
     categoryColor: "#651616",
@@ -62,7 +62,7 @@ export const mockTasks: Task[] = [
   },
   {
     taskId: 5,
-    title: "운영체제 강의 복습",
+    title: "운영체제 영어강의 복습",
     categoryId: 1,
     categoryName: "학업",
     categoryColor: "#484B64",
@@ -120,7 +120,7 @@ export const mockTasks: Task[] = [
   },
   {
     taskId: 9,
-    title: "주간 일정 정리",
+    title: "주간 일정 책 정리",
     categoryId: 4,
     categoryName: "생활",
     categoryColor: "#506419",
