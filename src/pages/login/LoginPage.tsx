@@ -1,9 +1,8 @@
-import googleIcon from "@/assets/icons/login-btn/google-icon.svg";
-import kakaoIcon from "@/assets/icons/login-btn/kakaotalk-icon.svg";
+import googleIcon from "@/assets/icons/social/google-icon.svg";
+import kakaoIcon from "@/assets/icons/social/kakaotalk-icon.svg";
 
-import { SocialLoginButton } from "@/components/auth/SocialLoginButton";
+import { SocialLoginButton } from "@/components/login/SocialLoginButton";
 import logoImage from "@/assets/logo/blankit-logo.svg";
-import logoLabel from "@/assets/logo/Blankit-logo-label.svg";
 
 export const LoginPage = () => {
     const handleGoogleLogin = () => {
@@ -17,23 +16,16 @@ export const LoginPage = () => {
     };
 
     return (
-        <div className="flex min-h-screen flex-col items-center bg-black-900">
-            <div className="h-[57.84px] w-full flex-1" aria-hidden="true" />
-
-            <main className="flex flex-col">
-                <div className="flex max-h-36 min-h-10 flex-1 flex-col items-center justify-end gap-5">
+        <div className="flex flex-1 justify-center min-h-screen flex-col items-center bg-black-900 pb-[31.875px] pt-[57.84px]">
+            <main className="flex flex-1 justify-center max-h-150 flex-col">
+                <div className="flex flex-col items-center mb-[200px]">
                     <img
                         src={logoImage}
                         alt="Blankit 로고"
-                        className="aspect-square h-[81.85px] w-[81.66px]"
-                    />
-
-                    <img
-                        src={logoLabel}
-                        alt="Blankit"
-                        className="aspect-square h-[24px] w-[90px]"
+                        className="h-[81.85px] w-[81.66px]"
                     />
                 </div>
+
                 <nav
                     aria-label="소셜 로그인"
                     className="flex w-[163px] flex-col items-start gap-5 pb-10"
@@ -59,8 +51,6 @@ export const LoginPage = () => {
                     />
                 </nav>
             </main>
-
-            <div className="h-[31.875px] w-full flex-1" aria-hidden="true" />
         </div>
     );
 };

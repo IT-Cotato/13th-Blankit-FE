@@ -10,12 +10,17 @@ export const OnboardingPage = () => {
 
     const isLastCard = currentIndex === onboardingCards.length - 1;
 
-    const handleStartClick = () => {
+    const handleNavigateToLogin = () => {
         navigate("/login");
     };
 
-    const handleLoginLinkClick = () => {
-        navigate("/login");
+    const handleActionButtonClick = () => {
+        if (isLastCard) {
+            handleNavigateToLogin();
+            return;
+        }
+
+        setCurrentIndex((previousIndex) => previousIndex + 1);
     };
 
     return (
@@ -29,22 +34,22 @@ export const OnboardingPage = () => {
             <div className="flex flex-col items-center gap-4">
                 <button
                     type="button"
-                    onClick={handleStartClick}
-                    disabled={!isLastCard}
-                    className={`h-[48px] w-[312px] rounded-lg text-[14px] ${
+                    onClick={handleActionButtonClick}
+                    aria-label={
                         isLastCard
-                            ? "bg-green-500 text-black-900 font-semibold"
-                            : "bg-black-800 text-black-600"
-                    }`}
+                            ? "온보딩 완료하고 시작하기"
+                            : "다음 온보딩 카드로 이동"
+                    }
+                    className="h-[48px] w-[312px] rounded-lg bg-green-500 text-[14px] font-semibold text-black-900"
                 >
-                    시작하기
+                    {isLastCard ? "시작하기" : "다음"}
                 </button>
 
                 <p className="text-center text-[13px] text-black-600">
                     이미 계정이 있으신가요?{" "}
                     <button
                         type="button"
-                        onClick={handleLoginLinkClick}
+                        onClick={handleNavigateToLogin}
                         className="font-semibold text-green-500"
                     >
                         바로 로그인하세요
