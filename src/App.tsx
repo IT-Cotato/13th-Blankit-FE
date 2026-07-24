@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Route,
   Routes,
@@ -9,10 +10,9 @@ import { BottomNavigation } from "./components/layout/BottomNavigation";
 import { CalendarPage } from "./pages/calendar/CalendarPage";
 import { HomePage } from "./pages/home/HomePage";
 import { SearchPage } from "./pages/home/SearchPage";
+import { TaskRecommendationsPage } from "./pages/home/TaskRecommendationsPage";
 import { MyPage } from "./pages/mypage/MyPage";
 import { TaskPlaylistPage } from "./pages/task-playlist/TaskPlaylistPage";
-
-import { TaskRecommendationsPage } from "./pages/home/TaskRecommendationsPage";
 
 const PAGES_WITHOUT_BOTTOM_NAVIGATION = [
   "/task-recommendations",
@@ -21,7 +21,13 @@ const PAGES_WITHOUT_BOTTOM_NAVIGATION = [
 function App() {
   const location = useLocation();
 
+  const [
+    isTaskComposerOpen,
+    setIsTaskComposerOpen,
+  ] = useState(false);
+
   const hasBottomNavigation =
+    !isTaskComposerOpen &&
     !PAGES_WITHOUT_BOTTOM_NAVIGATION.includes(
       location.pathname,
     );
@@ -36,7 +42,22 @@ function App() {
         }
       >
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route
+            path="/"
+            element={
+              <HomePage
+                isTaskComposerOpen={
+                  isTaskComposerOpen
+                }
+                onTaskComposerOpen={() => {
+                  setIsTaskComposerOpen(true);
+                }}
+                onTaskComposerClose={() => {
+                  setIsTaskComposerOpen(false);
+                }}
+              />
+            }
+          />
 
           <Route
             path="/calendar"
@@ -65,7 +86,9 @@ function App() {
         </Routes>
       </main>
 
-      {hasBottomNavigation && <BottomNavigation />}
+      {hasBottomNavigation && (
+        <BottomNavigation />
+      )}
     </>
   );
 }

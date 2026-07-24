@@ -7,10 +7,12 @@ import { TopBarShell } from "@/components/layout/top-bar/TopBarShell";
 
 type HomeTopBarProps = {
   showRegistrationHint?: boolean;
+  onAddTask?: () => void;
 };
 
 export function HomeTopBar({
   showRegistrationHint = false,
+  onAddTask,
 }: HomeTopBarProps) {
   const todayLabel = new Intl.DateTimeFormat("en-US", {
     weekday: "short",
@@ -26,7 +28,11 @@ export function HomeTopBar({
         </span>
 
         <div className="relative flex items-center gap-3">
-          <button type="button" aria-label="과업 추가">
+          <button
+            type="button"
+            aria-label="과업 추가"
+            onClick={onAddTask}
+          >
             <img src={plusIcon} alt="" />
           </button>
 
