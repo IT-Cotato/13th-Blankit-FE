@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 
 import homeBlackIcon from "@/assets/icons/bottom-nav/home-black.svg";
 import homeGreenIcon from "@/assets/icons/bottom-nav/home-green.svg";
@@ -29,6 +29,12 @@ const bottomNavItems = [
 ];
 
 export function BottomNavigation() {
+  const { pathname } = useLocation();
+
+  if (!["/", "/calendar", "/mypage"].includes(pathname)) {
+    return null;
+  }
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 h-[90px] bg-black-900 pb-[env(safe-area-inset-bottom)]">
       <div className="flex h-full w-full">
