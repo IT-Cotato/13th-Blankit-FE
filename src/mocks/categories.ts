@@ -3,7 +3,6 @@ import { mockTasks } from "@/mocks/tasks";
 
 import type {
   Category,
-  CategoryIconKey,
   CategoryMutationRequest,
 } from "@/types/category";
 
@@ -70,9 +69,12 @@ export async function getMockAvailableColors(
 
 export async function createMockCategory(
   values: CategoryMutationRequest,
-  iconKey: CategoryIconKey = "ctgy-1",
 ) {
   await delay();
+
+  if (categories.length >= CATEGORY_COLORS.length) {
+    throw new Error("카테고리는 최대 10개까지 만들 수 있어요.");
+  }
 
   if (categories.some((category) => category.color === values.color)) {
     throw new Error("이미 사용 중인 색상입니다.");
@@ -83,7 +85,7 @@ export async function createMockCategory(
       Math.max(0, ...categories.map((category) => category.categoryId)) + 1,
     categoryName: values.name,
     color: values.color,
-    iconKey,
+    iconKey: values.iconKey,
   };
 
   categories = [...categories, created];
@@ -93,7 +95,6 @@ export async function createMockCategory(
 export async function updateMockCategory(
   categoryId: number,
   values: CategoryMutationRequest,
-  iconKey?: CategoryIconKey,
 ) {
   await delay();
 
@@ -119,7 +120,7 @@ export async function updateMockCategory(
     ...existing,
     categoryName: values.name,
     color: values.color,
-    iconKey: iconKey ?? existing.iconKey,
+    iconKey: values.iconKey,
   };
 
   categories = categories.map((category) =>

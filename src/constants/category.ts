@@ -48,46 +48,18 @@ export const CATEGORY_COLORS: readonly string[] = [
   "#C5C9CD",
 ];
 
-interface DefaultCategoryPreset {
-  color: string;
-  iconKey: CategoryIconKey;
-}
-
-export const DEFAULT_CATEGORY_PRESETS: Record<
-  string,
-  DefaultCategoryPreset
-> = {
-  학업: {
-    color: "#FC5F5F",
-    iconKey: "ctgy-9",
-  },
-  일상: {
-    color: "#FF9A33",
-    iconKey: "ctgy-4",
-  },
-  기념일: {
-    color: "#D3FB65",
-    iconKey: "ctgy-5",
-  },
-};
-
 export interface CategoryPresentation {
   color: string;
   iconKey: CategoryIconKey;
   icon: string;
-  isDefault: boolean;
 }
 
 export function getCategoryPresentation(
   category: Category,
 ): CategoryPresentation {
-  const preset = DEFAULT_CATEGORY_PRESETS[category.categoryName];
-  const iconKey = category.iconKey ?? preset?.iconKey ?? "ctgy-1";
-
   return {
-    color: preset?.color ?? category.color,
-    iconKey,
-    icon: CATEGORY_ICON_MAP[iconKey],
-    isDefault: Boolean(preset),
+    color: category.color,
+    iconKey: category.iconKey,
+    icon: CATEGORY_ICON_MAP[category.iconKey],
   };
 }

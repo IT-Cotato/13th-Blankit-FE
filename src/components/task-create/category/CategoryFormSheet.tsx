@@ -3,10 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import checkWhiteIcon from "@/assets/icons/check_white.svg";
 import backIcon from "@/assets/icons/header/back-black-700.svg";
 
-import {
-  CATEGORY_COLORS,
-  CATEGORY_ICON_OPTIONS,
-} from "@/constants/category";
+import { CATEGORY_ICON_OPTIONS } from "@/constants/category";
 import { CategoryIconBadge } from "./CategoryIconBadge";
 
 import { useVisualViewport } from "@/hooks/useVisualViewport";
@@ -16,7 +13,7 @@ import type {
   CategoryMutationRequest,
 } from "@/types/category";
 
-const ICON_PALETTE_COLOR = "#9499A0";
+const ICON_PALETTE_COLOR = "var(--color-black-600)";
 
 interface CategoryFormSheetProps {
   mode: "create" | "update";
@@ -26,10 +23,7 @@ interface CategoryFormSheetProps {
   colors: string[];
   submitting?: boolean;
   onBack: () => void;
-  onSubmit: (
-    values: CategoryMutationRequest,
-    iconKey: CategoryIconKey,
-  ) => void;
+  onSubmit: (values: CategoryMutationRequest) => void;
 }
 
 export function CategoryFormSheet({
@@ -44,12 +38,10 @@ export function CategoryFormSheet({
 }: CategoryFormSheetProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { height: viewportHeight, keyboardInset } = useVisualViewport();
-  const palette = colors.length > 0 ? colors : [...CATEGORY_COLORS];
+  const palette = colors;
 
   const [name, setName] = useState(initialName);
-  const [color, setColor] = useState(
-    initialColor ?? palette[0] ?? CATEGORY_COLORS[0],
-  );
+  const [color, setColor] = useState(initialColor ?? palette[0] ?? "");
   const [selectedIconKey, setSelectedIconKey] =
     useState<CategoryIconKey>(initialIconKey);
 
@@ -75,7 +67,7 @@ export function CategoryFormSheet({
           type="button"
           aria-label="카테고리 목록으로 돌아가기"
           onClick={onBack}
-          className="flex h-3 w-2 shrink-0 items-center justify-start"
+          className="flex h-6 w-6 shrink-0 items-center justify-start"
         >
           <img
             src={backIcon}
@@ -99,10 +91,11 @@ export function CategoryFormSheet({
           type="button"
           disabled={!canSubmit || submitting}
           onClick={() =>
-            onSubmit(
-              { name: name.trim(), color },
-              selectedIconKey,
-            )
+            onSubmit({
+              name: name.trim(),
+              color,
+              iconKey: selectedIconKey,
+            })
           }
           className="h-9 shrink-0 rounded-[6px] bg-green-500 px-3 text-[13px] font-semibold text-black-900 disabled:opacity-40"
         >

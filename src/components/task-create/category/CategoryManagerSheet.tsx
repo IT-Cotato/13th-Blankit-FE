@@ -41,7 +41,7 @@ export function CategoryManagerSheet({
           type="button"
           aria-label="과업 입력으로 돌아가기"
           onClick={onBack}
-          className="flex h-3 w-2 shrink-0 items-center justify-start"
+          className="flex h-6 w-6 shrink-0 items-center justify-start"
         >
           <img
             src={backIcon}

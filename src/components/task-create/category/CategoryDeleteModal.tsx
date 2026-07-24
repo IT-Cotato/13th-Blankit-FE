@@ -1,22 +1,16 @@
-interface ConfirmModalProps {
+interface CategoryDeleteModalProps {
   open: boolean;
-  title: string;
-  cancelLabel?: string;
-  confirmLabel?: string;
   isSubmitting?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
 }
 
-export function ConfirmModal({
+export function CategoryDeleteModal({
   open,
-  title,
-  cancelLabel = "취소",
-  confirmLabel = "삭제",
   isSubmitting = false,
   onCancel,
   onConfirm,
-}: ConfirmModalProps) {
+}: CategoryDeleteModalProps) {
   if (!open) {
     return null;
   }
@@ -33,7 +27,7 @@ export function ConfirmModal({
       <section
         role="alertdialog"
         aria-modal="true"
-        aria-labelledby="confirm-modal-title"
+        aria-labelledby="category-delete-modal-title"
         className="
           flex w-[320px] max-w-full flex-col gap-2.5
           rounded-[12px] bg-black-850 p-3
@@ -41,14 +35,14 @@ export function ConfirmModal({
         "
       >
         <h2
-          id="confirm-modal-title"
+          id="category-delete-modal-title"
           className="
             flex h-[72px] items-center justify-center
             px-2 py-6 text-center
             text-[14px] font-medium text-black-100
           "
         >
-          {title}
+          태그를 삭제하시겠습니까?
         </h2>
 
         <div className="flex h-[41px] gap-2.5">
@@ -64,7 +58,7 @@ export function ConfirmModal({
               disabled:opacity-50
             "
           >
-            {cancelLabel}
+            취소
           </button>
 
           <button
@@ -79,7 +73,7 @@ export function ConfirmModal({
               disabled:opacity-50
             "
           >
-            {isSubmitting ? "삭제 중" : confirmLabel}
+            삭제
           </button>
         </div>
       </section>

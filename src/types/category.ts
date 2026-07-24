@@ -16,16 +16,11 @@ export interface Category {
   categoryId: number;
   categoryName: string;
   color: string;
-  iconKey?: CategoryIconKey;
+  iconKey: CategoryIconKey;
 }
 
 export interface CategoryMutationRequest {
   name: string;
   color: string;
-}
-
-export interface ApiResponse<T> {
-  code: string;
-  message: string;
-  data: T;
+  iconKey: CategoryIconKey;
 }
