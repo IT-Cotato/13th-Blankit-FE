@@ -42,7 +42,7 @@ export function HomePage() {
 
   // 빈 화면 테스트 시 두 선언의 주석 전환
   const tasks = mockTasks;
-  // const tasks = mockTasks.slice(0, 0);
+  //const tasks = mockTasks.slice(0, 0);
 
   const hasTasks = tasks.length > 0;
 
