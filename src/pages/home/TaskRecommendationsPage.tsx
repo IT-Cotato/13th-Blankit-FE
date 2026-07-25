@@ -126,6 +126,7 @@ export function TaskRecommendationsPage() {
                 progressRate={task.progressRate}
                 priority={task.priority}
                 status={task.status}
+                category={task.category}
                 onClick={() => {
                   console.log(
                     "선택한 과업:",

@@ -53,9 +53,7 @@ async function searchTasks({
       }) => ({
         taskId,
         title,
-        categoryId: category.categoryId,
-        categoryName: category.categoryName,
-        categoryColor: category.color,
+        category,
         priority,
         deadline,
         status,
@@ -224,6 +222,7 @@ export function SearchPage() {
                     progressRate={task.progressRate}
                     priority={task.priority}
                     status={task.status}
+                    category={task.category}
                     onClick={() =>
                       handleTaskClick(task.taskId)
                     }

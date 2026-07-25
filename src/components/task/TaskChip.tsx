@@ -1,5 +1,7 @@
-import mockTaskIcon from "@/assets/icons/task/mock-icon.svg";
+import { CategoryIconBadge } from "@/components/task-create/category/CategoryIconBadge";
+import { getCategoryPresentation } from "@/constants/category";
 
+import type { Category } from "@/types/category";
 import type {
   TaskPriority,
   TaskStatus,
@@ -11,7 +13,7 @@ interface TaskChipProps {
   progressRate: number;
   priority: TaskPriority;
   status: TaskStatus;
-  categoryIcon?: string;
+  category: Category;
   onClick?: () => void;
 }
 
@@ -52,9 +54,12 @@ export function TaskChip({
   progressRate,
   priority,
   status,
-  categoryIcon = mockTaskIcon,
+  category,
   onClick,
 }: TaskChipProps) {
+  const categoryPresentation =
+    getCategoryPresentation(category);
+
   const clampedProgressRate = Math.min(
     100,
     Math.max(0, progressRate),
@@ -90,10 +95,10 @@ export function TaskChip({
         transition-colors active:bg-black-800
       "
     >
-      <img
-        src={categoryIcon}
-        alt=""
-        className="h-10 w-10 shrink-0"
+      <CategoryIconBadge
+        icon={categoryPresentation.icon}
+        color={categoryPresentation.color}
+        size={40}
       />
 
       <div className="min-w-0 flex-1">

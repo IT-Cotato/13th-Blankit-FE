@@ -2,6 +2,7 @@ import type {
   TaskPriority,
   TaskStatus,
 } from "@/types/task";
+import type { Category } from "@/types/category";
 
 export type ApiResponse<T> = {
   code: string;
@@ -12,9 +13,7 @@ export type ApiResponse<T> = {
 export type SearchTask = {
   taskId: number;
   title: string;
-  categoryId: number;
-  categoryName: string;
-  categoryColor: string;
+  category: Category;
   priority: TaskPriority;
   deadline: string;
   status: TaskStatus;

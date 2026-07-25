@@ -18,7 +18,7 @@ function hexToRgba(hex: string, alpha: number) {
   const value = Number.parseInt(expanded, 16);
 
   if (expanded.length !== 6 || Number.isNaN(value)) {
-    return `color-mix(in srgb, ${hex} 20%, transparent)`;
+    return `color-mix(in srgb, ${hex} ${alpha * 100}%, transparent)`;
   }
 
   const red = (value >> 16) & 255;
