@@ -67,12 +67,12 @@ export function CategoryFormSheet({
           type="button"
           aria-label="카테고리 목록으로 돌아가기"
           onClick={onBack}
-          className="flex h-6 w-6 shrink-0 items-center justify-start"
+          className="flex h-6 w-6 items-center justify-start"
         >
           <img
             src={backIcon}
             alt=""
-            className="h-6 w-6"
+            className="h-3 w-2"
           />
 
         </button>

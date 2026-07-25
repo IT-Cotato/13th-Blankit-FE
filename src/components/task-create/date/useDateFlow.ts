@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import type { RepeatSettings } from "./repeatTypes";
+
 interface UseDateFlowOptions {
   onReturnToComposer?: () => void;
 }
@@ -9,6 +11,8 @@ export function useDateFlow({
 }: UseDateFlowOptions = {}) {
   const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [repeatSettings, setRepeatSettings] =
+    useState<RepeatSettings | null>(null);
 
   function openDateSheet() {
     setOpen(true);
@@ -21,6 +25,14 @@ export function useDateFlow({
 
   function confirmDate(date: Date) {
     setSelectedDate(date);
+    setRepeatSettings(null);
+    setOpen(false);
+    onReturnToComposer?.();
+  }
+
+  function confirmRepeat(settings: RepeatSettings) {
+    setRepeatSettings(settings);
+    setSelectedDate(null);
     setOpen(false);
     onReturnToComposer?.();
   }
@@ -28,8 +40,10 @@ export function useDateFlow({
   return {
     open,
     selectedDate,
+    repeatSettings,
     openDateSheet,
     closeDateSheet,
     confirmDate,
+    confirmRepeat,
   };
 }

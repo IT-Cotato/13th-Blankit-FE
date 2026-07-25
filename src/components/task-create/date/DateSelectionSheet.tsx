@@ -1,54 +1,109 @@
-import { useMemo, useRef, useState } from "react";
+import { useState } from "react";
 
 import backIcon from "@/assets/icons/back-button-black-600.svg";
 
-import { MonthYearPicker } from "./MonthYearPicker";
+import { CalendarPanel } from "./CalendarPanel";
+import { CalendarPickerSheet } from "./CalendarPickerSheet";
+import { RepeatSettingsForm } from "./RepeatSettingsForm";
 import {
-  addMonths,
-  formatMonth,
-  getCalendarCells,
-  isSameDate,
-  startOfMonth,
-} from "./dateUtils";
+  createInitialRepeatDraft,
+  isRepeatSettingsComplete,
+} from "./repeatTypes";
+
+import type {
+  RepeatPattern,
+  RepeatSettings,
+  RepeatSettingsDraft,
+} from "./repeatTypes";
 
 interface DateSelectionSheetProps {
   initialDate: Date | null;
+  initialRepeat: RepeatSettings | null;
   onBack: () => void;
   onConfirm: (date: Date) => void;
+  onConfirmRepeat: (settings: RepeatSettings) => void;
 }
 
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+type DateTab = "general" | "repeat";
+type RepeatDateTarget = "start" | "end";
+
+function clonePattern(pattern: RepeatPattern): RepeatPattern {
+  switch (pattern.type) {
+    case "weekly":
+      return { ...pattern, weekdays: [...pattern.weekdays] };
+    case "monthly":
+      return { ...pattern, days: [...pattern.days] };
+    case "yearly":
+      return { ...pattern, days: [...pattern.days] };
+  }
+}
+
+function createRepeatDraft(
+  initialRepeat: RepeatSettings | null,
+): RepeatSettingsDraft {
+  if (!initialRepeat) {
+    return createInitialRepeatDraft();
+  }
+
+  return {
+    startDate: initialRepeat.startDate,
+    endDate: initialRepeat.endDate,
+    pattern: clonePattern(initialRepeat.pattern),
+  };
+}
 
 export function DateSelectionSheet({
   initialDate,
+  initialRepeat,
   onBack,
   onConfirm,
+  onConfirmRepeat,
 }: DateSelectionSheetProps) {
-  const today = useMemo(() => new Date(), []);
-  const minMonth = useMemo(() => startOfMonth(today), [today]);
-  const maxMonth = useMemo(
-    () => new Date(today.getFullYear() + 3, today.getMonth(), 1),
-    [today],
-  );
-  const [visibleMonth, setVisibleMonth] = useState(() =>
-    startOfMonth(initialDate ?? today),
+  const [activeTab, setActiveTab] = useState<DateTab>(
+    initialRepeat ? "repeat" : "general",
   );
   const [selectedDate, setSelectedDate] = useState<Date | null>(initialDate);
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const calendarSwipeRef = useRef({
-    startX: null as number | null,
-    dragged: false,
-  });
-  const cells = getCalendarCells(visibleMonth);
+  const [repeatSettings, setRepeatSettings] = useState(() =>
+    createRepeatDraft(initialRepeat),
+  );
+  const [repeatDateTarget, setRepeatDateTarget] =
+    useState<RepeatDateTarget | null>(null);
+  const repeatComplete = isRepeatSettingsComplete(repeatSettings);
 
-  function moveMonth(amount: number) {
-    const nextMonth = addMonths(visibleMonth, amount);
+  if (repeatDateTarget) {
+    const selectingEndDate = repeatDateTarget === "end";
 
-    if (nextMonth < minMonth || nextMonth > maxMonth) {
-      return;
-    }
+    return (
+      <CalendarPickerSheet
+        initialDate={
+          selectingEndDate
+            ? repeatSettings.endDate
+            : repeatSettings.startDate
+        }
+        minDate={selectingEndDate ? repeatSettings.startDate : null}
+        onBack={() => setRepeatDateTarget(null)}
+        onConfirm={(date) => {
+          setRepeatSettings((current) => {
+            if (repeatDateTarget === "start") {
+              return {
+                ...current,
+                startDate: date,
+                endDate:
+                  current.endDate && current.endDate >= date
+                    ? current.endDate
+                    : null,
+              };
+            }
 
-    setVisibleMonth(nextMonth);
+            return {
+              ...current,
+              endDate: date,
+            };
+          });
+          setRepeatDateTarget(null);
+        }}
+      />
+    );
   }
 
   return (
@@ -56,7 +111,7 @@ export function DateSelectionSheet({
       role="dialog"
       aria-modal="true"
       aria-label="날짜 선택"
-      className="fixed bottom-0 left-1/2 z-[70] flex max-h-[calc(100dvh-16px)] w-full max-w-[375px] -translate-x-1/2 flex-col rounded-t-[20px] bg-black-850 p-5 shadow-[0_10px_60px_rgba(0,0,0,0.6)]"
+      className="fixed bottom-0 left-1/2 z-[70] flex max-h-[calc(100dvh-16px)] w-full -translate-x-1/2 flex-col rounded-t-[20px] bg-black-850 p-5 shadow-[0_10px_60px_rgba(0,0,0,0.6)] sm:max-w-[375px]"
     >
       <header className="grid h-6 shrink-0 grid-cols-[24px_1fr_24px] items-center">
         <button
@@ -81,144 +136,70 @@ export function DateSelectionSheet({
           <button
             type="button"
             role="tab"
-            aria-selected="true"
-            className="rounded-full bg-black-700 text-[14px] font-medium text-black-200"
+            aria-selected={activeTab === "general"}
+            onClick={() => setActiveTab("general")}
+            className={`rounded-full text-[14px] font-medium ${
+              activeTab === "general"
+                ? "bg-black-700 text-black-200"
+                : "text-black-400"
+            }`}
           >
             일반
           </button>
           <button
             type="button"
             role="tab"
-            aria-selected="false"
-            disabled
-            className="cursor-default rounded-full text-[14px] font-medium text-black-200"
+            aria-selected={activeTab === "repeat"}
+            onClick={() => setActiveTab("repeat")}
+            className={`rounded-full text-[14px] font-medium ${
+              activeTab === "repeat"
+                ? "bg-black-700 text-black-200"
+                : "text-black-400"
+            }`}
           >
             반복
           </button>
         </div>
 
-        {!pickerOpen && (
-          <button
-            type="button"
-            aria-expanded={pickerOpen}
-            onClick={() => setPickerOpen((current) => !current)}
-            className="mt-5 self-start text-[16px] font-semibold text-black-300"
-          >
-            {formatMonth(visibleMonth)}
-          </button>
+        {activeTab === "general" ? (
+          <CalendarPanel
+            selectedDate={selectedDate}
+            onSelect={setSelectedDate}
+          />
+        ) : (
+          <RepeatSettingsForm
+            settings={repeatSettings}
+            onChange={setRepeatSettings}
+            onSelectStartDate={() => setRepeatDateTarget("start")}
+            onSelectEndDate={() => setRepeatDateTarget("end")}
+          />
         )}
-
-        {pickerOpen && (
-          <div className="mt-5 shrink-0">
-            <MonthYearPicker
-              year={visibleMonth.getFullYear()}
-              month={visibleMonth.getMonth()}
-              minMonth={minMonth}
-              maxMonth={maxMonth}
-              onChange={(year, month) =>
-                setVisibleMonth(new Date(year, month, 1))
-              }
-            />
-          </div>
-        )}
-
-        <div
-          className={`${pickerOpen ? "mt-4" : "mt-5"} shrink-0 rounded-[12px] bg-black-800 p-4.5`}
-          onTouchStart={(event) => {
-            calendarSwipeRef.current = {
-              startX: event.touches[0]?.clientX ?? null,
-              dragged: false,
-            };
-          }}
-          onTouchMove={(event) => {
-            const startX = calendarSwipeRef.current.startX;
-            const currentX = event.touches[0]?.clientX;
-
-            if (
-              startX !== null &&
-              currentX !== undefined &&
-              Math.abs(currentX - startX) > 8
-            ) {
-              calendarSwipeRef.current.dragged = true;
-            }
-          }}
-          onTouchEnd={(event) => {
-            const startX = calendarSwipeRef.current.startX;
-
-            if (startX === null) {
-              return;
-            }
-
-            const endX = event.changedTouches[0]?.clientX ?? startX;
-            const distance = endX - startX;
-            calendarSwipeRef.current.startX = null;
-
-            if (Math.abs(distance) >= 40) {
-              moveMonth(distance < 0 ? 1 : -1);
-            }
-
-            window.setTimeout(() => {
-              calendarSwipeRef.current.dragged = false;
-            }, 0);
-          }}
-          onClickCapture={(event) => {
-            if (calendarSwipeRef.current.dragged) {
-              event.preventDefault();
-              event.stopPropagation();
-            }
-          }}
-        >
-          <div className="grid h-[37px] grid-cols-7 gap-x-2">
-            {WEEKDAYS.map((weekday) => (
-              <span
-                key={weekday}
-                className="flex items-center justify-center text-[14px] font-medium text-black-700"
-              >
-                {weekday}
-              </span>
-            ))}
-          </div>
-
-          <div className="mt-2 grid grid-cols-7 gap-x-2 gap-y-2.5">
-            {cells.map((cell) =>
-              cell.kind === "date" ? (
-                <button
-                  key={cell.key}
-                  type="button"
-                  aria-label={`${cell.date.getFullYear()}년 ${
-                    cell.date.getMonth() + 1
-                  }월 ${cell.day}일`}
-                  aria-pressed={isSameDate(selectedDate, cell.date)}
-                  onClick={() => setSelectedDate(cell.date)}
-                  className={`flex h-[37px] w-full items-center justify-center rounded-[6px] px-2.5 py-3 text-[14px] font-medium leading-[13px] ${
-                    isSameDate(selectedDate, cell.date)
-                      ? "bg-green-500 text-black-900"
-                      : "bg-[rgba(60,63,67,0.5)] text-black-300"
-                  }`}
-                >
-                  {cell.day}
-                </button>
-              ) : (
-                <span
-                  key={cell.key}
-                  aria-hidden="true"
-                  className="flex h-[37px] w-full items-center justify-center text-black-750"
-                >
-                  ·
-                </span>
-              ),
-            )}
-          </div>
-        </div>
       </div>
 
       <div className="shrink-0 pt-5">
         <button
           type="button"
-          disabled={!selectedDate}
+          disabled={
+            activeTab === "general" ? !selectedDate : !repeatComplete
+          }
           onClick={() => {
-            if (selectedDate) {
-              onConfirm(selectedDate);
+            if (activeTab === "general") {
+              if (selectedDate) {
+                onConfirm(selectedDate);
+              }
+              return;
+            }
+
+            if (
+              repeatComplete &&
+              repeatSettings.startDate &&
+              repeatSettings.endDate
+            ) {
+              onConfirmRepeat({
+                startDate: repeatSettings.startDate,
+                endDate: repeatSettings.endDate,
+                pattern: clonePattern(repeatSettings.pattern),
+              });
             }
           }}
           className="h-12 w-full rounded-[6px] bg-black-800 text-[14px] font-semibold text-black-200 disabled:cursor-not-allowed disabled:text-black-650"

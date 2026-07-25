@@ -14,9 +14,12 @@ import { CategoryManagerSheet } from "@/components/task-create/category/Category
 import { useCategoryFlow } from "@/components/task-create/category/useCategoryFlow";
 import { DateSelectionSheet } from "@/components/task-create/date/DateSelectionSheet";
 import { formatDeadline } from "@/components/task-create/date/dateUtils";
+import { getFirstRepeatDate } from "@/components/task-create/date/repeatDateUtils";
 import { useDateFlow } from "@/components/task-create/date/useDateFlow";
 
 import { getCategoryPresentation } from "@/constants/category";
+
+const CHIP_DRAG_THRESHOLD = 12;
 
 export interface TaskCreateComposerHandle {
   focus: () => void;
@@ -72,6 +75,9 @@ export const TaskCreateComposer = forwardRef<
   const canContinue = title.trim().length > 0;
   const selectedCategoryPresentation = categoryFlow.selectedCategory
     ? getCategoryPresentation(categoryFlow.selectedCategory)
+    : null;
+  const firstRepeatDate = dateFlow.repeatSettings
+    ? getFirstRepeatDate(dateFlow.repeatSettings)
     : null;
 
   useImperativeHandle(ref, () => ({
@@ -140,6 +146,13 @@ export const TaskCreateComposer = forwardRef<
               return;
             }
 
+            if (
+              scroller.scrollWidth <= scroller.clientWidth
+            ) {
+              chipDragRef.current.pointerId = -1;
+              return;
+            }
+
             chipDragRef.current = {
               pointerId: event.pointerId,
               startX: event.clientX,
@@ -158,7 +171,7 @@ export const TaskCreateComposer = forwardRef<
 
             const distance = drag.startX - event.clientX;
 
-            if (Math.abs(distance) > 4) {
+            if (Math.abs(distance) > CHIP_DRAG_THRESHOLD) {
               drag.dragged = true;
             }
 
@@ -194,7 +207,11 @@ export const TaskCreateComposer = forwardRef<
             >
               <img src={calendarIcon} alt="" className="h-4 w-4 shrink-0" />
               <span>
-                {dateFlow.selectedDate
+                {dateFlow.repeatSettings
+                  ? firstRepeatDate
+                    ? formatDeadline(firstRepeatDate)
+                    : "반복 설정"
+                  : dateFlow.selectedDate
                   ? formatDeadline(dateFlow.selectedDate)
                   : "날짜 선택"}
               </span>
@@ -279,8 +296,10 @@ export const TaskCreateComposer = forwardRef<
       {dateFlow.open && (
         <DateSelectionSheet
           initialDate={dateFlow.selectedDate}
+          initialRepeat={dateFlow.repeatSettings}
           onBack={dateFlow.closeDateSheet}
           onConfirm={dateFlow.confirmDate}
+          onConfirmRepeat={dateFlow.confirmRepeat}
         />
       )}
 

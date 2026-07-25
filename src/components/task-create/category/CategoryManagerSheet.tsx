@@ -46,7 +46,7 @@ export function CategoryManagerSheet({
           <img
             src={backIcon}
             alt=""
-            className="h-6 w-6"
+            className="h-3 w-2"
           />
         </button>
 
