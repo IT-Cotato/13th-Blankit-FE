@@ -7,7 +7,10 @@ import { HomeTopBar } from "@/components/home/HomeTopBar";
 import { RecommendedTaskTimeCard } from "@/components/home/RecommendedTaskTimeCard";
 import { WeeklyCalendar } from "@/components/home/WeeklyCalendar";
 import { TodayRecommendedTasks } from "@/components/task/TodayRecommendedTasks";
+import { TaskCombinationSection } from "@/components/task-combination/TaskCombinationSection";
 import { mockTasks } from "@/mocks/tasks";
+import { usePlaylistStore } from "@/store/usePlaylistStore";
+import { shouldShowDockedTaskTimeBar } from "@/utils/homeDockedTaskTimeBar";
 
 const HOME_TOP_BAR_HEIGHT = 50;
 
@@ -38,7 +41,11 @@ function HomeEmptyState() {
 export function HomePage() {
   const navigate = useNavigate();
   const taskCardRef = useRef<HTMLDivElement>(null);
-  const [showDockedBar, setShowDockedBar] = useState(false);
+  const [showDockedBar, setShowDockedBar] =
+    useState(false);
+  const currentPlaylistTask = usePlaylistStore(
+    (state) => state.playlist[0],
+  );
 
   // 빈 화면 테스트 시 두 선언의 주석 전환
   const tasks = mockTasks;
@@ -47,7 +54,7 @@ export function HomePage() {
   const hasTasks = tasks.length > 0;
 
   useEffect(() => {
-    if (!hasTasks) {
+    if (!hasTasks || currentPlaylistTask) {
       return;
     }
 
@@ -59,11 +66,15 @@ export function HomePage() {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        const isOutsideVisibleArea = !entry.isIntersecting;
-        const hasPassedTopBar =
-          entry.boundingClientRect.bottom <= HOME_TOP_BAR_HEIGHT;
-
-        setShowDockedBar(isOutsideVisibleArea && hasPassedTopBar);
+        setShowDockedBar(
+          shouldShowDockedTaskTimeBar({
+            hasCurrentPlaylistTask: false,
+            isCardVisible: entry.isIntersecting,
+            hasPassedTopBar:
+              entry.boundingClientRect.bottom <=
+              HOME_TOP_BAR_HEIGHT,
+          }),
+        );
       },
       {
         threshold: 0,
@@ -76,7 +87,10 @@ export function HomePage() {
     return () => {
       observer.disconnect();
     };
-  }, [hasTasks]);
+  }, [currentPlaylistTask, hasTasks]);
+
+  const shouldRenderDockedBar =
+    !currentPlaylistTask && showDockedBar;
 
   if (!hasTasks) {
     return (
@@ -91,7 +105,11 @@ export function HomePage() {
     <>
       <HomeTopBar />
 
-      <div className="flex flex-col gap-5 px-5 pt-5">
+      <div
+        className={`flex flex-col gap-5 px-5 pt-5 ${
+          shouldRenderDockedBar ? "pb-[90px]" : ""
+        }`}
+      >
         <WeeklyCalendar />
 
         <div ref={taskCardRef}>
@@ -103,13 +121,14 @@ export function HomePage() {
           onViewAll={() => {
             navigate("/task-recommendations");
           }}
-          onTaskClick={(taskId) => {
-            console.log("선택한 과업:", taskId);
-          }}
         />
+
+        <TaskCombinationSection />
       </div>
 
-      {showDockedBar && <DockedTaskTimeBar />}
+      {shouldRenderDockedBar && (
+        <DockedTaskTimeBar />
+      )}
     </>
   );
 }

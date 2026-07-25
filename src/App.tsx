@@ -5,6 +5,7 @@ import {
 } from "react-router-dom";
 
 import { BottomNavigation } from "./components/layout/BottomNavigation";
+import { PlaylistTaskBar } from "./components/task-combination/PlaylistTaskBar";
 
 import { CalendarPage } from "./pages/calendar/CalendarPage";
 import { HomePage } from "./pages/home/HomePage";
@@ -13,6 +14,9 @@ import { MyPage } from "./pages/mypage/MyPage";
 import { TaskPlaylistPage } from "./pages/task-playlist/TaskPlaylistPage";
 
 import { TaskRecommendationsPage } from "./pages/home/TaskRecommendationsPage";
+import { TaskCombinationDetailPage } from "./pages/home/TaskCombinationDetailPage";
+import { usePlaylistStore } from "./store/usePlaylistStore";
+import { shouldShowPlaylistTaskBar } from "./utils/playlistTaskBarRoutes";
 
 const PAGES_WITHOUT_BOTTOM_NAVIGATION = [
   "/task-recommendations",
@@ -25,12 +29,20 @@ function App() {
     !PAGES_WITHOUT_BOTTOM_NAVIGATION.includes(
       location.pathname,
     );
+  const currentPlaylistTask = usePlaylistStore(
+    (state) => state.playlist[0],
+  );
+  const hasPlaylistTaskBar =
+    Boolean(currentPlaylistTask) &&
+    shouldShowPlaylistTaskBar(location.pathname);
 
   return (
     <>
       <main
         className={
-          hasBottomNavigation
+          hasPlaylistTaskBar
+            ? "min-h-screen pb-[calc(170px+env(safe-area-inset-bottom))]"
+            : hasBottomNavigation
             ? "min-h-screen pb-[calc(90px+env(safe-area-inset-bottom))]"
             : "min-h-screen"
         }
@@ -62,10 +74,19 @@ function App() {
             path="/task-recommendations"
             element={<TaskRecommendationsPage />}
           />
+
+          <Route
+            path="/task-combinations/:modeId"
+            element={<TaskCombinationDetailPage />}
+          />
         </Routes>
       </main>
 
       {hasBottomNavigation && <BottomNavigation />}
+
+      {hasPlaylistTaskBar && currentPlaylistTask && (
+        <PlaylistTaskBar task={currentPlaylistTask} />
+      )}
     </>
   );
 }

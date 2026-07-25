@@ -11,7 +11,11 @@ const bottomNavItems = [
     {
       label: "home",
       to: "/",
-      activePaths: ["/", "/home/search"],
+      activePaths: [
+        "/",
+        "/home/search",
+        "/task-combinations",
+      ],
       icon: homeBlackIcon,
       activeIcon: homeGreenIcon,
     },
