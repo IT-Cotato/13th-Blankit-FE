@@ -89,6 +89,8 @@ export function HomePage({
 
   const [taskTitle, setTaskTitle] =
     useState("");
+  const [showTaskAddedToast, setShowTaskAddedToast] = useState(false);
+  const toastTimerRef = useRef<number | null>(null);
 
   // 빈 화면을 확인하고 싶다면 아래 코드 사용
   // const tasks = mockTasks.slice(0, 0);
@@ -98,7 +100,6 @@ export function HomePage({
 
   useEffect(() => {
     if (!hasTasks) {
-      setShowDockedBar(false);
       return;
     }
 
@@ -135,6 +136,14 @@ export function HomePage({
     };
   }, [hasTasks]);
 
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current !== null) {
+        window.clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
+
   function handleOpenTaskComposer() {
     /*
      * App의 상태 변경을 즉시 반영한 다음
@@ -155,24 +164,19 @@ export function HomePage({
     setTaskTitle("");
   }
 
-  function handleNext() {
-    const trimmedTitle = taskTitle.trim();
+  function handleTaskCreateComplete() {
+    onTaskComposerClose();
+    setTaskTitle("");
+    setShowTaskAddedToast(true);
 
-    if (!trimmedTitle) {
-      return;
+    if (toastTimerRef.current !== null) {
+      window.clearTimeout(toastTimerRef.current);
     }
 
-    // 유사 과업 선택 페이지 구현 전 임시 확인
-    console.log(
-      "입력한 과업명:",
-      trimmedTitle,
-    );
-
-    /*
-     * 유사 과업 선택 페이지를 만든 후:
-     *
-     * navigate("/tasks/new/similar");
-     */
+    toastTimerRef.current = window.setTimeout(() => {
+      setShowTaskAddedToast(false);
+      toastTimerRef.current = null;
+    }, 2500);
   }
 
   function handleTaskClick(taskId: number) {
@@ -220,8 +224,17 @@ export function HomePage({
           title={taskTitle}
           onTitleChange={setTaskTitle}
           onClose={handleCloseTaskComposer}
-          onNext={handleNext}
+          onComplete={handleTaskCreateComplete}
         />
+      )}
+
+      {showTaskAddedToast && (
+        <div
+          role="status"
+          className="fixed bottom-[calc(104px+env(safe-area-inset-bottom))] left-1/2 z-[120] -translate-x-1/2 whitespace-nowrap rounded-[8px] border border-black-750 bg-black-850 px-5 py-3 text-[14px] font-medium text-black-100 shadow-lg"
+        >
+          과업이 추가되었습니다.
+        </div>
       )}
     </>
   );

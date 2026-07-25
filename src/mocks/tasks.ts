@@ -1,6 +1,60 @@
 import type { Task } from "@/types/task";
 
 export const mockTasks: Task[] = [
+  {
+    taskId: 10,
+    title: "물리 개념 정리",
+    category: {
+      categoryId: 1,
+      categoryName: "학업",
+      color: "#B3BBFA",
+      iconKey: "ctgy-9",
+    },
+    priority: "MEDIUM",
+    isStarred: false,
+    deadline: "2026-06-12",
+    estimatedTime: 180,
+    actualElapsedMinutes: 210,
+    status: "DONE",
+    progressRate: 100,
+    lastMemo: "역학 핵심 개념 정리 완료",
+  },
+  {
+    taskId: 11,
+    title: "영어 강의 복습",
+    category: {
+      categoryId: 1,
+      categoryName: "학업",
+      color: "#B3BBFA",
+      iconKey: "ctgy-9",
+    },
+    priority: "LOW",
+    isStarred: false,
+    deadline: "2026-06-18",
+    estimatedTime: 90,
+    actualElapsedMinutes: 95,
+    status: "DONE",
+    progressRate: 100,
+    lastMemo: null,
+  },
+  {
+    taskId: 12,
+    title: "주간 러닝",
+    category: {
+      categoryId: 3,
+      categoryName: "건강",
+      color: "#5BE478",
+      iconKey: "ctgy-2",
+    },
+    priority: "LOW",
+    isStarred: false,
+    deadline: "2026-06-21",
+    estimatedTime: 60,
+    actualElapsedMinutes: 55,
+    status: "DONE",
+    progressRate: 100,
+    lastMemo: null,
+  },
   // 우선순위 상
   {
     taskId: 1,
@@ -155,6 +209,7 @@ export const mockTasks: Task[] = [
     isStarred: false,
     deadline: "2026-07-19",
     estimatedTime: 30,
+    actualElapsedMinutes: 35,
     status: "DONE",
     progressRate: 100,
     lastMemo: "다음 주 일정 정리 완료",

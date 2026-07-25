@@ -12,6 +12,7 @@ export interface Task {
   isStarred: boolean;
   deadline: string;
   estimatedTime: number;
+  actualElapsedMinutes?: number;
   status: TaskStatus;
   progressRate: number;
   lastMemo: string | null;

@@ -1,4 +1,9 @@
-import { forwardRef, useImperativeHandle, useRef } from "react";
+import {
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 
 import arrowRightIcon from "@/assets/icons/arrow/arrow-pointing-right.svg";
 import calendarIcon from "@/assets/icons/bottom-nav/calendar-green.svg";
@@ -16,8 +21,10 @@ import { DateSelectionSheet } from "@/components/task-create/date/DateSelectionS
 import { formatDeadline } from "@/components/task-create/date/dateUtils";
 import { getFirstRepeatDate } from "@/components/task-create/date/repeatDateUtils";
 import { useDateFlow } from "@/components/task-create/date/useDateFlow";
+import { SimilarTaskSheet } from "@/components/task-create/similar-task/SimilarTaskSheet";
 
 import { getCategoryPresentation } from "@/constants/category";
+import { mockTasks } from "@/mocks/tasks";
 
 const CHIP_DRAG_THRESHOLD = 12;
 
@@ -29,7 +36,7 @@ interface TaskCreateComposerProps {
   title: string;
   onTitleChange: (title: string) => void;
   onClose: () => void;
-  onNext: () => void;
+  onComplete: (similarTaskId: number | null) => void;
 }
 
 export const TaskCreateComposer = forwardRef<
@@ -40,10 +47,11 @@ export const TaskCreateComposer = forwardRef<
     title,
     onTitleChange,
     onClose,
-    onNext,
+    onComplete,
   },
   ref,
 ) {
+  const [step, setStep] = useState<"composer" | "similar">("composer");
   const inputRef = useRef<HTMLInputElement>(null);
   const chipScrollerRef = useRef<HTMLDivElement>(null);
   const chipDragRef = useRef({
@@ -69,6 +77,7 @@ export const TaskCreateComposer = forwardRef<
     onReturnToComposer: focusTaskInput,
   });
   const isComposerVisible =
+    step === "composer" &&
     categoryFlow.view === "composer" &&
     alarmFlow.view === "composer" &&
     !dateFlow.open;
@@ -116,7 +125,7 @@ export const TaskCreateComposer = forwardRef<
             onChange={(event) => onTitleChange(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter" && canContinue) {
-                onNext();
+                setStep("similar");
               }
             }}
             className="min-w-0 flex-1 bg-transparent text-[18px] font-semibold leading-[150%] text-black-100 outline-none placeholder:text-black-200"
@@ -126,7 +135,7 @@ export const TaskCreateComposer = forwardRef<
             type="button"
             aria-label="다음"
             disabled={!canContinue}
-            onClick={onNext}
+            onClick={() => setStep("similar")}
             className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
           >
             <img
@@ -252,6 +261,17 @@ export const TaskCreateComposer = forwardRef<
           </div>
         </div>
       </section>
+
+      {step === "similar" && (
+        <SimilarTaskSheet
+          tasks={mockTasks}
+          onBack={() => {
+            setStep("composer");
+            focusTaskInput();
+          }}
+          onComplete={onComplete}
+        />
+      )}
 
       {categoryFlow.view === "category-list" && (
         <CategoryManagerSheet

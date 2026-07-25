@@ -35,7 +35,7 @@ export function CategoryIconBadge({
   withBackground = true,
   className = "",
 }: CategoryIconBadgeProps) {
-  const iconSize = withBackground ? size * 0.6 : size;
+  const iconSize = withBackground ? size * 0.5 : size;
 
   return (
     <span
