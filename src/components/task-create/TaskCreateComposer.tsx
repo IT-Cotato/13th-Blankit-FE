@@ -12,6 +12,9 @@ import { CategoryFormSheet } from "@/components/task-create/category/CategoryFor
 import { CategoryIconBadge } from "@/components/task-create/category/CategoryIconBadge";
 import { CategoryManagerSheet } from "@/components/task-create/category/CategoryManagerSheet";
 import { useCategoryFlow } from "@/components/task-create/category/useCategoryFlow";
+import { DateSelectionSheet } from "@/components/task-create/date/DateSelectionSheet";
+import { formatDeadline } from "@/components/task-create/date/dateUtils";
+import { useDateFlow } from "@/components/task-create/date/useDateFlow";
 
 import { getCategoryPresentation } from "@/constants/category";
 
@@ -39,6 +42,13 @@ export const TaskCreateComposer = forwardRef<
   ref,
 ) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const chipScrollerRef = useRef<HTMLDivElement>(null);
+  const chipDragRef = useRef({
+    pointerId: -1,
+    startX: 0,
+    scrollLeft: 0,
+    dragged: false,
+  });
 
   function focusTaskInput() {
     requestAnimationFrame(() => {
@@ -52,8 +62,13 @@ export const TaskCreateComposer = forwardRef<
   const alarmFlow = useAlarmFlow({
     onReturnToComposer: focusTaskInput,
   });
+  const dateFlow = useDateFlow({
+    onReturnToComposer: focusTaskInput,
+  });
   const isComposerVisible =
-    categoryFlow.view === "composer" && alarmFlow.view === "composer";
+    categoryFlow.view === "composer" &&
+    alarmFlow.view === "composer" &&
+    !dateFlow.open;
   const canContinue = title.trim().length > 0;
   const selectedCategoryPresentation = categoryFlow.selectedCategory
     ? getCategoryPresentation(categoryFlow.selectedCategory)
@@ -116,47 +131,108 @@ export const TaskCreateComposer = forwardRef<
           </button>
         </div>
 
-        <div className="mt-5 flex gap-3 overflow-x-auto pb-1">
-          <button
-            type="button"
-            className="flex h-12 shrink-0 items-center gap-2 rounded-[6px] bg-black-800 px-4 text-[14px] font-medium text-black-100"
-          >
-            <img src={calendarIcon} alt="" className="h-4 w-4 shrink-0" />
-            <span>마감일</span>
-          </button>
+        <div
+          ref={chipScrollerRef}
+          onPointerDown={(event) => {
+            const scroller = chipScrollerRef.current;
 
-          <button
-            type="button"
-            onClick={categoryFlow.openCategories}
-            className="flex h-12 shrink-0 items-center gap-2 rounded-[6px] bg-black-800 px-4 text-[14px] font-medium text-black-100"
-          >
-            {selectedCategoryPresentation ? (
-              <CategoryIconBadge
-                icon={selectedCategoryPresentation.icon}
-                color={selectedCategoryPresentation.color}
-                size={16}
-                withBackground={false}
-              />
-            ) : (
-              <img
-                src={categoryIcon}
-                alt=""
-                className="h-4 w-4 shrink-0"
-              />
-            )}
-            <span>
-              {categoryFlow.selectedCategory?.categoryName ?? "카테고리"}
-            </span>
-          </button>
+            if (!scroller) {
+              return;
+            }
 
-          <button
-            type="button"
-            onClick={alarmFlow.openAlarms}
-            className="flex h-12 shrink-0 items-center gap-2 rounded-[6px] bg-black-800 px-4 text-[14px] font-medium text-black-100"
-          >
-            <img src={alarmIcon} alt="" className="h-4 w-4 shrink-0" />
-            <span>{alarmFlow.selectedAlarm} 알림</span>
-          </button>
+            chipDragRef.current = {
+              pointerId: event.pointerId,
+              startX: event.clientX,
+              scrollLeft: scroller.scrollLeft,
+              dragged: false,
+            };
+            scroller.setPointerCapture(event.pointerId);
+          }}
+          onPointerMove={(event) => {
+            const scroller = chipScrollerRef.current;
+            const drag = chipDragRef.current;
+
+            if (!scroller || drag.pointerId !== event.pointerId) {
+              return;
+            }
+
+            const distance = drag.startX - event.clientX;
+
+            if (Math.abs(distance) > 4) {
+              drag.dragged = true;
+            }
+
+            scroller.scrollLeft = drag.scrollLeft + distance;
+          }}
+          onPointerUp={(event) => {
+            const scroller = chipScrollerRef.current;
+
+            if (
+              scroller?.hasPointerCapture(event.pointerId)
+            ) {
+              scroller.releasePointerCapture(event.pointerId);
+            }
+
+            chipDragRef.current.pointerId = -1;
+            window.setTimeout(() => {
+              chipDragRef.current.dragged = false;
+            }, 0);
+          }}
+          onClickCapture={(event) => {
+            if (chipDragRef.current.dragged) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+          }}
+          className="mt-5 w-full max-w-full cursor-grab overflow-x-scroll overflow-y-hidden overscroll-x-contain pb-1 touch-pan-y [-webkit-overflow-scrolling:touch] [scrollbar-width:none] active:cursor-grabbing [&::-webkit-scrollbar]:hidden"
+        >
+          <div className="flex w-max min-w-full gap-3">
+            <button
+              type="button"
+              onClick={dateFlow.openDateSheet}
+              className="flex h-12 shrink-0 items-center gap-2 rounded-[6px] bg-black-800 px-4 text-[14px] font-medium text-black-100"
+            >
+              <img src={calendarIcon} alt="" className="h-4 w-4 shrink-0" />
+              <span>
+                {dateFlow.selectedDate
+                  ? formatDeadline(dateFlow.selectedDate)
+                  : "날짜 선택"}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={categoryFlow.openCategories}
+              className="flex h-12 max-w-[240px] shrink-0 items-center gap-2 rounded-[6px] bg-black-800 px-4 text-[14px] font-medium text-black-100"
+            >
+              {selectedCategoryPresentation ? (
+                <CategoryIconBadge
+                  icon={selectedCategoryPresentation.icon}
+                  color={selectedCategoryPresentation.color}
+                  size={16}
+                  withBackground={false}
+                />
+              ) : (
+                <img
+                  src={categoryIcon}
+                  alt=""
+                  className="h-4 w-4 shrink-0"
+                />
+              )}
+              <span className="min-w-0 truncate">
+                {categoryFlow.selectedCategory?.categoryName ?? "카테고리"}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={alarmFlow.openAlarms}
+              className="flex h-12 shrink-0 items-center gap-2 rounded-[6px] bg-black-800 px-4 text-[14px] font-medium text-black-100"
+            >
+              <img src={alarmIcon} alt="" className="h-4 w-4 shrink-0" />
+              <span>{alarmFlow.selectedAlarm} 알림</span>
+            </button>
+          </div>
         </div>
       </section>
 
@@ -197,6 +273,14 @@ export const TaskCreateComposer = forwardRef<
         <AlarmSelectionSheet
           selectedAlarm={alarmFlow.selectedAlarm}
           onSelect={alarmFlow.selectAlarm}
+        />
+      )}
+
+      {dateFlow.open && (
+        <DateSelectionSheet
+          initialDate={dateFlow.selectedDate}
+          onBack={dateFlow.closeDateSheet}
+          onConfirm={dateFlow.confirmDate}
         />
       )}
 
