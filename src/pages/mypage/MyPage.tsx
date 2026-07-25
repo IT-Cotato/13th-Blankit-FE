@@ -70,7 +70,7 @@ export function MyPage() {
       <button
         type="button"
         onClick={() => setIsLogoutModalOpen(true)}
-        className="flex h-12 w-full flex-col items-center justify-center gap-2.5 rounded-lg bg-black-800 text-sm font-medium leading-[21px] tracking-[-0.21px] text-black-600 transition-colors hover:text-black-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500"
+        className="flex h-12 w-full flex-col items-center justify-center gap-2.5 rounded-lg bg-black-800 text-sm font-medium leading-[21px] tracking-[-0.21px] text-black-600 outline-none transition-colors hover:text-black-300"
       >
         로그아웃
       </button>
