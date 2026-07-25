@@ -5,6 +5,8 @@ import calendarIcon from "@/assets/icons/bottom-nav/calendar-green.svg";
 import alarmIcon from "@/assets/icons/task/alarm-icon.svg";
 import categoryIcon from "@/assets/icons/task/category_icon.svg";
 
+import { AlarmSelectionSheet } from "@/components/task-create/alarm/AlarmSelectionSheet";
+import { useAlarmFlow } from "@/components/task-create/alarm/useAlarmFlow";
 import { CategoryDeleteModal } from "@/components/task-create/category/CategoryDeleteModal";
 import { CategoryFormSheet } from "@/components/task-create/category/CategoryFormSheet";
 import { CategoryIconBadge } from "@/components/task-create/category/CategoryIconBadge";
@@ -47,6 +49,11 @@ export const TaskCreateComposer = forwardRef<
   const categoryFlow = useCategoryFlow({
     onReturnToComposer: focusTaskInput,
   });
+  const alarmFlow = useAlarmFlow({
+    onReturnToComposer: focusTaskInput,
+  });
+  const isComposerVisible =
+    categoryFlow.view === "composer" && alarmFlow.view === "composer";
   const canContinue = title.trim().length > 0;
   const selectedCategoryPresentation = categoryFlow.selectedCategory
     ? getCategoryPresentation(categoryFlow.selectedCategory)
@@ -71,9 +78,9 @@ export const TaskCreateComposer = forwardRef<
         role="dialog"
         aria-modal="true"
         aria-label="과업 추가"
-        aria-hidden={categoryFlow.view !== "composer"}
+        aria-hidden={!isComposerVisible}
         className={`fixed inset-x-0 bottom-0 z-[70] min-h-[150px] rounded-t-[24px] bg-black-850 px-5 pb-5 pt-6 transition-opacity ${
-          categoryFlow.view === "composer"
+          isComposerVisible
             ? "opacity-100"
             : "pointer-events-none opacity-0"
         }`}
@@ -144,10 +151,11 @@ export const TaskCreateComposer = forwardRef<
 
           <button
             type="button"
+            onClick={alarmFlow.openAlarms}
             className="flex h-12 shrink-0 items-center gap-2 rounded-[6px] bg-black-800 px-4 text-[14px] font-medium text-black-100"
           >
             <img src={alarmIcon} alt="" className="h-4 w-4 shrink-0" />
-            <span>1일 전 알림</span>
+            <span>{alarmFlow.selectedAlarm} 알림</span>
           </button>
         </div>
       </section>
@@ -182,6 +190,13 @@ export const TaskCreateComposer = forwardRef<
           submitting={categoryFlow.submitting}
           onBack={categoryFlow.backToList}
           onSubmit={categoryFlow.submitCategory}
+        />
+      )}
+
+      {alarmFlow.view === "alarm-list" && (
+        <AlarmSelectionSheet
+          selectedAlarm={alarmFlow.selectedAlarm}
+          onSelect={alarmFlow.selectAlarm}
         />
       )}
 
