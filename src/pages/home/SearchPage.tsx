@@ -45,9 +45,7 @@ async function searchTasks({
       ({
         taskId,
         title,
-        categoryId,
-        categoryName,
-        categoryColor,
+        category,
         priority,
         deadline,
         status,
@@ -55,9 +53,9 @@ async function searchTasks({
       }) => ({
         taskId,
         title,
-        categoryId,
-        categoryName,
-        categoryColor,
+        categoryId: category.categoryId,
+        categoryName: category.categoryName,
+        categoryColor: category.color,
         priority,
         deadline,
         status,

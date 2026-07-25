@@ -134,7 +134,7 @@ export async function deleteMockCategory(categoryId: number) {
   await delay();
 
   const hasTask = mockTasks.some(
-    (task) => task.categoryId === categoryId,
+    (task) => task.category.categoryId === categoryId,
   );
 
   if (hasTask) {
