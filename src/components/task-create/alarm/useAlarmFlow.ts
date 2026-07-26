@@ -6,14 +6,16 @@ export type AlarmFlowView = "composer" | "alarm-list";
 
 interface UseAlarmFlowOptions {
   onReturnToComposer?: () => void;
+  initialAlarm?: AlarmOption;
 }
 
 export function useAlarmFlow({
   onReturnToComposer,
+  initialAlarm = "1일 전",
 }: UseAlarmFlowOptions = {}) {
   const [view, setView] = useState<AlarmFlowView>("composer");
   const [selectedAlarm, setSelectedAlarm] =
-    useState<AlarmOption>("1시간 전");
+    useState<AlarmOption>(initialAlarm);
 
   function openAlarms() {
     setView("alarm-list");

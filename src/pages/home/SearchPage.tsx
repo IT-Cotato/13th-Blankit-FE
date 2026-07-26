@@ -1,16 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { RecentSearch } from "@/components/home/search/RecentSearch";
 import { SearchBar } from "@/components/home/search/SearchBar";
 import { TaskChip } from "@/components/task/TaskChip";
 import { mockSearchHistorySuccess } from "@/mocks/searchMockData";
-import { mockTasks } from "@/mocks/tasks";
 
 import type {
   SearchHistory,
   SearchTaskData,
   SearchTaskResponse,
 } from "@/types/search";
+import type { Task } from "@/types/task";
 
 type SearchTasksParams = {
   keyword: string;
@@ -24,14 +24,17 @@ type SearchTasksParams = {
  */
 async function searchTasks({
   keyword,
+  tasks,
   page = 0,
   size = 20,
-}: SearchTasksParams): Promise<SearchTaskResponse> {
+}: SearchTasksParams & {
+  tasks: Task[];
+}): Promise<SearchTaskResponse> {
   const normalizedKeyword = keyword
     .trim()
     .toLowerCase();
 
-  const filteredTasks = mockTasks.filter((task) =>
+  const filteredTasks = tasks.filter((task) =>
     task.title
       .toLowerCase()
       .includes(normalizedKeyword),
@@ -39,7 +42,7 @@ async function searchTasks({
 
   const startIndex = page * size;
 
-  const tasks = filteredTasks
+  const searchedTasks = filteredTasks
     .slice(startIndex, startIndex + size)
     .map(
       ({
@@ -66,12 +69,20 @@ async function searchTasks({
     message: "검색에 성공했습니다.",
     data: {
       totalCount: filteredTasks.length,
-      tasks,
+      tasks: searchedTasks,
     },
   };
 }
 
-export function SearchPage() {
+interface SearchPageProps {
+  tasks: Task[];
+  onTaskClick: (taskId: number) => void;
+}
+
+export function SearchPage({
+  tasks,
+  onTaskClick,
+}: SearchPageProps) {
   const [recentSearches, setRecentSearches] =
     useState<SearchHistory[]>(
       mockSearchHistorySuccess.data,
@@ -79,6 +90,8 @@ export function SearchPage() {
 
   const [searchResult, setSearchResult] =
     useState<SearchTaskData | null>(null);
+  const [activeKeyword, setActiveKeyword] =
+    useState("");
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -115,8 +128,10 @@ export function SearchPage() {
     try {
       const response = await searchTasks({
         keyword: trimmedKeyword,
+        tasks,
       });
 
+      setActiveKeyword(trimmedKeyword);
       setSearchResult(response.data);
     } catch {
       setSearchResult(null);
@@ -129,6 +144,7 @@ export function SearchPage() {
   };
 
   const handleSearchTextChange = () => {
+    setActiveKeyword("");
     setSearchResult(null);
     setErrorMessage(null);
   }
@@ -148,9 +164,18 @@ export function SearchPage() {
     setRecentSearches([]);
   };
 
-  const handleTaskClick = (taskId: number) => {
-    console.log("선택한 과업 ID:", taskId);
-  };
+  useEffect(() => {
+    if (!activeKeyword) {
+      return;
+    }
+
+    void searchTasks({
+      keyword: activeKeyword,
+      tasks,
+    }).then((response) => {
+      setSearchResult(response.data);
+    });
+  }, [activeKeyword, tasks]);
 
   const hasSearched = searchResult !== null;
 
@@ -224,7 +249,7 @@ export function SearchPage() {
                     status={task.status}
                     category={task.category}
                     onClick={() =>
-                      handleTaskClick(task.taskId)
+                      onTaskClick(task.taskId)
                     }
                   />
                 </li>

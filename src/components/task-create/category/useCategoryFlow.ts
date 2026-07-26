@@ -22,17 +22,19 @@ export type CategoryFormMode = "create" | "update";
 
 interface UseCategoryFlowOptions {
   onReturnToComposer?: () => void;
+  initialCategory?: Category | null;
 }
 
 export function useCategoryFlow({
   onReturnToComposer,
+  initialCategory = null,
 }: UseCategoryFlowOptions = {}) {
   const errorTimerRef = useRef<number | null>(null);
 
   const [view, setView] = useState<CategoryFlowView>("composer");
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] =
-    useState<Category | null>(null);
+    useState<Category | null>(initialCategory);
   const [editingCategory, setEditingCategory] =
     useState<Category | null>(null);
   const [pendingDeleteCategory, setPendingDeleteCategory] =

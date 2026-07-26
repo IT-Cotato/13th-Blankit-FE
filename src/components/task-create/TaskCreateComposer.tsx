@@ -25,6 +25,7 @@ import { SimilarTaskSheet } from "@/components/task-create/similar-task/SimilarT
 
 import { getCategoryPresentation } from "@/constants/category";
 import { mockTasks } from "@/mocks/tasks";
+import type { Task } from "@/types/task";
 
 const CHIP_DRAG_THRESHOLD = 12;
 
@@ -34,9 +35,11 @@ export interface TaskCreateComposerHandle {
 
 interface TaskCreateComposerProps {
   title: string;
+  task?: Task | null;
   onTitleChange: (title: string) => void;
   onClose: () => void;
   onComplete: (similarTaskId: number | null) => void;
+  onUpdate?: (task: Task) => void;
 }
 
 export const TaskCreateComposer = forwardRef<
@@ -45,9 +48,11 @@ export const TaskCreateComposer = forwardRef<
 >(function TaskCreateComposer(
   {
     title,
+    task = null,
     onTitleChange,
     onClose,
     onComplete,
+    onUpdate,
   },
   ref,
 ) {
@@ -69,25 +74,60 @@ export const TaskCreateComposer = forwardRef<
 
   const categoryFlow = useCategoryFlow({
     onReturnToComposer: focusTaskInput,
+    initialCategory: task?.category,
   });
   const alarmFlow = useAlarmFlow({
     onReturnToComposer: focusTaskInput,
+    initialAlarm: "1일 전",
   });
   const dateFlow = useDateFlow({
     onReturnToComposer: focusTaskInput,
+    initialDate: task?.deadline
+      ? new Date(`${task.deadline}T00:00:00`)
+      : null,
   });
   const isComposerVisible =
     step === "composer" &&
     categoryFlow.view === "composer" &&
     alarmFlow.view === "composer" &&
     !dateFlow.open;
-  const canContinue = title.trim().length > 0;
+  const hasDeadline =
+    dateFlow.selectedDate !== null ||
+    dateFlow.repeatSettings !== null;
+  const canContinue =
+    title.trim().length > 0 &&
+    hasDeadline &&
+    categoryFlow.selectedCategory !== null;
   const selectedCategoryPresentation = categoryFlow.selectedCategory
     ? getCategoryPresentation(categoryFlow.selectedCategory)
     : null;
   const firstRepeatDate = dateFlow.repeatSettings
     ? getFirstRepeatDate(dateFlow.repeatSettings)
     : null;
+
+  function formatDateValue(date: Date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  }
+
+  function handleComplete(similarTaskId: number | null) {
+    if (task && onUpdate) {
+      onUpdate({
+        ...task,
+        title: title.trim(),
+        category: categoryFlow.selectedCategory ?? task.category,
+        deadline: dateFlow.selectedDate
+          ? formatDateValue(dateFlow.selectedDate)
+          : task.deadline,
+      });
+      return;
+    }
+
+    onComplete(similarTaskId);
+  }
 
   useImperativeHandle(ref, () => ({
     focus() {
@@ -107,7 +147,7 @@ export const TaskCreateComposer = forwardRef<
       <section
         role="dialog"
         aria-modal="true"
-        aria-label="과업 추가"
+        aria-label={task ? "과업 수정" : "과업 추가"}
         aria-hidden={!isComposerVisible}
         className={`fixed inset-x-0 bottom-0 z-[70] min-h-[150px] rounded-t-[24px] bg-black-850 px-5 pb-5 pt-6 transition-opacity ${
           isComposerVisible
@@ -269,7 +309,7 @@ export const TaskCreateComposer = forwardRef<
             setStep("composer");
             focusTaskInput();
           }}
-          onComplete={onComplete}
+          onComplete={handleComplete}
         />
       )}
 

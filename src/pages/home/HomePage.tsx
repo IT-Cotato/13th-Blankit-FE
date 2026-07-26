@@ -3,7 +3,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { flushSync } from "react-dom";
 import { useNavigate } from "react-router-dom";
 
 import sadBunnyIcon from "@/assets/icons/sad-bunny.svg";
@@ -13,21 +12,16 @@ import { HomeTopBar } from "@/components/home/HomeTopBar";
 import { RecommendedTaskTimeCard } from "@/components/home/RecommendedTaskTimeCard";
 import { WeeklyCalendar } from "@/components/home/WeeklyCalendar";
 
-import {
-  TaskCreateComposer,
-  type TaskCreateComposerHandle,
-} from "@/components/task-create/TaskCreateComposer";
-
 import { TodayRecommendedTasks } from "@/components/task/TodayRecommendedTasks";
 
-import { mockTasks } from "@/mocks/tasks";
+import type { Task } from "@/types/task";
 
 const HOME_TOP_BAR_HEIGHT = 50;
 
 interface HomePageProps {
-  isTaskComposerOpen: boolean;
-  onTaskComposerOpen: () => void;
-  onTaskComposerClose: () => void;
+  tasks: Task[];
+  onAddTask: () => void;
+  onTaskClick: (taskId: number) => void;
 }
 
 function HomeEmptyState() {
@@ -72,29 +66,17 @@ function HomeEmptyState() {
 }
 
 export function HomePage({
-  isTaskComposerOpen,
-  onTaskComposerOpen,
-  onTaskComposerClose,
+  tasks,
+  onAddTask,
+  onTaskClick,
 }: HomePageProps) {
   const navigate = useNavigate();
 
   const taskCardRef =
     useRef<HTMLDivElement>(null);
 
-  const taskComposerRef =
-    useRef<TaskCreateComposerHandle>(null);
-
   const [showDockedBar, setShowDockedBar] =
     useState(false);
-
-  const [taskTitle, setTaskTitle] =
-    useState("");
-  const [showTaskAddedToast, setShowTaskAddedToast] = useState(false);
-  const toastTimerRef = useRef<number | null>(null);
-
-  // 빈 화면을 확인하고 싶다면 아래 코드 사용
-  // const tasks = mockTasks.slice(0, 0);
-  const tasks = mockTasks;
 
   const hasTasks = tasks.length > 0;
 
@@ -136,58 +118,11 @@ export function HomePage({
     };
   }, [hasTasks]);
 
-  useEffect(() => {
-    return () => {
-      if (toastTimerRef.current !== null) {
-        window.clearTimeout(toastTimerRef.current);
-      }
-    };
-  }, []);
-
-  function handleOpenTaskComposer() {
-    /*
-     * App의 상태 변경을 즉시 반영한 다음
-     * input에 포커스를 적용합니다.
-     *
-     * 모바일에서 사용자 클릭 직후 input에
-     * 포커스해야 키보드가 안정적으로 열립니다.
-     */
-    flushSync(() => {
-      onTaskComposerOpen();
-    });
-
-    taskComposerRef.current?.focus();
-  }
-
-  function handleCloseTaskComposer() {
-    onTaskComposerClose();
-    setTaskTitle("");
-  }
-
-  function handleTaskCreateComplete() {
-    onTaskComposerClose();
-    setTaskTitle("");
-    setShowTaskAddedToast(true);
-
-    if (toastTimerRef.current !== null) {
-      window.clearTimeout(toastTimerRef.current);
-    }
-
-    toastTimerRef.current = window.setTimeout(() => {
-      setShowTaskAddedToast(false);
-      toastTimerRef.current = null;
-    }, 2500);
-  }
-
-  function handleTaskClick(taskId: number) {
-    console.log("선택한 과업:", taskId);
-  }
-
   return (
     <>
       <HomeTopBar
         showRegistrationHint={!hasTasks}
-        onAddTask={handleOpenTaskComposer}
+        onAddTask={onAddTask}
       />
 
       {hasTasks ? (
@@ -206,7 +141,7 @@ export function HomePage({
                   "/task-recommendations",
                 );
               }}
-              onTaskClick={handleTaskClick}
+              onTaskClick={onTaskClick}
             />
           </div>
 
@@ -218,24 +153,6 @@ export function HomePage({
         <HomeEmptyState />
       )}
 
-      {isTaskComposerOpen && (
-        <TaskCreateComposer
-          ref={taskComposerRef}
-          title={taskTitle}
-          onTitleChange={setTaskTitle}
-          onClose={handleCloseTaskComposer}
-          onComplete={handleTaskCreateComplete}
-        />
-      )}
-
-      {showTaskAddedToast && (
-        <div
-          role="status"
-          className="fixed bottom-[calc(104px+env(safe-area-inset-bottom))] left-1/2 z-[120] -translate-x-1/2 whitespace-nowrap rounded-[8px] border border-black-750 bg-black-850 px-5 py-3 text-[14px] font-medium text-black-100 shadow-lg"
-        >
-          과업이 추가되었습니다.
-        </div>
-      )}
     </>
   );
 }
