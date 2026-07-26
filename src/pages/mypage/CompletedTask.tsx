@@ -48,7 +48,7 @@ export function CompletedTask() {
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="검색어 입력"
-            className="h-full min-w-0 flex-1 appearance-none border-0 bg-transparent pl-3 text-sm font-medium leading-[21px] tracking-[-0.21px] text-black-600 outline-none placeholder:text-black-600 [&::-webkit-search-cancel-button]:appearance-none"
+            className="h-full min-w-0 flex-1 appearance-none border-0 bg-transparent pl-3 text-base font-medium leading-[21px] tracking-[-0.21px] text-black-600 outline-none placeholder:text-black-600 [&::-webkit-search-cancel-button]:appearance-none"
           />
 
           {searchQuery && (
