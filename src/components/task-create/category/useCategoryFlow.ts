@@ -7,9 +7,11 @@ import {
   getMockCategories,
   updateMockCategory,
 } from "@/mocks/categories";
+import { TOAST_DURATION_MS } from "@/constants/toast";
 
 import type {
   Category,
+  CategoryFormMode,
   CategoryMutationRequest,
 } from "@/types/category";
 
@@ -17,8 +19,6 @@ export type CategoryFlowView =
   | "composer"
   | "category-list"
   | "category-form";
-
-export type CategoryFormMode = "create" | "update";
 
 interface UseCategoryFlowOptions {
   onReturnToComposer?: () => void;
@@ -69,7 +69,7 @@ export function useCategoryFlow({
     errorTimerRef.current = window.setTimeout(() => {
       setErrorMessage(null);
       errorTimerRef.current = null;
-    }, 2500);
+    }, TOAST_DURATION_MS);
   }
 
   async function openCategories() {

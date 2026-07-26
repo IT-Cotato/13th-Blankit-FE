@@ -5,29 +5,23 @@ import {
   useState,
 } from "react";
 
-import arrowRightIcon from "@/assets/icons/arrow/arrow-pointing-right.svg";
-import calendarIcon from "@/assets/icons/bottom-nav/calendar-green.svg";
-import alarmIcon from "@/assets/icons/task/alarm-icon.svg";
-import categoryIcon from "@/assets/icons/task/category_icon.svg";
-
+import { ConfirmModal } from "@/components/common/ConfirmModal";
+import { Toast } from "@/components/common/Toast";
+import { TaskComposerPanel } from "@/components/task-create/TaskComposerPanel";
 import { AlarmSelectionSheet } from "@/components/task-create/alarm/AlarmSelectionSheet";
 import { useAlarmFlow } from "@/components/task-create/alarm/useAlarmFlow";
-import { CategoryDeleteModal } from "@/components/task-create/category/CategoryDeleteModal";
 import { CategoryFormSheet } from "@/components/task-create/category/CategoryFormSheet";
-import { CategoryIconBadge } from "@/components/task-create/category/CategoryIconBadge";
 import { CategoryManagerSheet } from "@/components/task-create/category/CategoryManagerSheet";
 import { useCategoryFlow } from "@/components/task-create/category/useCategoryFlow";
 import { DateSelectionSheet } from "@/components/task-create/date/DateSelectionSheet";
-import { formatDeadline } from "@/components/task-create/date/dateUtils";
-import { getFirstRepeatDate } from "@/components/task-create/date/repeatDateUtils";
+import { formatDeadline } from "@/components/task-create/date/utils/calendar";
+import { getFirstRepeatDate } from "@/components/task-create/date/utils/repeat";
 import { useDateFlow } from "@/components/task-create/date/useDateFlow";
 import { SimilarTaskSheet } from "@/components/task-create/similar-task/SimilarTaskSheet";
+import { resolveTaskDeadline } from "@/components/task-create/taskCreateUtils";
 
-import { getCategoryPresentation } from "@/constants/category";
 import { mockTasks } from "@/mocks/tasks";
 import type { Task } from "@/types/task";
-
-const CHIP_DRAG_THRESHOLD = 12;
 
 export interface TaskCreateComposerHandle {
   focus: () => void;
@@ -35,7 +29,7 @@ export interface TaskCreateComposerHandle {
 
 interface TaskCreateComposerProps {
   title: string;
-  task?: Task | null;
+  task: Task | null;
   onTitleChange: (title: string) => void;
   onClose: () => void;
   onComplete: (similarTaskId: number | null) => void;
@@ -48,7 +42,7 @@ export const TaskCreateComposer = forwardRef<
 >(function TaskCreateComposer(
   {
     title,
-    task = null,
+    task,
     onTitleChange,
     onClose,
     onComplete,
@@ -58,13 +52,6 @@ export const TaskCreateComposer = forwardRef<
 ) {
   const [step, setStep] = useState<"composer" | "similar">("composer");
   const inputRef = useRef<HTMLInputElement>(null);
-  const chipScrollerRef = useRef<HTMLDivElement>(null);
-  const chipDragRef = useRef({
-    pointerId: -1,
-    startX: 0,
-    scrollLeft: 0,
-    dragged: false,
-  });
 
   function focusTaskInput() {
     requestAnimationFrame(() => {
@@ -98,20 +85,15 @@ export const TaskCreateComposer = forwardRef<
     title.trim().length > 0 &&
     hasDeadline &&
     categoryFlow.selectedCategory !== null;
-  const selectedCategoryPresentation = categoryFlow.selectedCategory
-    ? getCategoryPresentation(categoryFlow.selectedCategory)
-    : null;
   const firstRepeatDate = dateFlow.repeatSettings
     ? getFirstRepeatDate(dateFlow.repeatSettings)
     : null;
-
-  function formatDateValue(date: Date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
-  }
+  const selectedDeadline = dateFlow.selectedDate ?? firstRepeatDate;
+  const dateLabel = selectedDeadline
+    ? formatDeadline(selectedDeadline)
+    : dateFlow.repeatSettings
+      ? "반복 설정"
+      : "날짜 선택";
 
   function handleComplete(similarTaskId: number | null) {
     if (task && onUpdate) {
@@ -119,9 +101,11 @@ export const TaskCreateComposer = forwardRef<
         ...task,
         title: title.trim(),
         category: categoryFlow.selectedCategory ?? task.category,
-        deadline: dateFlow.selectedDate
-          ? formatDateValue(dateFlow.selectedDate)
-          : task.deadline,
+        deadline: resolveTaskDeadline({
+          selectedDate: dateFlow.selectedDate,
+          repeatSettings: dateFlow.repeatSettings,
+          fallbackDeadline: task.deadline,
+        }),
       });
       return;
     }
@@ -144,163 +128,21 @@ export const TaskCreateComposer = forwardRef<
         className="fixed inset-0 z-[60] cursor-default bg-black/80"
       />
 
-      <section
-        role="dialog"
-        aria-modal="true"
-        aria-label={task ? "과업 수정" : "과업 추가"}
-        aria-hidden={!isComposerVisible}
-        className={`fixed inset-x-0 bottom-0 z-[70] min-h-[150px] rounded-t-[24px] bg-black-850 px-5 pb-5 pt-6 transition-opacity ${
-          isComposerVisible
-            ? "opacity-100"
-            : "pointer-events-none opacity-0"
-        }`}
-      >
-        <div className="flex items-center gap-3">
-          <input
-            ref={inputRef}
-            type="text"
-            value={title}
-            aria-label="과업명"
-            placeholder="할 일을 입력하세요."
-            onChange={(event) => onTitleChange(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && canContinue) {
-                setStep("similar");
-              }
-            }}
-            className="min-w-0 flex-1 bg-transparent text-[18px] font-semibold leading-[150%] text-black-100 outline-none placeholder:text-black-200"
-          />
-
-          <button
-            type="button"
-            aria-label="다음"
-            disabled={!canContinue}
-            onClick={() => setStep("similar")}
-            className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <img
-              src={arrowRightIcon}
-              alt=""
-              className="h-[42px] w-[42px]"
-            />
-          </button>
-        </div>
-
-        <div
-          ref={chipScrollerRef}
-          onPointerDown={(event) => {
-            const scroller = chipScrollerRef.current;
-
-            if (!scroller) {
-              return;
-            }
-
-            if (
-              scroller.scrollWidth <= scroller.clientWidth
-            ) {
-              chipDragRef.current.pointerId = -1;
-              return;
-            }
-
-            chipDragRef.current = {
-              pointerId: event.pointerId,
-              startX: event.clientX,
-              scrollLeft: scroller.scrollLeft,
-              dragged: false,
-            };
-            scroller.setPointerCapture(event.pointerId);
-          }}
-          onPointerMove={(event) => {
-            const scroller = chipScrollerRef.current;
-            const drag = chipDragRef.current;
-
-            if (!scroller || drag.pointerId !== event.pointerId) {
-              return;
-            }
-
-            const distance = drag.startX - event.clientX;
-
-            if (Math.abs(distance) > CHIP_DRAG_THRESHOLD) {
-              drag.dragged = true;
-            }
-
-            scroller.scrollLeft = drag.scrollLeft + distance;
-          }}
-          onPointerUp={(event) => {
-            const scroller = chipScrollerRef.current;
-
-            if (
-              scroller?.hasPointerCapture(event.pointerId)
-            ) {
-              scroller.releasePointerCapture(event.pointerId);
-            }
-
-            chipDragRef.current.pointerId = -1;
-            window.setTimeout(() => {
-              chipDragRef.current.dragged = false;
-            }, 0);
-          }}
-          onClickCapture={(event) => {
-            if (chipDragRef.current.dragged) {
-              event.preventDefault();
-              event.stopPropagation();
-            }
-          }}
-          className="mt-5 w-full max-w-full cursor-grab overflow-x-scroll overflow-y-hidden overscroll-x-contain pb-1 touch-pan-y [-webkit-overflow-scrolling:touch] [scrollbar-width:none] active:cursor-grabbing [&::-webkit-scrollbar]:hidden"
-        >
-          <div className="flex w-max min-w-full gap-3">
-            <button
-              type="button"
-              onClick={dateFlow.openDateSheet}
-              className="flex h-12 shrink-0 items-center gap-2 rounded-[6px] bg-black-800 px-4 text-[14px] font-medium text-black-100"
-            >
-              <img src={calendarIcon} alt="" className="h-4 w-4 shrink-0" />
-              <span>
-                {dateFlow.repeatSettings
-                  ? firstRepeatDate
-                    ? formatDeadline(firstRepeatDate)
-                    : "반복 설정"
-                  : dateFlow.selectedDate
-                  ? formatDeadline(dateFlow.selectedDate)
-                  : "날짜 선택"}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={categoryFlow.openCategories}
-              className="flex h-12 max-w-[240px] shrink-0 items-center gap-2 rounded-[6px] bg-black-800 px-4 text-[14px] font-medium text-black-100"
-            >
-              {selectedCategoryPresentation ? (
-                <CategoryIconBadge
-                  icon={selectedCategoryPresentation.icon}
-                  color={selectedCategoryPresentation.color}
-                  size={16}
-                  withBackground={false}
-                />
-              ) : (
-                <img
-                  src={categoryIcon}
-                  alt=""
-                  className="h-4 w-4 shrink-0"
-                />
-              )}
-              <span className="min-w-0 truncate">
-                {categoryFlow.selectedCategory?.categoryName ?? "카테고리"}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={alarmFlow.openAlarms}
-              className="flex h-12 shrink-0 items-center gap-2 rounded-[6px] bg-black-800 px-4 text-[14px] font-medium text-black-100"
-            >
-              <img src={alarmIcon} alt="" className="h-4 w-4 shrink-0" />
-              <span>{alarmFlow.selectedAlarm} 알림</span>
-            </button>
-          </div>
-        </div>
-      </section>
+      <TaskComposerPanel
+        visible={isComposerVisible}
+        editing={task !== null}
+        title={title}
+        canContinue={canContinue}
+        dateLabel={dateLabel}
+        category={categoryFlow.selectedCategory}
+        alarm={alarmFlow.selectedAlarm}
+        inputRef={inputRef}
+        onTitleChange={onTitleChange}
+        onContinue={() => setStep("similar")}
+        onOpenDate={dateFlow.openDateSheet}
+        onOpenCategory={categoryFlow.openCategories}
+        onOpenAlarm={alarmFlow.openAlarms}
+      />
 
       {step === "similar" && (
         <SimilarTaskSheet
@@ -363,21 +205,16 @@ export const TaskCreateComposer = forwardRef<
         />
       )}
 
-      <CategoryDeleteModal
+      <ConfirmModal
         open={categoryFlow.pendingDeleteCategory !== null}
-        isSubmitting={categoryFlow.submitting}
+        title="카테고리를 삭제하시겠습니까?"
+        confirmLabel="삭제"
+        submitting={categoryFlow.submitting}
         onCancel={categoryFlow.cancelDelete}
         onConfirm={categoryFlow.confirmDelete}
       />
 
-      {categoryFlow.errorMessage && (
-        <div
-          role="status"
-          className="fixed bottom-24 left-1/2 z-[110] -translate-x-1/2 whitespace-nowrap rounded-[6px] border border-black-800 bg-black-850 px-4 py-2 text-[12px] font-medium text-black-200"
-        >
-          {categoryFlow.errorMessage}
-        </div>
-      )}
+      <Toast message={categoryFlow.errorMessage} />
     </>
   );
 });

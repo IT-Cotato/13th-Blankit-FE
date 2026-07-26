@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 
-import backIcon from "@/assets/icons/header/back.svg";
+import backIcon from "@/assets/icons/back-button-black-600.svg";
 import type { Task } from "@/types/task";
 
 import { SimilarTaskCard } from "./SimilarTaskCard";
@@ -90,7 +90,7 @@ export function SimilarTaskSheet({
 
         {categories.length > 0 && (
           <div className="-mx-5 mt-3 overflow-x-auto px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div className="flex w-max gap-2">
+            <div className="flex w-max gap-2.5">
               {categories.map((category) => {
                 const active =
                   selectedCategoryId === category.categoryId;
@@ -104,10 +104,10 @@ export function SimilarTaskSheet({
                       setSelectedCategoryId(category.categoryId);
                       setSelectedTaskId(null);
                     }}
-                    className={`h-9 rounded-[8px] px-3 text-[14px] font-medium transition-colors ${
+                    className={`h-[33px] rounded-[6px] px-2.5 py-1.5 text-[14px] font-medium transition-colors ${
                       active
                         ? "bg-black-650 text-black-900"
-                        : "bg-black-750 text-black-500"
+                        : "bg-black-750/50 text-black-500"
                     }`}
                   >
                     {category.categoryName}

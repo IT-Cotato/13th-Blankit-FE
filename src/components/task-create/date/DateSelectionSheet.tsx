@@ -6,15 +6,12 @@ import { CalendarPanel } from "./CalendarPanel";
 import { CalendarPickerSheet } from "./CalendarPickerSheet";
 import { RepeatSettingsForm } from "./RepeatSettingsForm";
 import {
-  createInitialRepeatDraft,
+  cloneRepeatPattern,
+  createRepeatDraft,
   isRepeatSettingsComplete,
-} from "./repeatTypes";
+} from "./utils/repeat";
 
-import type {
-  RepeatPattern,
-  RepeatSettings,
-  RepeatSettingsDraft,
-} from "./repeatTypes";
+import type { RepeatSettings } from "./repeatTypes";
 
 interface DateSelectionSheetProps {
   initialDate: Date | null;
@@ -26,31 +23,6 @@ interface DateSelectionSheetProps {
 
 type DateTab = "general" | "repeat";
 type RepeatDateTarget = "start" | "end";
-
-function clonePattern(pattern: RepeatPattern): RepeatPattern {
-  switch (pattern.type) {
-    case "weekly":
-      return { ...pattern, weekdays: [...pattern.weekdays] };
-    case "monthly":
-      return { ...pattern, days: [...pattern.days] };
-    case "yearly":
-      return { ...pattern, days: [...pattern.days] };
-  }
-}
-
-function createRepeatDraft(
-  initialRepeat: RepeatSettings | null,
-): RepeatSettingsDraft {
-  if (!initialRepeat) {
-    return createInitialRepeatDraft();
-  }
-
-  return {
-    startDate: initialRepeat.startDate,
-    endDate: initialRepeat.endDate,
-    pattern: clonePattern(initialRepeat.pattern),
-  };
-}
 
 export function DateSelectionSheet({
   initialDate,
@@ -192,17 +164,16 @@ export function DateSelectionSheet({
 
             if (
               repeatComplete &&
-              repeatSettings.startDate &&
-              repeatSettings.endDate
+              repeatSettings.startDate
             ) {
               onConfirmRepeat({
                 startDate: repeatSettings.startDate,
                 endDate: repeatSettings.endDate,
-                pattern: clonePattern(repeatSettings.pattern),
+                pattern: cloneRepeatPattern(repeatSettings.pattern),
               });
             }
           }}
-          className="h-12 w-full rounded-[6px] bg-black-800 text-[14px] font-semibold text-black-200 disabled:cursor-not-allowed disabled:text-black-650"
+          className="h-12 w-full rounded-[8px] bg-black-800 text-[14px] font-medium text-black-600 disabled:cursor-not-allowed disabled:text-black-650"
         >
           완료
         </button>

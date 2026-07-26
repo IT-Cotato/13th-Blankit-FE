@@ -12,6 +12,8 @@ export type CategoryIconKey =
   | "ctgy-11"
   | "ctgy-12";
 
+export type CategoryFormMode = "create" | "update";
+
 export interface Category {
   categoryId: number;
   categoryName: string;

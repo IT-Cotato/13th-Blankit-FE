@@ -54,22 +54,30 @@ export function TaskActionSheet({
         role="dialog"
         aria-modal="false"
         aria-label="과업 메뉴"
-        className={`fixed inset-x-0 z-[52] h-[106px] bg-green-500 ${bottomClassName}`}
+        className={`fixed inset-x-0 z-[52] h-[90px] bg-green-500 px-6 ${bottomClassName}`}
       >
-        <div className="flex h-full">
+        <div className="flex h-full items-center gap-2.5">
           {actions.map((action) => (
             <button
               key={action.label}
               type="button"
               onClick={action.onClick}
-              className="flex flex-1 flex-col items-center justify-center gap-2 text-[13px] font-medium text-black-900 active:bg-green-600"
+              className="
+                flex h-[67px] min-w-0 flex-1
+                items-center justify-center
+                p-2.5
+                text-[12px] font-medium text-black-900
+                active:bg-green-600
+              "
             >
-              <img
-                src={action.icon}
-                alt=""
-                className="h-6 w-6"
-              />
-              <span>{action.label}</span>
+              <div className="flex h-[47px] w-full flex-col items-center justify-center gap-[5px]">
+                <img
+                  src={action.icon}
+                  alt=""
+                  className="h-5 w-5"
+                />
+                <span>{action.label}</span>
+              </div>
             </button>
           ))}
         </div>

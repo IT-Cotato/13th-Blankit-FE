@@ -67,3 +67,19 @@ export function formatMonth(date: Date) {
 export function formatDeadline(date: Date) {
   return `${date.getMonth() + 1}월 ${date.getDate()}일`;
 }
+
+export function formatDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+export function formatFullDate(date: Date | null, emptyLabel: string) {
+  if (!date) {
+    return emptyLabel;
+  }
+
+  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
+}

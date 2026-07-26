@@ -1,4 +1,4 @@
-import { CategoryIconBadge } from "@/components/task-create/category/CategoryIconBadge";
+import { CategoryIconBadge } from "@/components/category/CategoryIconBadge";
 import { getCategoryPresentation } from "@/constants/category";
 import type { Task } from "@/types/task";
 
@@ -28,7 +28,7 @@ export function SimilarTaskCard({
       onClick={onClick}
       className={`flex w-full items-center gap-3 rounded-[12px] border px-3 py-3 text-left outline-none transition-colors ${
         selected
-          ? "border-transparent bg-black-700"
+          ? "border-transparent bg-black-750"
           : "border-transparent bg-black-800"
       }`}
     >

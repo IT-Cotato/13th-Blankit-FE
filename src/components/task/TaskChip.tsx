@@ -1,4 +1,4 @@
-import { CategoryIconBadge } from "@/components/task-create/category/CategoryIconBadge";
+import { CategoryIconBadge } from "@/components/category/CategoryIconBadge";
 import { getCategoryPresentation } from "@/constants/category";
 
 import type { Category } from "@/types/category";

@@ -1,7 +1,7 @@
 import xIcon from "@/assets/icons/x-black-600.svg";
 
+import { CategoryIconBadge } from "@/components/category/CategoryIconBadge";
 import { getCategoryPresentation } from "@/constants/category";
-import { CategoryIconBadge } from "./CategoryIconBadge";
 
 import type { Category } from "@/types/category";
 
@@ -10,7 +10,7 @@ interface CategoryChipProps {
   selected?: boolean;
   editable?: boolean;
   onClick: () => void;
-  onDelete?: () => void;
+  onDelete: () => void;
 }
 
 export function CategoryChip({

@@ -7,7 +7,7 @@ import {
   getCalendarCells,
   isSameDate,
   startOfMonth,
-} from "./dateUtils";
+} from "./utils/calendar";
 
 interface CalendarPanelProps {
   selectedDate: Date | null;
@@ -23,7 +23,17 @@ export function CalendarPanel({
   onSelect,
 }: CalendarPanelProps) {
   const today = useMemo(() => new Date(), []);
-  const minMonth = useMemo(() => startOfMonth(today), [today]);
+  const minMonth = useMemo(() => {
+    if (minSelectableDate) {
+      return startOfMonth(minSelectableDate);
+    }
+
+    if (selectedDate && selectedDate < today) {
+      return startOfMonth(selectedDate);
+    }
+
+    return startOfMonth(today);
+  }, [minSelectableDate, selectedDate, today]);
   const maxMonth = useMemo(
     () => new Date(today.getFullYear() + 3, today.getMonth(), 1),
     [today],
@@ -144,7 +154,7 @@ export function CalendarPanel({
                 }월 ${cell.day}일`}
                 aria-pressed={isSameDate(selectedDate, cell.date)}
                 onClick={() => onSelect(cell.date)}
-                className={`flex h-[37px] w-full items-center justify-center rounded-[6px] px-2.5 py-3 text-[14px] font-medium leading-[13px] ${
+                className={`flex h-[37px] w-full items-center justify-center rounded-[6px] px-2.5 text-[14px] font-medium leading-[150%] ${
                   isSameDate(selectedDate, cell.date)
                     ? "bg-green-500 text-black-900"
                     : "bg-[rgba(60,63,67,0.5)] text-black-300 disabled:text-black-700"

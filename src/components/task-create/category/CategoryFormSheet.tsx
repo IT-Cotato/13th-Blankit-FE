@@ -3,12 +3,13 @@ import { useEffect, useRef, useState } from "react";
 import checkWhiteIcon from "@/assets/icons/check_white.svg";
 import backIcon from "@/assets/icons/header/back-black-700.svg";
 
+import { CategoryIconBadge } from "@/components/category/CategoryIconBadge";
 import { CATEGORY_ICON_OPTIONS } from "@/constants/category";
-import { CategoryIconBadge } from "./CategoryIconBadge";
 
 import { useVisualViewport } from "@/hooks/useVisualViewport";
 
 import type {
+  CategoryFormMode,
   CategoryIconKey,
   CategoryMutationRequest,
 } from "@/types/category";
@@ -16,7 +17,7 @@ import type {
 const ICON_PALETTE_COLOR = "var(--color-black-600)";
 
 interface CategoryFormSheetProps {
-  mode: "create" | "update";
+  mode: CategoryFormMode;
   initialName?: string;
   initialColor?: string;
   initialIconKey?: CategoryIconKey;
@@ -38,10 +39,9 @@ export function CategoryFormSheet({
 }: CategoryFormSheetProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { height: viewportHeight, keyboardInset } = useVisualViewport();
-  const palette = colors;
 
   const [name, setName] = useState(initialName);
-  const [color, setColor] = useState(initialColor ?? palette[0] ?? "");
+  const [color, setColor] = useState(initialColor ?? colors[0] ?? "");
   const [selectedIconKey, setSelectedIconKey] =
     useState<CategoryIconKey>(initialIconKey);
 
@@ -50,6 +50,14 @@ export function CategoryFormSheet({
   }, []);
 
   const canSubmit = name.trim().length > 0 && Boolean(color);
+
+  function submitCategory() {
+    onSubmit({
+      name: name.trim(),
+      color,
+      iconKey: selectedIconKey,
+    });
+  }
 
   return (
     <section
@@ -67,7 +75,7 @@ export function CategoryFormSheet({
           type="button"
           aria-label="카테고리 목록으로 돌아가기"
           onClick={onBack}
-          className="flex h-6 w-6 items-center justify-start"
+          className="flex h-6 w-3 items-center justify-start"
         >
           <img
             src={backIcon}
@@ -77,30 +85,40 @@ export function CategoryFormSheet({
 
         </button>
 
-        <input
-          ref={inputRef}
-          value={name}
-          maxLength={30}
-          aria-label="카테고리명"
-          placeholder="카테고리명 입력"
-          onChange={(event) => setName(event.target.value)}
-          className="h-11 min-w-0 flex-1 rounded-[8px] bg-black-800 px-4 text-[16px] text-black-100 outline-none placeholder:text-black-500"
-        />
+        <div className="relative min-w-0 flex-1">
+          <input
+            ref={inputRef}
+            value={name}
+            maxLength={30}
+            aria-label="카테고리명"
+            placeholder="카테고리명 입력"
+            onChange={(event) => setName(event.target.value)}
+            className="
+              h-11 w-full rounded-[8px]
+              bg-black-800
+              pl-4 pr-[76px]
+              text-[16px] text-black-100
+              outline-none placeholder:text-black-500
+            "
+          />
 
-        <button
-          type="button"
-          disabled={!canSubmit || submitting}
-          onClick={() =>
-            onSubmit({
-              name: name.trim(),
-              color,
-              iconKey: selectedIconKey,
-            })
-          }
-          className="h-9 shrink-0 rounded-[6px] bg-green-500 px-3 text-[13px] font-semibold text-black-900 disabled:opacity-40"
-        >
-          {submitting ? "저장 중" : "완료"}
-        </button>
+          <button
+            type="button"
+            disabled={!canSubmit || submitting}
+            onClick={submitCategory}
+            className="
+              absolute right-2 top-1/2
+              -translate-y-1/2
+              rounded-[4px] bg-green-500
+              px-2 py-1
+              text-[14px] font-semibold
+              leading-[150%] text-black-900
+              disabled:opacity-40
+            "
+          >
+            {submitting ? "저장 중" : "완료"}
+          </button>
+        </div>
       </header>
 
       <fieldset className="mt-5 min-w-0 max-w-full">
@@ -109,7 +127,7 @@ export function CategoryFormSheet({
         </legend>
 
         <div className="mt-3 flex w-full max-w-full gap-4 overflow-x-auto overflow-y-hidden pb-2 overscroll-x-contain touch-pan-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {palette.map((colorOption) => {
+          {colors.map((colorOption) => {
             const isSelected = color === colorOption;
 
             return (

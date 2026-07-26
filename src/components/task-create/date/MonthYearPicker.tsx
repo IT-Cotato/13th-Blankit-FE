@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 interface MonthYearPickerProps {
   year: number;
@@ -170,11 +170,20 @@ export function MonthYearPicker({
   maxMonth,
   onChange,
 }: MonthYearPickerProps) {
-  const years = Array.from(
-    { length: maxMonth.getFullYear() - minMonth.getFullYear() + 1 },
-    (_, index) => minMonth.getFullYear() + index,
+  const minYear = minMonth.getFullYear();
+  const maxYear = maxMonth.getFullYear();
+  const years = useMemo(
+    () =>
+      Array.from(
+        { length: maxYear - minYear + 1 },
+        (_, index) => minYear + index,
+      ),
+    [maxYear, minYear],
   );
-  const availableMonths = getAvailableMonths(year, minMonth, maxMonth);
+  const availableMonths = useMemo(
+    () => getAvailableMonths(year, minMonth, maxMonth),
+    [maxMonth, minMonth, year],
+  );
 
   function selectYear(nextYear: number) {
     const validMonths = getAvailableMonths(nextYear, minMonth, maxMonth);

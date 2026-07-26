@@ -41,7 +41,7 @@ export function CategoryManagerSheet({
           type="button"
           aria-label="과업 입력으로 돌아가기"
           onClick={onBack}
-          className="flex h-6 w-6 shrink-0 items-center justify-start"
+          className="flex h-6 w-3 shrink-0 items-center justify-start"
         >
           <img
             src={backIcon}
@@ -50,13 +50,14 @@ export function CategoryManagerSheet({
           />
         </button>
 
-        <input
-          readOnly
+        <button
+          type="button"
           aria-label="카테고리 추가하기"
-          placeholder="카테고리 추가하기"
           onClick={onStartCreate}
-          className="h-11 min-w-0 flex-1 rounded-[8px] bg-black-800 px-4 text-[16px] text-black-100 outline-none placeholder:text-black-500"
-        />
+          className="h-11 min-w-0 flex-1 rounded-[8px] bg-black-800 px-4 text-left text-[16px] text-black-500"
+        >
+          카테고리 추가하기
+        </button>
 
         <button
           type="button"
