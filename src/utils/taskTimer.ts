@@ -43,3 +43,30 @@ export function formatTimer(seconds: number) {
     remainingSeconds,
   ).padStart(2, "0")}`;
 }
+
+export interface TaskMosaicState {
+  completedSlots: number;
+  recommendedSlots: number;
+}
+
+export function getTaskMosaicState(
+  elapsedSeconds: number,
+  estimatedMinutes: number,
+  totalSlots = 100,
+): TaskMosaicState {
+  const safeTotalSlots = Math.max(
+    0,
+    Math.floor(totalSlots),
+  );
+
+  return {
+    completedSlots: Math.min(
+      safeTotalSlots,
+      Math.floor(Math.max(0, elapsedSeconds) / 300),
+    ),
+    recommendedSlots: Math.min(
+      safeTotalSlots,
+      Math.ceil(Math.max(0, estimatedMinutes) / 5),
+    ),
+  };
+}

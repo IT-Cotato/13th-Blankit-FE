@@ -11,7 +11,7 @@ import type { TaskCombination } from "@/types/taskCombination";
 export const taskCombinations = [
   {
     id: "fire",
-    name: "불 끄기 모드",
+    name: "불끄기 모드",
     description: "급한 과업부터 빠르게 처리해요.",
     icon: fireModeIcon,
     accent: "red",
@@ -77,7 +77,7 @@ export const taskCombinations = [
   },
   {
     id: "quick-try",
-    name: "빠른 시도 모드",
+    name: "찍먹 모드",
     description: "짧게 끝낼 수 있는 과업부터 시작해요.",
     icon: quickTryModeIcon,
     accent: "purple",
@@ -110,7 +110,7 @@ export const taskCombinations = [
   },
   {
     id: "get-it-done",
-    name: "끝장내기 모드",
+    name: "해치우기 모드",
     description: "집중해서 큰 과업을 마무리해요.",
     icon: getItDoneModeIcon,
     accent: "orange",
