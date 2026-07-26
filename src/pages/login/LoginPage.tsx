@@ -1,18 +1,78 @@
+import { useEffect, useRef } from "react";
+
 import googleIcon from "@/assets/icons/social/google-icon.svg";
 import kakaoIcon from "@/assets/icons/social/kakaotalk-icon.svg";
-
-import { SocialLoginButton } from "@/components/login/SocialLoginButton";
 import logoImage from "@/assets/logo/blankit-logo.svg";
 
+import { SocialLoginButton } from "@/components/login/SocialLoginButton";
+import { useSocialAuth } from "@/hooks/useSocialAuth";
+import { isValidOauthState } from "@/lib/oauthState";
+import {
+    buildGoogleAuthUrl,
+    fetchGoogleSocialAuthResult,
+    parseGoogleAccessTokenFromHash,
+} from "@/apis/socialAuth/google";
+import {
+    buildKakaoAuthUrl,
+    fetchKakaoSocialAuthResult,
+} from "@/apis/socialAuth/kakao";
+
 export const LoginPage = () => {
+    const { processSocialAuthResult } = useSocialAuth();
+    const hasRunCallbackRef = useRef(false);
+
+    // 구글/카카오 리다이렉트로 돌아온 경우, URL에 인증 결과가 담겨 있어
+    // 마운트 시 이를 감지해서 처리함
+    useEffect(() => {
+        if (hasRunCallbackRef.current) return;
+
+        const searchParameters = new URLSearchParams(window.location.search);
+        const kakaoCode = searchParameters.get("code");
+        const googleAccessToken = parseGoogleAccessTokenFromHash(
+            window.location.hash,
+        );
+
+        if (!kakaoCode && !googleAccessToken) return;
+
+        hasRunCallbackRef.current = true;
+
+        const state = searchParameters.get("state");
+
+        const handleCallback = async () => {
+            if (!isValidOauthState(state)) {
+                alert("잘못된 인증 요청입니다.");
+                window.history.replaceState(null, "", "/login");
+                return;
+            }
+
+            try {
+                if (googleAccessToken) {
+                    const socialAuthResult =
+                        await fetchGoogleSocialAuthResult(googleAccessToken);
+                    await processSocialAuthResult("GOOGLE", socialAuthResult);
+                    return;
+                }
+
+                if (kakaoCode) {
+                    const socialAuthResult =
+                        await fetchKakaoSocialAuthResult(kakaoCode);
+                    await processSocialAuthResult("KAKAO", socialAuthResult);
+                }
+            } catch {
+                alert("로그인에 실패했습니다.");
+                window.history.replaceState(null, "", "/login");
+            }
+        };
+
+        handleCallback();
+    }, [processSocialAuthResult]);
+
     const handleGoogleLogin = () => {
-        // TODO: 구글 로그인 연동
-        console.log("구글 로그인 클릭");
+        window.location.href = buildGoogleAuthUrl();
     };
 
     const handleKakaoLogin = () => {
-        // TODO: 카카오 로그인 연동
-        console.log("카카오 로그인 클릭");
+        window.location.href = buildKakaoAuthUrl();
     };
 
     return (
