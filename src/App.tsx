@@ -26,8 +26,10 @@ import { MyPage } from "./pages/mypage/MyPage";
 import { TaskPlaylistPage } from "./pages/task-playlist/TaskPlaylistPage";
 import { mockTasks } from "./mocks/tasks";
 import type { Task } from "./types/task";
+import { CompletedTask } from "./pages/mypage/CompletedTask";
 
 const PAGES_WITHOUT_BOTTOM_NAVIGATION = [
+  "/mypage/completed-tasks",
   "/task-recommendations",
 ];
 
@@ -102,6 +104,8 @@ function App() {
     const selectedTask = tasks.find(
       (task) => task.taskId === selectedTaskId,
     );
+  const hasBottomNavigation =
+    !PAGES_WITHOUT_BOTTOM_NAVIGATION.includes(location.pathname);
 
     if (!selectedTask) {
       return;
@@ -174,9 +178,11 @@ function App() {
             }
           />
 
+          <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/mypage" element={<MyPage />} />
           <Route
-            path="/calendar"
-            element={<CalendarPage />}
+            path="/mypage/completed-tasks"
+            element={<CompletedTask />}
           />
 
           <Route
@@ -199,6 +205,7 @@ function App() {
             element={<TaskPlaylistPage />}
           />
 
+          <Route path="/task-playlist" element={<TaskPlaylistPage />} />
           <Route
             path="/task-recommendations"
             element={
