@@ -11,10 +11,12 @@ import { SearchPage } from "./pages/home/SearchPage";
 import { TaskRecommendationsPage } from "./pages/home/TaskRecommendationsPage";
 import { CompletedTask } from "./pages/mypage/CompletedTask";
 import { MyPage } from "./pages/mypage/MyPage";
+import { PrioritySetting } from "./pages/mypage/PrioritySetting";
 import { TaskPlaylistPage } from "./pages/task-playlist/TaskPlaylistPage";
 
 const PAGES_WITHOUT_BOTTOM_NAVIGATION = [
   "/mypage/completed-tasks",
+  "/mypage/priority-setting",
   "/task-recommendations",
 ];
 
@@ -28,8 +30,8 @@ function App() {
       <main
         className={
           hasBottomNavigation
-            ? "min-h-screen pb-[calc(90px+env(safe-area-inset-bottom))]"
-            : "min-h-screen"
+            ? "min-h-dvh pb-[calc(90px+env(safe-area-inset-bottom))]"
+            : "min-h-dvh"
         }
       >
         <Routes>
@@ -39,6 +41,10 @@ function App() {
           <Route
             path="/mypage/completed-tasks"
             element={<CompletedTask />}
+          />
+          <Route
+            path="/mypage/priority-setting"
+            element={<PrioritySetting />}
           />
           <Route path="/home/search" element={<SearchPage />} />
           <Route path="/task-playlist" element={<TaskPlaylistPage />} />
