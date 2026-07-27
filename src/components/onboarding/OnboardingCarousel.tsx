@@ -3,7 +3,7 @@ import type { OnboardingCard } from "@/types/onboarding";
 
 import { OnboardingCarouselCard } from "./OnboardingCarouselCard";
 
-const CARD_WIDTH_PX = 450;
+const CARD_WIDTH_PX = 355;
 const SWIPE_THRESHOLD_PX = 50;
 
 const clampIndex = (index: number, maxIndex: number) => {
@@ -31,6 +31,10 @@ export const OnboardingCarousel = ({
         (diffX: number) => {
             setIsDragging(false);
             setDragOffsetPx(0);
+
+            if (cards.length === 0) {
+                return;
+            }
 
             const maxIndex = cards.length - 1;
 
@@ -140,7 +144,6 @@ export const OnboardingCarousel = ({
                 {cards.map((card, index) => (
                     <span
                         key={card.id}
-                        role="tab"
                         aria-selected={index === currentIndex}
                         aria-label={`${index + 1}번째 카드`}
                         className={`h-2 w-2 rounded-full ${

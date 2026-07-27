@@ -1,9 +1,5 @@
 import type { OnboardingCard } from "@/types/onboarding";
 
-const CARD_IMAGE_HEIGHT_PX = 363;
-const CARD_IMAGE_WIDTH_PX = 234;
-const TEXT_WRAPPER_HEIGHT_PX = 90;
-
 interface OnboardingCarouselCardProps {
     card: OnboardingCard;
     cardWidthPx: number;
@@ -23,24 +19,17 @@ export const OnboardingCarouselCard = ({
         >
             <img
                 src={card.image}
-                alt={card.title}
+                alt=""
                 draggable={false}
-                className="mb-1 select-none object-cover"
-                style={{
-                    width: `${CARD_IMAGE_WIDTH_PX}px`,
-                    height: `${CARD_IMAGE_HEIGHT_PX}px`,
-                }}
+                className="mb-1 select-none object-contain h-[363px] w-[234px]"
             />
 
-            <div
-                className="flex flex-col items-center justify-start gap-3"
-                style={{ height: `${TEXT_WRAPPER_HEIGHT_PX}px` }}
-            >
+            <div className="flex flex-col items-center justify-start gap-3 min-h-[90px]">
                 <h1 className="text-center text-[20px] font-semibold text-black-100">
                     {card.title}
                 </h1>
 
-                <p className="select-none whitespace-pre-line text-center text-[14px] font-normal leading-[150%] text-black-600">
+                <p className="whitespace-pre-line text-center text-[14px] font-normal leading-[150%] text-black-600">
                     {card.content}
                 </p>
             </div>
