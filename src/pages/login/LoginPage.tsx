@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Navigate } from "react-router-dom";
 
 import googleIcon from "@/assets/icons/social/google-icon.svg";
 import kakaoIcon from "@/assets/icons/social/kakaotalk-icon.svg";
@@ -6,6 +7,7 @@ import logoImage from "@/assets/logo/blankit-logo.svg";
 
 import { SocialLoginButton } from "@/components/login/SocialLoginButton";
 import { useSocialAuth } from "@/hooks/useSocialAuth";
+import { useAuthStore } from "@/store/authStore";
 import { isValidOauthState } from "@/lib/oauthState";
 import {
     buildGoogleAuthUrl,
@@ -19,6 +21,7 @@ import {
 } from "@/api/socialAuth/kakao";
 
 export const LoginPage = () => {
+    const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
     const { processSocialAuthResult } = useSocialAuth();
     const hasRunCallbackRef = useRef(false);
 
@@ -33,7 +36,6 @@ export const LoginPage = () => {
 
         hasRunCallbackRef.current = true;
 
-        // 구글은 state가 해시에, 카카오는 쿼리스트링에 있음
         const state = googleIdToken
             ? parseGoogleStateFromHash(window.location.hash)
             : searchParameters.get("state");
@@ -74,6 +76,11 @@ export const LoginPage = () => {
     const handleKakaoLogin = () => {
         window.location.href = buildKakaoAuthUrl();
     };
+
+    // 이미 로그인된 상태로 /login에 접근한 경우 홈으로 즉시 리다이렉트
+    if (isAuthenticated) {
+        return <Navigate to="/" replace />;
+    }
 
     return (
         <div className="flex flex-1 justify-center min-h-screen flex-col items-center bg-black-900 pb-[31.875px] pt-[57.84px]">

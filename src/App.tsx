@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useState } from "react";
 
 import { BottomNavigation } from "./components/layout/BottomNavigation";
@@ -14,6 +14,9 @@ import { SplashScreen } from "./components/splash/SplashScreen";
 import { OnboardingPage } from "./pages/onboarding/OnboardingPage";
 import { LoginPage } from "./pages/login/LoginPage";
 
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { useAuthStore } from "@/store/authStore";
+
 const PAGES_WITHOUT_BOTTOM_NAVIGATION = [
     "/mypage/completed-tasks",
     "/task-recommendations",
@@ -24,6 +27,7 @@ const PAGES_WITHOUT_BOTTOM_NAVIGATION = [
 function App() {
     const location = useLocation();
     const [isAppReady, setIsAppReady] = useState(false);
+    const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
     const hasBottomNavigation = !PAGES_WITHOUT_BOTTOM_NAVIGATION.includes(
         location.pathname,
@@ -47,32 +51,34 @@ function App() {
                 }
             >
                 <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/calendar" element={<CalendarPage />} />
-                    <Route path="/mypage" element={<MyPage />} />
                     <Route
-                        path="/mypage/completed-tasks"
-                        element={<CompletedTask />}
-                    />
-                    <Route path="/home/search" element={<SearchPage />} />
-                    <Route
-                        path="/task-playlist"
-                        element={<TaskPlaylistPage />}
-                    />
-                    <Route
-                        path="/task-recommendations"
-                        element={<TaskRecommendationsPage />}
+                        path="/"
+                        element={
+                            isAuthenticated ? (
+                                <HomePage />
+                            ) : (
+                                <Navigate to="/onboarding" replace />
+                            )
+                        }
                     />
 
-                    <Route
-                        path="/task-playlist"
-                        element={<TaskPlaylistPage />}
-                    />
-
-                    <Route
-                        path="/task-recommendations"
-                        element={<TaskRecommendationsPage />}
-                    />
+                    <Route element={<ProtectedRoute />}>
+                        <Route path="/calendar" element={<CalendarPage />} />
+                        <Route path="/mypage" element={<MyPage />} />
+                        <Route
+                            path="/mypage/completed-tasks"
+                            element={<CompletedTask />}
+                        />
+                        <Route path="/home/search" element={<SearchPage />} />
+                        <Route
+                            path="/task-playlist"
+                            element={<TaskPlaylistPage />}
+                        />
+                        <Route
+                            path="/task-recommendations"
+                            element={<TaskRecommendationsPage />}
+                        />
+                    </Route>
 
                     <Route path="/onboarding" element={<OnboardingPage />} />
 

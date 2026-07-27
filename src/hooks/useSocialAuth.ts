@@ -21,6 +21,7 @@ export const useSocialAuth = () => {
             });
 
             setAuth(loginData);
+
             navigate("/");
             return;
         } catch (error) {
