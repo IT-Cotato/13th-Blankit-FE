@@ -5,10 +5,26 @@ import type {
   PlaylistTask,
   TaskCombination,
 } from "@/types/taskCombination";
+import type {
+  FeedbackCompletionResult,
+  FeedbackStep,
+  TaskFeedbackDraft,
+} from "@/types/taskFeedback";
+import {
+  canCompleteFeedback,
+  createDefaultFeedbackSteps,
+  createFeedbackDraft,
+  getFeedbackCompletionResult,
+} from "@/utils/taskFeedback";
+import {
+  hasCurrentPlaylistTaskChanged,
+  selectPlaylistTask,
+} from "./playlistSelection";
 import { getElapsedSeconds } from "../utils/taskTimer";
 
 interface PlaylistState {
   playlist: PlaylistTask[];
+  feedbackDrafts: Record<string, TaskFeedbackDraft>;
   elapsedSeconds: number;
   startedAt: number | null;
   isPlaying: boolean;
@@ -19,11 +35,39 @@ interface PlaylistState {
   removeTasks: (taskIds: string[]) => void;
   clearPlaylist: () => void;
   completeCurrentTask: () => void;
+  selectTask: (taskId: string) => void;
   reorderTask: (activeTaskId: string, overTaskId: string) => void;
   isCombinationAdded: (modeId: CombinationModeId) => boolean;
   playCurrentTask: (now?: number) => void;
   pauseCurrentTask: (now?: number) => void;
   dismissCompletionTooltip: () => void;
+  ensureFeedbackDraft: (taskId: string) => void;
+  updateFeedbackMemo: (
+    taskId: string,
+    memo: string,
+  ) => void;
+  updateFeedbackProgress: (
+    taskId: string,
+    progress: number,
+  ) => void;
+  splitFeedbackIntoSteps: (taskId: string) => void;
+  updateFeedbackStep: (
+    taskId: string,
+    stepId: string,
+    update: Partial<
+      Pick<
+        FeedbackStep,
+        "title" | "progress" | "progressTouched"
+      >
+    >,
+  ) => void;
+  removeFeedbackStep: (
+    taskId: string,
+    stepId: string,
+  ) => void;
+  completeFeedback: (
+    taskId: string,
+  ) => FeedbackCompletionResult | null;
 }
 
 const EMPTY_PLAYLIST_TIMER_STATE = {
@@ -36,6 +80,7 @@ const EMPTY_PLAYLIST_TIMER_STATE = {
 export const usePlaylistStore = create<PlaylistState>(
   (set, get) => ({
     playlist: [],
+    feedbackDrafts: {},
     elapsedSeconds: 0,
     startedAt: null,
     isPlaying: false,
@@ -73,7 +118,10 @@ export const usePlaylistStore = create<PlaylistState>(
 
         return {
           playlist,
-          ...(playlist.length === 0
+          ...(hasCurrentPlaylistTaskChanged(
+            state.playlist,
+            playlist,
+          )
             ? EMPTY_PLAYLIST_TIMER_STATE
             : {}),
         };
@@ -90,7 +138,10 @@ export const usePlaylistStore = create<PlaylistState>(
 
         return {
           playlist,
-          ...(playlist.length === 0
+          ...(hasCurrentPlaylistTaskChanged(
+            state.playlist,
+            playlist,
+          )
             ? EMPTY_PLAYLIST_TIMER_STATE
             : {}),
         };
@@ -110,9 +161,25 @@ export const usePlaylistStore = create<PlaylistState>(
 
         return {
           playlist,
-          ...(playlist.length === 0
-            ? EMPTY_PLAYLIST_TIMER_STATE
-            : {}),
+          ...EMPTY_PLAYLIST_TIMER_STATE,
+        };
+      });
+    },
+
+    selectTask: (taskId) => {
+      set((state) => {
+        const playlist = selectPlaylistTask(
+          state.playlist,
+          taskId,
+        );
+
+        if (playlist === state.playlist) {
+          return state;
+        }
+
+        return {
+          playlist,
+          ...EMPTY_PLAYLIST_TIMER_STATE,
         };
       });
     },
@@ -138,7 +205,15 @@ export const usePlaylistStore = create<PlaylistState>(
         const [activeTask] = playlist.splice(activeIndex, 1);
         playlist.splice(overIndex, 0, activeTask);
 
-        return { playlist };
+        return {
+          playlist,
+          ...(hasCurrentPlaylistTaskChanged(
+            state.playlist,
+            playlist,
+          )
+            ? EMPTY_PLAYLIST_TIMER_STATE
+            : {}),
+        };
       });
     },
 
@@ -182,6 +257,184 @@ export const usePlaylistStore = create<PlaylistState>(
 
     dismissCompletionTooltip: () => {
       set({ hasSeenCompletionTooltip: true });
+    },
+
+    ensureFeedbackDraft: (taskId) => {
+      const state = get();
+
+      if (state.feedbackDrafts[taskId]) {
+        return;
+      }
+
+      const task = state.playlist.find(
+        (item) => item.id === taskId,
+      );
+
+      if (!task) {
+        return;
+      }
+
+      set((current) => ({
+        feedbackDrafts: {
+          ...current.feedbackDrafts,
+          [taskId]: createFeedbackDraft(
+            task.progressRate,
+          ),
+        },
+      }));
+    },
+
+    updateFeedbackMemo: (taskId, memo) => {
+      set((state) => {
+        const draft = state.feedbackDrafts[taskId];
+
+        if (!draft) {
+          return state;
+        }
+
+        return {
+          feedbackDrafts: {
+            ...state.feedbackDrafts,
+            [taskId]: { ...draft, memo },
+          },
+        };
+      });
+    },
+
+    updateFeedbackProgress: (taskId, progress) => {
+      set((state) => {
+        const draft = state.feedbackDrafts[taskId];
+
+        if (!draft) {
+          return state;
+        }
+
+        return {
+          feedbackDrafts: {
+            ...state.feedbackDrafts,
+            [taskId]: {
+              ...draft,
+              progress,
+              progressTouched: true,
+            },
+          },
+        };
+      });
+    },
+
+    splitFeedbackIntoSteps: (taskId) => {
+      set((state) => {
+        const draft = state.feedbackDrafts[taskId];
+
+        if (!draft || draft.steps.length > 0) {
+          return state;
+        }
+
+        return {
+          feedbackDrafts: {
+            ...state.feedbackDrafts,
+            [taskId]: {
+              ...draft,
+              steps: createDefaultFeedbackSteps(),
+            },
+          },
+        };
+      });
+    },
+
+    updateFeedbackStep: (taskId, stepId, update) => {
+      set((state) => {
+        const draft = state.feedbackDrafts[taskId];
+
+        if (!draft) {
+          return state;
+        }
+
+        return {
+          feedbackDrafts: {
+            ...state.feedbackDrafts,
+            [taskId]: {
+              ...draft,
+              steps: draft.steps.map((step) =>
+                step.id === stepId
+                  ? { ...step, ...update }
+                  : step,
+              ),
+            },
+          },
+        };
+      });
+    },
+
+    removeFeedbackStep: (taskId, stepId) => {
+      set((state) => {
+        const draft = state.feedbackDrafts[taskId];
+
+        if (!draft) {
+          return state;
+        }
+
+        return {
+          feedbackDrafts: {
+            ...state.feedbackDrafts,
+            [taskId]: {
+              ...draft,
+              steps: draft.steps.filter(
+                (step) => step.id !== stepId,
+              ),
+            },
+          },
+        };
+      });
+    },
+
+    completeFeedback: (taskId) => {
+      const state = get();
+      const currentTask = state.playlist[0];
+      const draft = state.feedbackDrafts[taskId];
+
+      if (
+        currentTask?.id !== taskId ||
+        !draft ||
+        !canCompleteFeedback(draft)
+      ) {
+        return null;
+      }
+
+      const result = getFeedbackCompletionResult(
+        state.playlist.length,
+      );
+
+      set((current) => {
+        const feedbackDrafts = {
+          ...current.feedbackDrafts,
+        };
+        delete feedbackDrafts[taskId];
+
+        const updatedCurrentTask = {
+          ...current.playlist[0],
+          lastMemo:
+            draft.memo.trim() ||
+            current.playlist[0].lastMemo,
+          progressRate: draft.progressTouched
+            ? draft.progress
+            : current.playlist[0].progressRate,
+        };
+
+        return {
+          playlist:
+            result === "advanced"
+              ? current.playlist.slice(1)
+              : [
+                  updatedCurrentTask,
+                  ...current.playlist.slice(1),
+                ],
+          feedbackDrafts,
+          ...EMPTY_PLAYLIST_TIMER_STATE,
+        };
+      });
+
+      return result;
     },
   }),
 );

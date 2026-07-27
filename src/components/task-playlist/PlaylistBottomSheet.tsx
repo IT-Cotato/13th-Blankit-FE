@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 
+import checkButtonGreenIcon from "@/assets/icons/task-combination/check-button-green.svg";
 import { ConfirmationDialog } from "@/components/task-combination/ConfirmationDialog";
 import { taskCombinations } from "@/mocks/taskCombinations";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
@@ -41,6 +42,7 @@ const ACTIVE_FILTER_CLASS_NAMES: Record<
 function PlaylistTaskRow({
   task,
   selected,
+  onSelectTask,
   onToggle,
   onDragStart,
   onDragMove,
@@ -48,6 +50,7 @@ function PlaylistTaskRow({
 }: {
   task: PlaylistTask;
   selected: boolean;
+  onSelectTask: () => void;
   onToggle: () => void;
   onDragStart: (
     event: React.PointerEvent<HTMLButtonElement>,
@@ -66,6 +69,7 @@ function PlaylistTaskRow({
     >
       <button
         type="button"
+        onClick={onSelectTask}
         onPointerDown={onDragStart}
         onPointerMove={onDragMove}
         onPointerUp={onDragEnd}
@@ -82,7 +86,8 @@ function PlaylistTaskRow({
 
       <button
         type="button"
-        onClick={onToggle}
+        onClick={onSelectTask}
+        aria-label={`${task.title} 과업 시작`}
         className="min-w-0 flex-1 text-left"
       >
         <span className="block truncate text-[13px] font-semibold text-black-200">
@@ -103,19 +108,18 @@ function PlaylistTaskRow({
             ? `${task.title} 선택 해제`
             : `${task.title} 선택`
         }
-        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
+        className={`flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full ${
           selected
-            ? "border-green-500 bg-green-500 text-black-900"
-            : "border-black-650"
+            ? ""
+            : "border-2 border-black-650"
         }`}
       >
         {selected && (
-          <span
-            aria-hidden="true"
-            className="text-[13px] font-bold"
-          >
-            ✓
-          </span>
+          <img
+            src={checkButtonGreenIcon}
+            alt=""
+            className="h-[30px] w-[30px]"
+          />
         )}
       </button>
     </li>
@@ -137,6 +141,9 @@ export function PlaylistBottomSheet({
   );
   const reorderTask = usePlaylistStore(
     (state) => state.reorderTask,
+  );
+  const selectTask = usePlaylistStore(
+    (state) => state.selectTask,
   );
   const [filter, setFilter] =
     useState<PlaylistFilter>("all");
@@ -187,6 +194,12 @@ export function PlaylistBottomSheet({
   const handleDeleteSelected = () => {
     removeTasks([...validSelectedTaskIds]);
     setSelectedTaskIds(new Set());
+  };
+
+  const handleSelectTask = (taskId: string) => {
+    selectTask(taskId);
+    setSelectedTaskIds(new Set());
+    onOpenChange(false);
   };
 
   const handleSheetPointerDown = (
@@ -358,6 +371,9 @@ export function PlaylistBottomSheet({
                       selected={validSelectedTaskIds.has(
                         task.id,
                       )}
+                      onSelectTask={() =>
+                        handleSelectTask(task.id)
+                      }
                       onToggle={() =>
                         handleToggleTask(task.id)
                       }

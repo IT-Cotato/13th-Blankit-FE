@@ -28,7 +28,7 @@ export function TaskMosaicProgress({
         elapsedSeconds,
         estimatedMinutes * 60,
       )}
-      className="grid w-full max-w-[250px] grid-cols-10 gap-2"
+      className="grid w-full max-w-[222px] grid-cols-10 gap-2"
     >
       {Array.from(
         { length: MOSAIC_SLOT_COUNT },
