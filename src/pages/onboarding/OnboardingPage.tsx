@@ -24,8 +24,7 @@ export const OnboardingPage = () => {
     };
 
     return (
-        <div className="flex min-h-screen flex-col bg-black-900 px-5 py-6">
-            <div className="h-[19.591px] w-full flex-1" /> {/* 상단 여백 */}
+        <div className="flex flex-1 items-center justify-center min-h-dvh flex-col bg-black-900 pt-[19.591px] pb-[31.875px]">
             <OnboardingCarousel
                 cards={onboardingCards}
                 currentIndex={currentIndex}
@@ -40,7 +39,7 @@ export const OnboardingPage = () => {
                             ? "온보딩 완료하고 시작하기"
                             : "다음 온보딩 카드로 이동"
                     }
-                    className="h-[48px] w-[312px] rounded-lg bg-green-500 text-[14px] font-semibold text-black-900"
+                    className="h-[48px] w-full max-w-[312px] rounded-lg bg-green-500 text-[14px] font-semibold text-black-900"
                 >
                     {isLastCard ? "시작하기" : "다음"}
                 </button>
@@ -56,7 +55,6 @@ export const OnboardingPage = () => {
                     </button>
                 </p>
             </div>
-            <div className="h-[31.875px] w-full flex-1" /> {/* 하단 여백 */}
         </div>
     );
 };
