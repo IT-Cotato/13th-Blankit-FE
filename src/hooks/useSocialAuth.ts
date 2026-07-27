@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 
-import { fetchSocialLogin, fetchSocialSignup } from "@/apis/auth";
+import { fetchSocialLogin, fetchSocialSignup } from "@/api/socialAuth/auth";
 import { useAuthStore } from "@/store/authStore";
 import { isUserNotFoundError } from "@/lib/isUserNotFoundError";
 import type { SocialAuthResult, SocialProvider } from "@/types/auth";

@@ -8,6 +8,7 @@ interface AuthState {
     user: AuthUser | null;
     isAuthenticated: boolean;
     setAuth: (data: NormalizedAuthData) => void;
+    updateTokens: (accessToken: string, refreshToken: string) => void;
     clearAuth: () => void;
 }
 
@@ -25,6 +26,10 @@ export const useAuthStore = create<AuthState>()(
                     user,
                     isAuthenticated: true,
                 });
+            },
+            // 토큰 재발급 시엔 user 정보를 건드리지 않고 토큰만 갱신
+            updateTokens: (accessToken, refreshToken) => {
+                set({ accessToken, refreshToken });
             },
             clearAuth: () => {
                 set({

@@ -1,4 +1,4 @@
-import { apiClient } from "@/apis/client";
+import { apiClient } from "@/api/socialAuth/client";
 import type {
     ApiEnvelope,
     LoginResponseData,

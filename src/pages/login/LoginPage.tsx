@@ -12,11 +12,11 @@ import {
     fetchGoogleSocialAuthResult,
     parseGoogleIdTokenFromHash,
     parseGoogleStateFromHash,
-} from "@/apis/socialAuth/google";
+} from "@/api/socialAuth/google";
 import {
     buildKakaoAuthUrl,
     fetchKakaoSocialAuthResult,
-} from "@/apis/socialAuth/kakao";
+} from "@/api/socialAuth/kakao";
 
 export const LoginPage = () => {
     const { processSocialAuthResult } = useSocialAuth();
