@@ -1,8 +1,5 @@
-import {
-  Route,
-  Routes,
-  useLocation,
-} from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
+import { useState } from "react";
 
 import { BottomNavigation } from "./components/layout/BottomNavigation";
 import { PlaylistTaskBar } from "./components/task-combination/PlaylistTaskBar";
@@ -18,18 +15,34 @@ import { TaskPlaylistPage } from "./pages/task-playlist/TaskPlaylistPage";
 import { TaskCombinationDetailPage } from "./pages/home/TaskCombinationDetailPage";
 import { usePlaylistStore } from "./store/usePlaylistStore";
 import { shouldShowPlaylistTaskBar } from "./utils/playlistTaskBarRoutes";
+import { SplashScreen } from "./components/splash/SplashScreen";
+import { OnboardingPage } from "./pages/onboarding/OnboardingPage";
+import { LoginPage } from "./pages/login/LoginPage";
 
 const PAGES_WITHOUT_BOTTOM_NAVIGATION = [
-  "/mypage/completed-tasks",
-  "/task-recommendations",
+    "/mypage/completed-tasks",
+    "/task-recommendations",
+    "/onboarding",
+    "/login",
 ];
 
 function App() {
   const location = useLocation();
+  const [isAppReady, setIsAppReady] = useState(false);
+
   const hasBottomNavigation =
     !PAGES_WITHOUT_BOTTOM_NAVIGATION.includes(
       location.pathname,
     );
+
+  const handleSplashFinish = () => {
+        setIsAppReady(true);
+    };
+
+    if (!isAppReady) {
+        return <SplashScreen onFinish={handleSplashFinish} />;
+    }
+  
   const currentPlaylistTask = usePlaylistStore(
     (state) => state.playlist[0],
   );
@@ -68,6 +81,10 @@ function App() {
             path="/task-combinations/:modeId"
             element={<TaskCombinationDetailPage />}
           />
+
+          <Route path="/onboarding" element={<OnboardingPage />} />
+
+          <Route path="/login" element={<LoginPage />} />
         </Routes>
       </main>
 
