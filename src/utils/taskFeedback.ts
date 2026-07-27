@@ -30,6 +30,31 @@ export function createDefaultFeedbackSteps(): FeedbackStep[] {
   }));
 }
 
+export function appendFeedbackStep(
+  steps: FeedbackStep[],
+): FeedbackStep[] {
+  const nextStepNumber =
+    steps.reduce((largestStepNumber, step) => {
+      const stepNumber = Number(
+        step.id.replace("feedback-step-", ""),
+      );
+
+      return Number.isFinite(stepNumber)
+        ? Math.max(largestStepNumber, stepNumber)
+        : largestStepNumber;
+    }, 0) + 1;
+
+  return [
+    ...steps,
+    {
+      id: `feedback-step-${nextStepNumber}`,
+      title: "",
+      progress: 0,
+      progressTouched: false,
+    },
+  ];
+}
+
 export function canCompleteFeedback(
   draft: TaskFeedbackDraft,
 ) {

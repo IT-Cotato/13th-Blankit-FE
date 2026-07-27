@@ -5,6 +5,7 @@ interface ConfirmationDialogProps {
   title: string;
   onCancel: () => void;
   onConfirm: () => void;
+  confirmLabel?: string;
 }
 
 export function ConfirmationDialog({
@@ -12,6 +13,7 @@ export function ConfirmationDialog({
   title,
   onCancel,
   onConfirm,
+  confirmLabel = "삭제",
 }: ConfirmationDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
@@ -94,11 +96,11 @@ export function ConfirmationDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirmation-dialog-title"
-        className="w-full max-w-[360px] rounded-[12px] bg-black-850 p-5"
+        className="w-full max-w-[320px] rounded-[12px] bg-black-850 p-3"
       >
         <h2
           id="confirmation-dialog-title"
-          className="py-5 text-center text-[15px] font-medium leading-[150%] text-black-200"
+          className="flex h-[72px] w-full items-center justify-center px-2 py-6 text-center text-[16px] font-medium leading-[150%] tracking-[-0.015em] text-black-100"
         >
           {title}
         </h2>
@@ -108,7 +110,7 @@ export function ConfirmationDialog({
             ref={cancelButtonRef}
             type="button"
             onClick={onCancel}
-            className="h-12 rounded-[6px] bg-black-750 text-[14px] font-semibold text-black-300"
+            className="h-12 rounded-[6px] bg-black-800 text-[14px] font-medium text-black-600"
           >
             취소
           </button>
@@ -118,7 +120,7 @@ export function ConfirmationDialog({
             onClick={onConfirm}
             className="h-12 rounded-[6px] bg-green-500 text-[14px] font-semibold text-black-900"
           >
-            삭제
+            {confirmLabel}
           </button>
         </div>
       </div>

@@ -22,14 +22,12 @@ export function TaskPlayerHeader({
         </span>
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h1
-              id="current-task-title"
-              className="truncate text-[14px] font-medium text-black-100"
-            >
-              {task.title}
-            </h1>
-          </div>
+          <h1
+            id="current-task-title"
+            className="truncate text-[14px] font-medium text-black-100"
+          >
+            {task.title}
+          </h1>
 
           {task.lastMemo && (
             <p className="mt-1 truncate text-[12px] font-medium text-black-650">

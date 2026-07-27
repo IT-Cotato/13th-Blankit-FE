@@ -21,7 +21,7 @@ export function TaskMosaicProgress({
   return (
     <div
       role="progressbar"
-      aria-label="플레이리스트 누적 진행 시간"
+      aria-label="현재 과업 진행 시간"
       aria-valuemin={0}
       aria-valuemax={estimatedMinutes * 60}
       aria-valuenow={Math.min(

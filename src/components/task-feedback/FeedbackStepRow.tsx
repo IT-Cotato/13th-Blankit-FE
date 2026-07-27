@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 
+import trashButtonIcon from "@/assets/icons/task-combination/trash-button.svg";
 import type { FeedbackStep } from "@/types/taskFeedback";
 
 import { FeedbackProgressSlider } from "./FeedbackProgressSlider";
@@ -20,6 +21,8 @@ export function FeedbackStepRow({
   const dragStartXRef = useRef<number | null>(null);
   const [isDeleteRevealed, setIsDeleteRevealed] =
     useState(false);
+  const accessibleStepTitle =
+    step.title.trim() || "새 단계";
 
   const handlePointerDown = (
     event: React.PointerEvent<HTMLDivElement>,
@@ -54,14 +57,20 @@ export function FeedbackStepRow({
   };
 
   return (
-    <div className="relative overflow-hidden rounded-[8px]">
+    <div className="relative h-[101px] shrink-0 overflow-hidden rounded-[8px]">
       <button
         type="button"
         onClick={onDelete}
-        className="absolute bottom-0 right-0 top-0 w-16 bg-red-500 text-[12px] font-semibold text-white"
-        aria-label={`${step.title} 단계 삭제`}
+        tabIndex={isDeleteRevealed ? 0 : -1}
+        aria-hidden={!isDeleteRevealed}
+        className="absolute bottom-0 right-0 top-0 flex w-[72px] items-center justify-center px-3"
+        aria-label={`${accessibleStepTitle} 단계 삭제`}
       >
-        삭제
+        <img
+          src={trashButtonIcon}
+          alt=""
+          className="h-9 w-12"
+        />
       </button>
 
       <div
@@ -70,9 +79,9 @@ export function FeedbackStepRow({
         onPointerCancel={() => {
           dragStartXRef.current = null;
         }}
-        className={`relative bg-black-700 p-3 transition-transform ${
+        className={`relative flex h-[101px] touch-pan-y flex-col gap-1 rounded-[8px] bg-black-750 px-3 py-2 transition-transform ${
           isDeleteRevealed
-            ? "-translate-x-16"
+            ? "-translate-x-[72px]"
             : "translate-x-0"
         }`}
       >
@@ -82,13 +91,15 @@ export function FeedbackStepRow({
             onTitleChange(event.target.value)
           }
           aria-label="단계 이름"
-          className="mb-2 w-full bg-transparent text-[13px] font-semibold text-black-200 outline-none placeholder:text-black-500"
+          placeholder="단계 이름"
+          className="h-[21px] w-full shrink-0 bg-transparent px-1 text-left text-[14px] font-medium leading-[150%] tracking-[-0.015em] text-black-100 outline-none placeholder:text-black-500"
         />
 
         <FeedbackProgressSlider
           value={step.progress}
           onChange={onProgressChange}
-          label={`${step.title} 진척도`}
+          label={`${accessibleStepTitle} 진척도`}
+          variant="step"
         />
       </div>
     </div>

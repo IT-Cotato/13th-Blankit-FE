@@ -247,15 +247,14 @@ export function TaskPlaylistPage() {
 
                   {isRecommendedTimeTooltipOpen && (
                     <AnchoredTooltip
+                      variant="recommendedTime"
                       onDismiss={() =>
                         setIsRecommendedTimeTooltipOpen(
                           false,
                         )
                       }
+                      dialogLabel="권장시간 계산 안내"
                       closeLabel="권장시간 안내 닫기"
-                      widthClassName="w-[215px]"
-                      positionClassName="bottom-[calc(100%+14px)] left-1/2 -translate-x-[60%]"
-                      arrowPositionClassName="top-[56px] left-[60%] -translate-x-1/2"
                     >
                       과업의 예상 시간과 마감일을 반영해
                       <br />

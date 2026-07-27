@@ -10,6 +10,7 @@ export function TaskCompletionTooltip({
   return (
     <AnchoredTooltip
       onDismiss={onDismiss}
+      dialogLabel="최초 진입 안내"
       closeLabel="최초 진입 안내 닫기"
     >
       완료한 일을 기록해 보세요.

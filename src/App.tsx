@@ -35,21 +35,24 @@ function App() {
       location.pathname,
     );
 
-  const handleSplashFinish = () => {
-        setIsAppReady(true);
-    };
-
-    if (!isAppReady) {
-        return <SplashScreen onFinish={handleSplashFinish} />;
-    }
-  
   const currentPlaylistTask = usePlaylistStore(
     (state) => state.playlist[0],
   );
+
+  const handleSplashFinish = () => {
+    setIsAppReady(true);
+  };
+
+  if (!isAppReady) {
+    return <SplashScreen onFinish={handleSplashFinish} />;
+  }
+  
   const hasPlaylistTaskBar =
     Boolean(currentPlaylistTask) &&
-    shouldShowPlaylistTaskBar(location.pathname);
-    !PAGES_WITHOUT_BOTTOM_NAVIGATION.includes(location.pathname);
+    shouldShowPlaylistTaskBar(location.pathname) &&
+    !PAGES_WITHOUT_BOTTOM_NAVIGATION.includes(
+      location.pathname,
+    );
 
   return (
     <>
@@ -58,8 +61,8 @@ function App() {
           hasPlaylistTaskBar
             ? "min-h-screen pb-[calc(170px+env(safe-area-inset-bottom))]"
             : hasBottomNavigation
-            ? "min-h-screen pb-[calc(90px+env(safe-area-inset-bottom))]"
-            : "min-h-screen"
+              ? "min-h-screen pb-[calc(90px+env(safe-area-inset-bottom))]"
+              : "min-h-screen"
         }
       >
         <Routes>

@@ -11,6 +11,7 @@ import type {
   TaskFeedbackDraft,
 } from "@/types/taskFeedback";
 import {
+  appendFeedbackStep,
   canCompleteFeedback,
   createDefaultFeedbackSteps,
   createFeedbackDraft,
@@ -51,6 +52,7 @@ interface PlaylistState {
     progress: number,
   ) => void;
   splitFeedbackIntoSteps: (taskId: string) => void;
+  addFeedbackStep: (taskId: string) => void;
   updateFeedbackStep: (
     taskId: string,
     stepId: string,
@@ -336,6 +338,26 @@ export const usePlaylistStore = create<PlaylistState>(
             [taskId]: {
               ...draft,
               steps: createDefaultFeedbackSteps(),
+            },
+          },
+        };
+      });
+    },
+
+    addFeedbackStep: (taskId) => {
+      set((state) => {
+        const draft = state.feedbackDrafts[taskId];
+
+        if (!draft || draft.steps.length === 0) {
+          return state;
+        }
+
+        return {
+          feedbackDrafts: {
+            ...state.feedbackDrafts,
+            [taskId]: {
+              ...draft,
+              steps: appendFeedbackStep(draft.steps),
             },
           },
         };
