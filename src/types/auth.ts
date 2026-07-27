@@ -21,6 +21,7 @@ export interface SocialSignupRequest {
     email: string;
     nickname: string;
     profileImageUrl: string;
+    recommendedDailyTime: number | null; // TODO: 백엔드에서 DB 명세 수정 후 수정사항 반영 예정
 }
 
 export interface AuthUser {

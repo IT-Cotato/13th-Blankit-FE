@@ -10,7 +10,8 @@ import { isValidOauthState } from "@/lib/oauthState";
 import {
     buildGoogleAuthUrl,
     fetchGoogleSocialAuthResult,
-    parseGoogleAccessTokenFromHash,
+    parseGoogleIdTokenFromHash,
+    parseGoogleStateFromHash,
 } from "@/apis/socialAuth/google";
 import {
     buildKakaoAuthUrl,
@@ -21,22 +22,21 @@ export const LoginPage = () => {
     const { processSocialAuthResult } = useSocialAuth();
     const hasRunCallbackRef = useRef(false);
 
-    // 구글/카카오 리다이렉트로 돌아온 경우, URL에 인증 결과가 담겨 있어
-    // 마운트 시 이를 감지해서 처리함
     useEffect(() => {
         if (hasRunCallbackRef.current) return;
 
         const searchParameters = new URLSearchParams(window.location.search);
         const kakaoCode = searchParameters.get("code");
-        const googleAccessToken = parseGoogleAccessTokenFromHash(
-            window.location.hash,
-        );
+        const googleIdToken = parseGoogleIdTokenFromHash(window.location.hash);
 
-        if (!kakaoCode && !googleAccessToken) return;
+        if (!kakaoCode && !googleIdToken) return;
 
         hasRunCallbackRef.current = true;
 
-        const state = searchParameters.get("state");
+        // 구글은 state가 해시에, 카카오는 쿼리스트링에 있음
+        const state = googleIdToken
+            ? parseGoogleStateFromHash(window.location.hash)
+            : searchParameters.get("state");
 
         const handleCallback = async () => {
             if (!isValidOauthState(state)) {
@@ -46,9 +46,9 @@ export const LoginPage = () => {
             }
 
             try {
-                if (googleAccessToken) {
+                if (googleIdToken) {
                     const socialAuthResult =
-                        await fetchGoogleSocialAuthResult(googleAccessToken);
+                        await fetchGoogleSocialAuthResult(googleIdToken);
                     await processSocialAuthResult("GOOGLE", socialAuthResult);
                     return;
                 }
