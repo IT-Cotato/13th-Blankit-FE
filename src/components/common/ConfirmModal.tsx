@@ -27,6 +27,12 @@ export function ConfirmModal({
     }
 
     cancelButtonRef.current?.focus();
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
 
     function closeOnEscape(event: KeyboardEvent) {
       if (event.key === "Escape" && !submitting) {
