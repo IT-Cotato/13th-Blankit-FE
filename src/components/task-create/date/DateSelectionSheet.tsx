@@ -173,7 +173,16 @@ export function DateSelectionSheet({
               });
             }
           }}
-          className="h-12 w-full rounded-[8px] bg-black-800 text-[14px] font-medium text-black-600 disabled:cursor-not-allowed disabled:text-black-650"
+          className="
+            h-12 w-full rounded-[8px]
+            bg-green-500
+            text-center text-[14px] font-semibold leading-[150%] tracking-[-0.015em]
+            text-black-900
+            disabled:cursor-not-allowed
+            disabled:bg-black-800
+            disabled:font-medium
+            disabled:text-black-650
+          "
         >
           완료
         </button>
