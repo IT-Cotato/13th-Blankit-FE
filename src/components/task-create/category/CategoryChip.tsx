@@ -24,7 +24,7 @@ export function CategoryChip({
 
   return (
     <div
-      className={`flex h-12 items-center rounded-[6px] px-2.5 ${
+      className={`flex h-12 max-w-full items-center rounded-[6px] px-2.5 ${
         selected ? "bg-black-700" : "bg-black-800"
       }`}
     >
@@ -32,7 +32,7 @@ export function CategoryChip({
         type="button"
         aria-pressed={selected}
         onClick={onClick}
-        className="flex min-w-0 items-center gap-2"
+        className="flex h-full min-w-0 flex-1 items-center gap-2"
       >
         <CategoryIconBadge
           icon={presentation.icon}
@@ -41,7 +41,7 @@ export function CategoryChip({
           withBackground={false}
         />
 
-        <span className="max-w-[120px] truncate text-[14px] font-medium text-black-100">
+        <span className="min-w-0 truncate text-[14px] font-medium text-black-100">
           {category.categoryName}
         </span>
       </button>
@@ -51,7 +51,7 @@ export function CategoryChip({
           type="button"
           aria-label={`${category.categoryName} 삭제`}
           onClick={onDelete}
-          className="ml-2 flex h-6 w-6 shrink-0 items-center justify-center"
+          className="ml-1 flex h-6 w-6 shrink-0 items-center justify-center"
         >
           <img
             src={xIcon}
