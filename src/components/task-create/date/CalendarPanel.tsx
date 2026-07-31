@@ -50,6 +50,7 @@ export function CalendarPanel({
   const [pickerOpen, setPickerOpen] = useState(false);
   const swipeRef = useRef({
     startX: null as number | null,
+    startY: null as number | null,
     suppressClickUntil: 0,
   });
   const cells = getCalendarCells(visibleMonth);
@@ -96,23 +97,31 @@ export function CalendarPanel({
         onTouchStart={(event) => {
           swipeRef.current = {
             startX: event.touches[0]?.clientX ?? null,
+            startY: event.touches[0]?.clientY ?? null,
             suppressClickUntil: swipeRef.current.suppressClickUntil,
           };
         }}
         onTouchEnd={(event) => {
-          const startX = swipeRef.current.startX;
+          const { startX, startY } = swipeRef.current;
 
-          if (startX === null) {
+          if (startX === null || startY === null) {
             return;
           }
 
           const endX = event.changedTouches[0]?.clientX ?? startX;
-          const distance = endX - startX;
-          swipeRef.current.startX = null;
+          const endY = event.changedTouches[0]?.clientY ?? startY;
+          const distanceX = endX - startX;
+          const distanceY = endY - startY;
 
-          if (Math.abs(distance) >= 40) {
+          swipeRef.current.startX = null;
+          swipeRef.current.startY = null;
+
+          if (
+            Math.abs(distanceX) >= 40 &&
+            Math.abs(distanceX) > Math.abs(distanceY)
+          ) {
             swipeRef.current.suppressClickUntil = Date.now() + 350;
-            moveMonth(distance < 0 ? 1 : -1);
+            moveMonth(distanceX < 0 ? 1 : -1);
           }
         }}
         onClickCapture={(event) => {

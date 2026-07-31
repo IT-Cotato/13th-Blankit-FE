@@ -3,6 +3,7 @@ import { useState } from "react";
 import backIcon from "@/assets/icons/back-button-black-600.svg";
 
 import { CalendarPanel } from "./CalendarPanel";
+import { startOfDay } from "./utils/calendar";
 
 interface CalendarPickerSheetProps {
   initialDate: Date | null;
@@ -18,6 +19,11 @@ export function CalendarPickerSheet({
   onConfirm,
 }: CalendarPickerSheetProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(initialDate);
+  const normalizedMinDate = minDate ? startOfDay(minDate) : null;
+  const canConfirm =
+    selectedDate !== null &&
+    (normalizedMinDate === null ||
+      startOfDay(selectedDate) >= normalizedMinDate);
 
   return (
     <section
@@ -51,9 +57,9 @@ export function CalendarPickerSheet({
       <div className="shrink-0 pt-5">
         <button
           type="button"
-          disabled={!selectedDate}
+          disabled={!canConfirm}
           onClick={() => {
-            if (selectedDate) {
+            if (selectedDate && canConfirm) {
               onConfirm(selectedDate);
             }
           }}
