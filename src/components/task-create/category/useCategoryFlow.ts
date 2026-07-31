@@ -181,7 +181,7 @@ export function useCategoryFlow({
       setCategories(remaining);
       setSelectedCategory((current) =>
         current?.categoryId === deletedCategoryId
-          ? remaining[0] ?? null
+          ? null
           : current,
       );
       setPendingDeleteCategory(null);
