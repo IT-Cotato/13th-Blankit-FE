@@ -6,6 +6,7 @@ import {
   formatMonth,
   getCalendarCells,
   isSameDate,
+  startOfDay,
   startOfMonth,
 } from "./utils/calendar";
 
@@ -22,10 +23,15 @@ export function CalendarPanel({
   minSelectableDate = null,
   onSelect,
 }: CalendarPanelProps) {
-  const today = useMemo(() => new Date(), []);
+  const today = useMemo(() => startOfDay(new Date()), []);
+  const normalizedMinSelectableDate = useMemo(
+    () =>
+      minSelectableDate ? startOfDay(minSelectableDate) : null,
+    [minSelectableDate],
+  );
   const minMonth = useMemo(() => {
-    if (minSelectableDate) {
-      return startOfMonth(minSelectableDate);
+    if (normalizedMinSelectableDate) {
+      return startOfMonth(normalizedMinSelectableDate);
     }
 
     if (selectedDate && selectedDate < today) {
@@ -33,13 +39,13 @@ export function CalendarPanel({
     }
 
     return startOfMonth(today);
-  }, [minSelectableDate, selectedDate, today]);
+  }, [normalizedMinSelectableDate, selectedDate, today]);
   const maxMonth = useMemo(
     () => new Date(today.getFullYear() + 3, today.getMonth(), 1),
     [today],
   );
   const [visibleMonth, setVisibleMonth] = useState(() =>
-    startOfMonth(selectedDate ?? minSelectableDate ?? today),
+    startOfMonth(selectedDate ?? normalizedMinSelectableDate ?? today),
   );
   const [pickerOpen, setPickerOpen] = useState(false);
   const swipeRef = useRef({
@@ -142,7 +148,8 @@ export function CalendarPanel({
             }
 
             const disabled =
-              minSelectableDate !== null && cell.date < minSelectableDate;
+              normalizedMinSelectableDate !== null &&
+              cell.date < normalizedMinSelectableDate;
 
             return (
               <button

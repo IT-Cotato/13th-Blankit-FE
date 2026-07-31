@@ -5,6 +5,7 @@ import backIcon from "@/assets/icons/back-button-black-600.svg";
 import { CalendarPanel } from "./CalendarPanel";
 import { CalendarPickerSheet } from "./CalendarPickerSheet";
 import { RepeatSettingsForm } from "./RepeatSettingsForm";
+import { startOfDay } from "./utils/calendar";
 import {
   cloneRepeatPattern,
   createRepeatDraft,
@@ -31,11 +32,7 @@ export function DateSelectionSheet({
   onConfirm,
   onConfirmRepeat,
 }: DateSelectionSheetProps) {
-  const today = useMemo(() => {
-    const date = new Date();
-    date.setHours(0, 0, 0, 0);
-    return date;
-  }, []);
+  const today = useMemo(() => startOfDay(new Date()), []);
   const [activeTab, setActiveTab] = useState<DateTab>(
     initialRepeat ? "repeat" : "general",
   );
