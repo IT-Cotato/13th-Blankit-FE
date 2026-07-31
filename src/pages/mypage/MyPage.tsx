@@ -27,6 +27,7 @@ const menuItems = [
     label: "내 알림설정",
     icon: "/mypage/notification.svg",
     iconClassName: "h-5 w-5 shrink-0",
+    path: "/mypage/notification-setting",
   },
 ];
 

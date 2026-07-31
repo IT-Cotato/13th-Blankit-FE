@@ -15,7 +15,7 @@ const priorityTabs: {
   {
     value: "ALL",
     label: "전체",
-    className: "bg-purple-500",
+    className: "bg-green-500",
   },
   {
     value: "HIGH",

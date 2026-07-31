@@ -3,6 +3,7 @@ import { TopBarShell } from "@/components/layout/top-bar/TopBarShell";
 type MyPageDetailTopBarProps = {
   title: string;
   onBack: () => void;
+  titleClassName?: string;
 };
 
 function BackIcon() {
@@ -22,6 +23,7 @@ function BackIcon() {
 export function MyPageDetailTopBar({
   title,
   onBack,
+  titleClassName = "",
 }: MyPageDetailTopBarProps) {
   return (
     <TopBarShell>
@@ -35,7 +37,9 @@ export function MyPageDetailTopBar({
           <BackIcon />
         </button>
 
-        <h1 className="text-base font-semibold leading-6 tracking-[-0.24px] text-black-100">
+        <h1
+          className={`text-base font-semibold leading-6 tracking-[-0.24px] text-black-100 ${titleClassName}`}
+        >
           {title}
         </h1>
       </div>
