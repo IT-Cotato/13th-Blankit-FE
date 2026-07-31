@@ -27,10 +27,16 @@ export function useAlarmFlow({
     onReturnToComposer?.();
   }
 
+  function closeAlarms() {
+    setView("composer");
+    onReturnToComposer?.();
+  }
+
   return {
     view,
     selectedAlarm,
     openAlarms,
+    closeAlarms,
     selectAlarm,
   };
 }

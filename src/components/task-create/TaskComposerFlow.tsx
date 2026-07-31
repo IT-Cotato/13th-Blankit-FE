@@ -192,6 +192,7 @@ export const TaskComposerFlow = forwardRef<
         <AlarmSelectionSheet
           selectedAlarm={alarmFlow.selectedAlarm}
           onSelect={alarmFlow.selectAlarm}
+          onClose={alarmFlow.closeAlarms}
         />
       )}
 
