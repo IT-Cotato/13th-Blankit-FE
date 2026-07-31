@@ -90,6 +90,7 @@ export function CategoryFormSheet({
             ref={inputRef}
             value={name}
             maxLength={30}
+            disabled={submitting}
             aria-label="카테고리명"
             placeholder="카테고리명 입력"
             onChange={(event) => setName(event.target.value)}
@@ -121,7 +122,7 @@ export function CategoryFormSheet({
         </div>
       </header>
 
-      <fieldset className="mt-5 min-w-0 max-w-full">
+      <fieldset disabled={submitting} className="mt-5 min-w-0 max-w-full">
         <legend className="text-[13px] font-semibold text-black-100">
           색상
         </legend>
@@ -161,7 +162,7 @@ export function CategoryFormSheet({
         </div>
       </fieldset>
 
-      <fieldset className="mt-5 min-w-0 max-w-full">
+      <fieldset disabled={submitting} className="mt-5 min-w-0 max-w-full">
         <legend
           className="
             text-[13px] font-semibold
