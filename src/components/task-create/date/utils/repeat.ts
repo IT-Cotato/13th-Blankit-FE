@@ -5,7 +5,7 @@ import type {
   RepeatSettingsDraft,
 } from "../repeatTypes";
 
-const OPEN_ENDED_SEARCH_YEARS = 2;
+const OPEN_ENDED_SEARCH_YEARS = 4;
 
 function isLastDayOfMonth(date: Date) {
   return (
@@ -76,8 +76,10 @@ export function createRepeatDraft(
   }
 
   return {
-    startDate: initialRepeat.startDate,
-    endDate: initialRepeat.endDate,
+    startDate: new Date(initialRepeat.startDate.getTime()),
+    endDate: initialRepeat.endDate
+      ? new Date(initialRepeat.endDate.getTime())
+      : null,
     pattern: cloneRepeatPattern(initialRepeat.pattern),
   };
 }

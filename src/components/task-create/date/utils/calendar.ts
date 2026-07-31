@@ -22,7 +22,7 @@ export function addMonths(date: Date, amount: number) {
 
 export function isSameDate(left: Date | null, right: Date | null) {
   if (!left || !right) {
-    return left === right;
+    return false;
   }
 
   return (
@@ -45,7 +45,7 @@ export function getCalendarCells(month: Date): CalendarCell[] {
     if (day < 1 || day > lastDay) {
       return {
         kind: "empty",
-        key: `empty-${index}`,
+        key: `${year}-${monthIndex + 1}-empty-${index}`,
         day: null,
         date: null,
       };
