@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import backIcon from "@/assets/icons/back-button-black-600.svg";
 
@@ -31,6 +31,11 @@ export function DateSelectionSheet({
   onConfirm,
   onConfirmRepeat,
 }: DateSelectionSheetProps) {
+  const today = useMemo(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }, []);
   const [activeTab, setActiveTab] = useState<DateTab>(
     initialRepeat ? "repeat" : "general",
   );
@@ -52,7 +57,7 @@ export function DateSelectionSheet({
             ? repeatSettings.endDate
             : repeatSettings.startDate
         }
-        minDate={selectingEndDate ? repeatSettings.startDate : null}
+        minDate={selectingEndDate ? repeatSettings.startDate : today}
         onBack={() => setRepeatDateTarget(null)}
         onConfirm={(date) => {
           setRepeatSettings((current) => {
@@ -136,6 +141,7 @@ export function DateSelectionSheet({
         {activeTab === "general" ? (
           <CalendarPanel
             selectedDate={selectedDate}
+            minSelectableDate={today}
             onSelect={setSelectedDate}
           />
         ) : (

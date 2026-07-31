@@ -119,7 +119,7 @@ function WheelColumn({
           SETTLE_DELAY_MS,
         );
       }}
-      className="h-[128px] snap-y snap-mandatory overflow-y-auto overscroll-contain py-12 [mask-image:linear-gradient(to_bottom,transparent_0%,black_28%,black_72%,transparent_100%)] [perspective:180px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="h-[128px] select-none snap-y snap-mandatory overflow-y-auto overscroll-contain py-12 [mask-image:linear-gradient(to_bottom,transparent_0%,black_28%,black_72%,transparent_100%)] [perspective:180px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       {values.map((value, index) => {
         const selected = value === selectedValue;
