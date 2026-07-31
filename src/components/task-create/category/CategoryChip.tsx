@@ -10,7 +10,7 @@ interface CategoryChipProps {
   selected?: boolean;
   editable?: boolean;
   onClick: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
 }
 
 export function CategoryChip({
@@ -46,7 +46,7 @@ export function CategoryChip({
         </span>
       </button>
 
-      {editable && (
+      {editable && onDelete && (
         <button
           type="button"
           aria-label={`${category.categoryName} 삭제`}
