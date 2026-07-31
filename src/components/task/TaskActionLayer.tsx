@@ -5,8 +5,8 @@ import type {
 } from "react";
 
 import { ConfirmModal } from "@/components/common/ConfirmModal";
-import { TaskCreateComposer } from "@/components/task-create/TaskCreateComposer";
-import type { TaskCreateComposerHandle } from "@/components/task-create/TaskCreateComposer";
+import { TaskComposerFlow } from "@/components/task-create/TaskComposerFlow";
+import type { TaskComposerFlowHandle } from "@/components/task-create/TaskComposerFlow";
 import { TaskActionSheet } from "@/components/task/TaskActionSheet";
 import type { Task } from "@/types/task";
 
@@ -15,7 +15,7 @@ interface TaskActionLayerProps {
   isComposerOpen: boolean;
   editingTask: Task | null;
   taskTitle: string;
-  composerRef: RefObject<TaskCreateComposerHandle | null>;
+  composerRef: RefObject<TaskComposerFlowHandle | null>;
   onTitleChange: Dispatch<SetStateAction<string>>;
   onCloseComposer: () => void;
   onCompleteCreate: () => void;
@@ -50,7 +50,7 @@ export function TaskActionLayer({
   return (
     <>
       {isComposerOpen && (
-        <TaskCreateComposer
+        <TaskComposerFlow
           key={editingTask?.taskId ?? "create"}
           ref={composerRef}
           title={taskTitle}

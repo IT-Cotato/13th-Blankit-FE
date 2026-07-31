@@ -23,11 +23,11 @@ import { resolveTaskDeadline } from "@/components/task-create/taskCreateUtils";
 import { mockTasks } from "@/mocks/tasks";
 import type { Task } from "@/types/task";
 
-export interface TaskCreateComposerHandle {
+export interface TaskComposerFlowHandle {
   focus: () => void;
 }
 
-interface TaskCreateComposerProps {
+interface TaskComposerFlowProps {
   title: string;
   task: Task | null;
   onTitleChange: (title: string) => void;
@@ -36,10 +36,10 @@ interface TaskCreateComposerProps {
   onUpdate?: (task: Task) => void;
 }
 
-export const TaskCreateComposer = forwardRef<
-  TaskCreateComposerHandle,
-  TaskCreateComposerProps
->(function TaskCreateComposer(
+export const TaskComposerFlow = forwardRef<
+  TaskComposerFlowHandle,
+  TaskComposerFlowProps
+>(function TaskComposerFlow(
   {
     title,
     task,

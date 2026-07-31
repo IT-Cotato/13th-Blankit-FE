@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
-import type { TaskCreateComposerHandle } from "@/components/task-create/TaskCreateComposer";
+import type { TaskComposerFlowHandle } from "@/components/task-create/TaskComposerFlow";
 import { mockTasks } from "@/mocks/tasks";
 import type { Task } from "@/types/task";
 
@@ -13,7 +13,7 @@ export function useTaskManager({
   showToast,
 }: UseTaskManagerOptions) {
   const composerRef =
-    useRef<TaskCreateComposerHandle>(null);
+    useRef<TaskComposerFlowHandle>(null);
 
   const [tasks, setTasks] = useState<Task[]>(() => [...mockTasks]);
   const [selectedTaskId, setSelectedTaskId] =
