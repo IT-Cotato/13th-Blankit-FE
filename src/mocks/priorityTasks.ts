@@ -1,6 +1,21 @@
-import type { Task } from "@/types/task";
+import type { TaskPriority, TaskStatus } from "@/types/task";
 
-export const mockPriorityTasks: Task[] = [
+interface PriorityTask {
+  taskId: number;
+  title: string;
+  categoryId: number;
+  categoryName: string;
+  categoryColor: string;
+  priority: TaskPriority;
+  isStarred: boolean;
+  deadline: string;
+  estimatedTime: number;
+  status: TaskStatus;
+  progressRate: number;
+  lastMemo: string | null;
+}
+
+export const mockPriorityTasks: PriorityTask[] = [
   {
     taskId: 101,
     title: "토익 RC part6 20문제 풀기",
