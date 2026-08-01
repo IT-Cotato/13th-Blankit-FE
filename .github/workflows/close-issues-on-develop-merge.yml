@@ -32,6 +32,12 @@ jobs:
                     closingIssuesReferences(first: 100) {
                       nodes {
                         number
+                        repository {
+                          owner {
+                            login
+                          }
+                          name
+                        }
                       }
                     }
                   }
@@ -45,7 +51,26 @@ jobs:
               prNumber: pr.number
             });
 
-            for (const issue of result.repository.pullRequest.closingIssuesReferences.nodes) {
+            const linkedIssues =
+              result.repository.pullRequest.closingIssuesReferences.nodes;
+
+            // 현재 저장소에 속한 이슈만 추가
+            for (const issue of linkedIssues) {
+              const sameOwner =
+                issue.repository.owner.login.toLowerCase() ===
+                context.repo.owner.toLowerCase();
+
+              const sameRepository =
+                issue.repository.name.toLowerCase() ===
+                context.repo.repo.toLowerCase();
+
+              if (!sameOwner || !sameRepository) {
+                core.info(
+                  `Skipping cross-repository issue ${issue.repository.owner.login}/${issue.repository.name}#${issue.number}`
+                );
+                continue;
+              }
+
               issueNumbers.add(issue.number);
             }
 
@@ -77,12 +102,16 @@ jobs:
 
                 // 같은 번호의 PR을 실수로 닫지 않도록 방지
                 if (issue.pull_request) {
-                  core.warning(`#${issue_number} is a pull request. Skipping.`);
+                  core.warning(
+                    `#${issue_number} is a pull request. Skipping.`
+                  );
                   continue;
                 }
 
                 if (issue.state === "closed") {
-                  core.info(`Issue #${issue_number} is already closed.`);
+                  core.info(
+                    `Issue #${issue_number} is already closed.`
+                  );
                   continue;
                 }
 
@@ -100,7 +129,9 @@ jobs:
                   state: "closed"
                 });
 
-                core.info(`Successfully closed issue #${issue_number}`);
+                core.info(
+                  `Successfully closed issue #${issue_number}`
+                );
               } catch (error) {
                 core.warning(
                   `Failed to close issue #${issue_number}: ${error.message}`
