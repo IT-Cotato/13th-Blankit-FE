@@ -1,0 +1,140 @@
+name: Close Issues on Develop Merge
+
+on:
+  pull_request_target:
+    branches:
+      - develop
+    types:
+      - closed
+
+permissions:
+  issues: write
+  pull-requests: read
+
+jobs:
+  close-issues:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Find and close linked issues
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const issueNumbers = new Set();
+
+            // GitHub UI의 Development 영역에서 연결한 이슈 조회
+            const query = `
+              query($owner: String!, $name: String!, $prNumber: Int!) {
+                repository(owner: $owner, name: $name) {
+                  pullRequest(number: $prNumber) {
+                    closingIssuesReferences(first: 100) {
+                      nodes {
+                        number
+                        repository {
+                          owner {
+                            login
+                          }
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `;
+
+            const result = await github.graphql(query, {
+              owner: context.repo.owner,
+              name: context.repo.repo,
+              prNumber: pr.number
+            });
+
+            const linkedIssues =
+              result.repository.pullRequest.closingIssuesReferences.nodes;
+
+            // 현재 저장소에 속한 이슈만 추가
+            for (const issue of linkedIssues) {
+              const sameOwner =
+                issue.repository.owner.login.toLowerCase() ===
+                context.repo.owner.toLowerCase();
+
+              const sameRepository =
+                issue.repository.name.toLowerCase() ===
+                context.repo.repo.toLowerCase();
+
+              if (!sameOwner || !sameRepository) {
+                core.info(
+                  `Skipping cross-repository issue ${issue.repository.owner.login}/${issue.repository.name}#${issue.number}`
+                );
+                continue;
+              }
+
+              issueNumbers.add(issue.number);
+            }
+
+            // PR 본문의 Closes #12, Fixes #12, Resolves #12 검색
+            const body = pr.body || "";
+            const pattern =
+              /\b(?:close(?:s|d)?|fix(?:es|ed)?|resolve(?:s|d)?)\s*:?\s+#(\d+)\b/gi;
+
+            let match;
+
+            while ((match = pattern.exec(body)) !== null) {
+              issueNumbers.add(Number(match[1]));
+            }
+
+            if (issueNumbers.size === 0) {
+              core.info("No linked issues were found.");
+              return;
+            }
+
+            core.info(`Found issues: ${[...issueNumbers].join(", ")}`);
+
+            for (const issue_number of issueNumbers) {
+              try {
+                const { data: issue } = await github.rest.issues.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number
+                });
+
+                // 같은 번호의 PR을 실수로 닫지 않도록 방지
+                if (issue.pull_request) {
+                  core.warning(
+                    `#${issue_number} is a pull request. Skipping.`
+                  );
+                  continue;
+                }
+
+                if (issue.state === "closed") {
+                  core.info(
+                    `Issue #${issue_number} is already closed.`
+                  );
+                  continue;
+                }
+
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number,
+                  body: `연결된 PR #${pr.number}이 \`develop\` 브랜치에 병합되어 이 이슈를 자동으로 닫습니다.`
+                });
+
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number,
+                  state: "closed"
+                });
+
+                core.info(
+                  `Successfully closed issue #${issue_number}`
+                );
+              } catch (error) {
+                core.warning(
+                  `Failed to close issue #${issue_number}: ${error.message}`
+                );
+              }
+            }
