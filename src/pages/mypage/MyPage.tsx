@@ -21,11 +21,13 @@ const menuItems = [
     label: "내 우선순위 설정",
     icon: "/mypage/priority.svg",
     iconClassName: "h-5 w-[13.336px] shrink-0",
+    path: "/mypage/priority-setting",
   },
   {
     label: "내 알림설정",
     icon: "/mypage/notification.svg",
     iconClassName: "h-5 w-5 shrink-0",
+    path: "/mypage/notification-setting",
   },
 ];
 
@@ -34,7 +36,7 @@ export function MyPage() {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   return (
-    <div className="min-h-dvh bg-black-900 pb-28 text-black-100">
+    <div className="min-h-[calc(100dvh_-_90px_-_env(safe-area-inset-bottom))] bg-black-900 text-black-100">
       <MyPageTopBar />
       <div className="px-5 pt-5">
       <div className="mb-5">
