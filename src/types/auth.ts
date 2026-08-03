@@ -30,7 +30,7 @@ export interface AuthUser {
     email: string;
     nickname: string;
     profileImageUrl: string;
-    recommendedDailyTime: number;
+    recommendedDailyTime: number | null;
 }
 
 export interface AuthTokens {

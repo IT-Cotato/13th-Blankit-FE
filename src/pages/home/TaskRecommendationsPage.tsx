@@ -4,11 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { TaskChip } from "@/components/task/TaskChip";
 import { TopBarShell } from "@/components/layout/top-bar/TopBarShell";
 
-import { mockTasks } from "@/mocks/tasks";
-
 import backIcon from "@/assets/icons/header/back.svg";
 
-import type { TaskPriority } from "@/types/task";
+import type { Task, TaskPriority } from "@/types/task";
 
 const PRIORITY_TABS: {
   label: string;
@@ -32,13 +30,21 @@ const PRIORITY_TABS: {
   },
 ];
 
-export function TaskRecommendationsPage() {
+interface TaskRecommendationsPageProps {
+  tasks: Task[];
+  onTaskClick: (taskId: number) => void;
+}
+
+export function TaskRecommendationsPage({
+  tasks,
+  onTaskClick,
+}: TaskRecommendationsPageProps) {
   const navigate = useNavigate();
 
   const [selectedPriority, setSelectedPriority] =
     useState<TaskPriority>("HIGH");
 
-  const filteredTasks = mockTasks.filter(
+  const filteredTasks = tasks.filter(
     (task) => task.priority === selectedPriority,
   );
 
@@ -126,12 +132,8 @@ export function TaskRecommendationsPage() {
                 progressRate={task.progressRate}
                 priority={task.priority}
                 status={task.status}
-                onClick={() => {
-                  console.log(
-                    "선택한 과업:",
-                    task.taskId,
-                  );
-                }}
+                category={task.category}
+                onClick={() => onTaskClick(task.taskId)}
               />
             </li>
           ))}

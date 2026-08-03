@@ -48,6 +48,7 @@ export function TodayRecommendedTasks({
               progressRate={task.progressRate}
               priority={task.priority}
               status={task.status}
+              category={task.category}
               onClick={() => onTaskClick?.(task.taskId)}
             />
           </li>

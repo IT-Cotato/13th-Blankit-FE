@@ -4,6 +4,7 @@ import {
     GOOGLE_REDIRECT_URI,
 } from "@/constants/socialAuth";
 import {
+    consumeStoredOauthNonce,
     createAndStoreOauthNonce,
     createAndStoreOauthState,
 } from "@/lib/oauthState";
@@ -38,7 +39,7 @@ export const parseGoogleStateFromHash = (hash: string) => {
 
 // ID Token(JWT)의 payload 부분을 디코딩 — 서명 검증은 백엔드가 수행하므로
 // 여기서는 화면 표시용 정보(email, nickname, profileImageUrl)만 꺼내옴
-const decodeGoogleIdTokenPayload = (idToken: string) => {
+export const decodeGoogleIdTokenPayload = (idToken: string) => {
     const payloadBase64Url = idToken.split(".")[1];
     const payloadBase64 = payloadBase64Url
         .replace(/-/g, "+")
@@ -59,6 +60,11 @@ export const fetchGoogleSocialAuthResult = async (
     idToken: string,
 ): Promise<SocialAuthResult> => {
     const payload = decodeGoogleIdTokenPayload(idToken);
+    const storedNonce = consumeStoredOauthNonce();
+
+    if (!storedNonce || payload.nonce !== storedNonce) {
+        throw new Error("Invalid Google nonce");
+    }
 
     return {
         socialId: payload.sub,

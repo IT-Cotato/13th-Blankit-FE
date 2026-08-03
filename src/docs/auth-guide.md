@@ -42,7 +42,8 @@ export const useAuthStore = create<AuthState>()(
 ### 확인 방법
 
 브라우저 개발자 도구 → Application 탭 → Local Storage → `auth-storage` 키에서 저장된 값을 직접 확인할 수 있습니다.
-로그인 정보를 지울 때는 `auth-storage` 키를 삭제하면 됩니다.
+로그인 정보를 지울 때는 `useAuthStore`의 `clearAuth()`를 호출해 상태를 초기화하면 됩니다. `clearAuth()`는 `persist` 미들웨어가 `auth-storage` 값을 함께 초기화하도록 처리합니다.
+개발자 도구에서 `auth-storage` 키를 직접 삭제해 확인하려는 경우, 현재 실행 중인 스토어가 변경된 값을 반영하려면 페이지를 새로고침해야 합니다.
 
 ---
 
@@ -80,7 +81,8 @@ export const ProfileHeader = () => {
 - `state.user` 하나만 구독하면 `accessToken`이 바뀌어도(예: 토큰 재발급) 이 컴포넌트는 리렌더링되지 않습니다. 원하는 최적화 방향에 맞게 selector를 분리하세요.
 - `user`는 로그인 전 `null`일 수 있으므로 항상 null 체크 후 렌더링해야 합니다.
 - `user.recommendedDailyTime`은 회원가입 직후 null일 수 있으므로, UI에서 사용할 때 null 처리(예: 기본값 표시 또는 조건부 렌더링)가 필요합니다.
-- `AuthUser` 타입(`@/types/auth`)에 정의된 필드(`userId`, `socialProvider`, `email`, `nickname`, `profileImageUrl`, `recommendedDailyTime`)만 사용 가능합니다. 추가 필드가 필요하면 백엔드 응답 구조와 `AuthUser` 타입부터 함께 확장해야 합니다.
+- `AuthUser` 타입(`@/types/auth`)의 `recommendedDailyTime`은 `number | null`로 변경되었으므로, 이 계약을 준수하여 nullable 값을 안전하게 처리하세요.
+- `AuthUser` 타입에 정의된 필드(`userId`, `socialProvider`, `email`, `nickname`, `profileImageUrl`, `recommendedDailyTime`)만 사용 가능합니다. 추가 필드가 필요하면 백엔드 응답 구조와 `AuthUser` 타입부터 함께 확장해야 합니다.
 
 ---
 

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { CompletedTaskTopBar } from "@/components/mypage/CompletedTaskTopBar";
 import { CompletedTaskCard } from "@/components/mypage/CompletedTaskCard";
+import { MyPageDetailTopBar } from "@/components/mypage/MyPageDetailTopBar";
 import { mockCompletedTasks } from "@/mocks/completedTasks";
 
 function formatCompletedDate(deadline: string) {
@@ -35,7 +35,10 @@ export function CompletedTask() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-black-900 pb-[max(24px,env(safe-area-inset-bottom))] text-black-100">
-      <CompletedTaskTopBar onBack={() => navigate(-1)} />
+      <MyPageDetailTopBar
+        title="내 완료한 과업 보기"
+        onBack={() => navigate(-1)}
+      />
 
       <main className="flex min-h-0 flex-1 flex-col px-5">
         <label htmlFor="completed-task-search" className="sr-only">

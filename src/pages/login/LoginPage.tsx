@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 
 import googleIcon from "@/assets/icons/social/google-icon.svg";
 import kakaoIcon from "@/assets/icons/social/kakaotalk-icon.svg";
@@ -24,6 +24,7 @@ export const LoginPage = () => {
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
     const { processSocialAuthResult } = useSocialAuth();
     const hasRunCallbackRef = useRef(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (hasRunCallbackRef.current) return;
@@ -43,7 +44,7 @@ export const LoginPage = () => {
         const handleCallback = async () => {
             if (!isValidOauthState(state)) {
                 alert("잘못된 인증 요청입니다.");
-                window.history.replaceState(null, "", "/login");
+                navigate("/login", { replace: true });
                 return;
             }
 
@@ -62,12 +63,12 @@ export const LoginPage = () => {
                 }
             } catch {
                 alert("로그인에 실패했습니다.");
-                window.history.replaceState(null, "", "/login");
+                navigate("/login", { replace: true });
             }
         };
 
         handleCallback();
-    }, [processSocialAuthResult]);
+    }, [processSocialAuthResult, navigate]);
 
     const handleGoogleLogin = () => {
         window.location.href = buildGoogleAuthUrl();
