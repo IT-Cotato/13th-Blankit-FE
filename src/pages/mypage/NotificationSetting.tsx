@@ -14,7 +14,7 @@ export function NotificationSetting() {
     <div className="min-h-dvh bg-black-900 text-black-100">
       <MyPageDetailTopBar
         title="알림 설정"
-        onBack={() => navigate(-1)}
+        onBack={() => navigate("/mypage")}
         titleClassName="text-lg leading-[27px] tracking-[-0.27px]"
       />
 

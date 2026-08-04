@@ -59,7 +59,7 @@ export function TaskRecommendationsPage({
         >
           <button
             type="button"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/")}
             aria-label="뒤로가기"
             className="
               absolute left-0 flex h-10 w-10

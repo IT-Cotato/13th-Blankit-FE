@@ -48,7 +48,7 @@ export function PrioritySetting() {
     <div className="flex min-h-dvh flex-col bg-black-900 text-black-100">
       <MyPageDetailTopBar
         title="우선순위 설정"
-        onBack={() => navigate(-1)}
+        onBack={() => navigate("/mypage")}
       />
 
       <main className="flex min-h-0 flex-1 flex-col px-5 pb-[max(12px,env(safe-area-inset-bottom))]">
