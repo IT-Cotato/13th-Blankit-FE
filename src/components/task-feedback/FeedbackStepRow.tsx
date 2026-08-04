@@ -18,7 +18,10 @@ export function FeedbackStepRow({
   onProgressChange,
   onDelete,
 }: FeedbackStepRowProps) {
-  const dragStartXRef = useRef<number | null>(null);
+  const dragStartRef = useRef<{
+    x: number;
+    y: number;
+  } | null>(null);
   const [isDeleteRevealed, setIsDeleteRevealed] =
     useState(false);
   const accessibleStepTitle =
@@ -35,27 +38,42 @@ export function FeedbackStepRow({
       return;
     }
 
-    dragStartXRef.current = event.clientX;
+    dragStartRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+    };
+
     event.currentTarget.setPointerCapture(event.pointerId);
   };
 
   const handlePointerUp = (
     event: React.PointerEvent<HTMLDivElement>,
   ) => {
-    if (dragStartXRef.current === null) {
+    if (!dragStartRef.current) {
       return;
     }
 
-    const distance = event.clientX - dragStartXRef.current;
-    dragStartXRef.current = null;
+    const distanceX =
+      event.clientX - dragStartRef.current.x;
 
-    if (distance < -35) {
+    const distanceY =
+      event.clientY - dragStartRef.current.y;
+
+    dragStartRef.current = null;
+
+    const isHorizontalSwipe =
+      Math.abs(distanceX) > Math.abs(distanceY);
+
+    if (!isHorizontalSwipe) {
+      return;
+    }
+
+    if (distanceX < -35) {
       setIsDeleteRevealed(true);
-    } else if (distance > 25) {
+    } else if (distanceX > 25) {
       setIsDeleteRevealed(false);
     }
   };
-
   return (
     <div className="relative h-[101px] shrink-0 overflow-hidden rounded-[8px]">
       <button
@@ -77,7 +95,7 @@ export function FeedbackStepRow({
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerCancel={() => {
-          dragStartXRef.current = null;
+          dragStartRef.current = null;
         }}
         className={`relative flex h-[101px] touch-pan-y flex-col gap-1 rounded-[8px] bg-black-750 px-3 py-2 transition-transform ${
           isDeleteRevealed
