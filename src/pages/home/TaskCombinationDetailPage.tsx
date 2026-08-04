@@ -11,31 +11,46 @@ import { getTaskCombination } from "@/mocks/taskCombinations";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
 import { getCombinationAccentClassName } from "@/utils/taskCombinationCategories";
 
-const QUEUED_TOAST_DURATION_MS = 2500;
+const QUEUED_TOAST_DURATION_MS = 3000;
 
 export function TaskCombinationDetailPage() {
   const navigate = useNavigate();
   const { modeId } = useParams();
+
   const combination = getTaskCombination(modeId ?? "");
+
   const accentClassName = combination
     ? getCombinationAccentClassName(combination.accent)
     : "";
-  const playlist = usePlaylistStore((state) => state.playlist);
+
+  const playlist = usePlaylistStore(
+    (state) => state.playlist,
+  );
+
   const addCombination = usePlaylistStore(
     (state) => state.addCombination,
   );
+
   const removeCombination = usePlaylistStore(
     (state) => state.removeCombination,
   );
+
   const isAdded = usePlaylistStore((state) =>
     combination
       ? state.isCombinationAdded(combination.id)
       : false,
   );
+
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] =
     useState(false);
+
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const [showQueuedToast, setShowQueuedToast] =
     useState(false);
+
+  const deleteLockRef = useRef(false);
+
   const toastTimerRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
@@ -55,6 +70,7 @@ export function TaskCombinationDetailPage() {
         <h1 className="text-[18px] font-semibold text-black-100">
           추천 모드를 찾을 수 없습니다.
         </h1>
+
         <button
           type="button"
           onClick={() => navigate("/")}
@@ -68,11 +84,14 @@ export function TaskCombinationDetailPage() {
 
   const handleCombinationAction = () => {
     if (isAdded) {
+      deleteLockRef.current = false;
+      setIsDeleting(false);
       setIsDeleteDialogOpen(true);
       return;
     }
 
     const hadPlaylist = playlist.length > 0;
+
     addCombination(combination);
 
     if (!hadPlaylist) {
@@ -84,14 +103,31 @@ export function TaskCombinationDetailPage() {
     }
 
     setShowQueuedToast(true);
+
     toastTimerRef.current = setTimeout(() => {
       setShowQueuedToast(false);
       toastTimerRef.current = null;
     }, QUEUED_TOAST_DURATION_MS);
   };
 
+  const handleDeleteCancel = () => {
+    if (isDeleting) {
+      return;
+    }
+
+    setIsDeleteDialogOpen(false);
+  };
+
   const handleDelete = () => {
+    if (deleteLockRef.current) {
+      return;
+    }
+
+    deleteLockRef.current = true;
+    setIsDeleting(true);
+
     removeCombination(combination.id);
+
     setIsDeleteDialogOpen(false);
     setShowQueuedToast(false);
   };
@@ -174,8 +210,9 @@ export function TaskCombinationDetailPage() {
       <ConfirmationDialog
         open={isDeleteDialogOpen}
         title="리스트에 추가된 모든 과업을 삭제하시겠습니까?"
-        onCancel={() => setIsDeleteDialogOpen(false)}
+        onCancel={handleDeleteCancel}
         onConfirm={handleDelete}
+        isSubmitting={isDeleting}
       />
     </>
   );

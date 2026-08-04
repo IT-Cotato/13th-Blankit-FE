@@ -6,6 +6,7 @@ interface ConfirmationDialogProps {
   onCancel: () => void;
   onConfirm: () => void;
   confirmLabel?: string;
+  isSubmitting?: boolean;
 }
 
 export function ConfirmationDialog({
@@ -14,6 +15,7 @@ export function ConfirmationDialog({
   onCancel,
   onConfirm,
   confirmLabel = "삭제",
+  isSubmitting = false,
 }: ConfirmationDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
@@ -38,7 +40,11 @@ export function ConfirmationDialog({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
-        onCancelRef.current();
+
+        if (!isSubmitting) {
+          onCancelRef.current();
+        }
+
         return;
       }
 
@@ -83,7 +89,7 @@ export function ConfirmationDialog({
       );
       previouslyFocusedElement?.focus();
     };
-  }, [open]);
+  }, [open, isSubmitting]);
 
   if (!open) {
     return null;
@@ -110,6 +116,7 @@ export function ConfirmationDialog({
             ref={cancelButtonRef}
             type="button"
             onClick={onCancel}
+            disabled={isSubmitting}
             className="h-12 rounded-[6px] bg-black-800 text-[14px] font-medium text-black-600"
           >
             취소
@@ -118,6 +125,7 @@ export function ConfirmationDialog({
           <button
             type="button"
             onClick={onConfirm}
+            disabled={isSubmitting}
             className="h-12 rounded-[6px] bg-green-500 text-[14px] font-semibold text-black-900"
           >
             {confirmLabel}
