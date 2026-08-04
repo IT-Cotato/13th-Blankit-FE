@@ -51,7 +51,6 @@ export function AnchoredTooltip({
 
       <div
         role="dialog"
-        aria-modal="true"
         aria-label={dialogLabel}
         onPointerDown={(event) => event.stopPropagation()}
         className={`absolute z-[70] rounded-[8px] bg-black-700 px-4 py-3 text-[12px] font-medium leading-[150%] tracking-[-0.015em] text-black-400 ${variantClassNames.container}`}

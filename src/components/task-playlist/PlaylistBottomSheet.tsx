@@ -79,6 +79,7 @@ function PlaylistTaskRow({
         <span className="block truncate text-[13px] font-semibold text-black-200">
           {task.title}
         </span>
+
         {task.lastMemo && (
           <span className="mt-1 block truncate text-[10px] font-medium text-black-600">
             {task.lastMemo}
@@ -119,22 +120,29 @@ export function PlaylistBottomSheet({
   const playlist = usePlaylistStore(
     (state) => state.playlist,
   );
+
   const removeTasks = usePlaylistStore(
     (state) => state.removeTasks,
   );
+
   const selectTask = usePlaylistStore(
     (state) => state.selectTask,
   );
+
   const [filter, setFilter] =
     useState<PlaylistFilter>("all");
+
   const [selectedTaskIds, setSelectedTaskIds] = useState<
     Set<string>
   >(new Set());
+
   const [
     showDeleteSelectedDialog,
     setShowDeleteSelectedDialog,
   ] = useState(false);
+
   const sheetDragStartYRef = useRef<number | null>(null);
+  const ignoreNextClickRef = useRef(false);
 
   const filteredTasks = useMemo(
     () =>
@@ -184,7 +192,9 @@ export function PlaylistBottomSheet({
     );
   };
 
-  const handleFilterChange = (nextFilter: PlaylistFilter) => {
+  const handleFilterChange = (
+    nextFilter: PlaylistFilter,
+  ) => {
     setFilter(nextFilter);
     setSelectedTaskIds(new Set());
     setShowDeleteSelectedDialog(false);
@@ -196,11 +206,30 @@ export function PlaylistBottomSheet({
     onOpenChange(false);
   };
 
+  const handleSheetClick = (
+    event: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    const shouldIgnoreClick =
+      ignoreNextClickRef.current && event.detail > 0;
+
+    ignoreNextClickRef.current = false;
+
+    if (shouldIgnoreClick) {
+      return;
+    }
+
+    onOpenChange(!open);
+  };
+
   const handleSheetPointerDown = (
     event: React.PointerEvent<HTMLButtonElement>,
   ) => {
+    ignoreNextClickRef.current = false;
     sheetDragStartYRef.current = event.clientY;
-    event.currentTarget.setPointerCapture(event.pointerId);
+
+    event.currentTarget.setPointerCapture(
+      event.pointerId,
+    );
   };
 
   const handleSheetPointerUp = (
@@ -212,21 +241,32 @@ export function PlaylistBottomSheet({
 
     const distance =
       event.clientY - sheetDragStartYRef.current;
+
     sheetDragStartYRef.current = null;
 
     if (Math.abs(distance) < 10) {
-      onOpenChange(!open);
-    } else if (distance < -30) {
+      return;
+    }
+
+    ignoreNextClickRef.current = true;
+
+    if (distance < -30) {
       onOpenChange(true);
     } else if (distance > 30) {
       onOpenChange(false);
     }
   };
 
+  const handleSheetPointerCancel = () => {
+    sheetDragStartYRef.current = null;
+    ignoreNextClickRef.current = false;
+  };
+
   const selectedModeName =
     taskCombinations.find(
       (combination) => combination.id === filter,
     )?.name ?? "";
+
   const allFilteredTasksSelected =
     filteredTasks.length > 0 &&
     filteredTasks.every((task) =>
@@ -237,10 +277,10 @@ export function PlaylistBottomSheet({
     <>
       <section
         aria-label="과업 플레이리스트"
-        className={`fixed left-0 right-0 z-40 rounded-t-[16px] bg-black-850 transition-[top,height] duration-300 ${
+        className={`fixed bottom-[90px] left-0 right-0 z-40 rounded-t-[16px] bg-black-850 transition-[height] duration-300 ${
           open
-            ? "bottom-[90px] top-[64px]"
-            : "bottom-[90px] h-[72px]"
+            ? "h-[calc(100dvh-154px)]"
+            : "h-[72px]"
         }`}
       >
         <button
@@ -251,11 +291,10 @@ export function PlaylistBottomSheet({
               ? "플레이리스트 접기"
               : "플레이리스트 펼치기"
           }
+          onClick={handleSheetClick}
           onPointerDown={handleSheetPointerDown}
           onPointerUp={handleSheetPointerUp}
-          onPointerCancel={() => {
-            sheetDragStartYRef.current = null;
-          }}
+          onPointerCancel={handleSheetPointerCancel}
           className="flex h-[34px] w-full touch-none items-center justify-center"
         >
           <span
@@ -274,6 +313,7 @@ export function PlaylistBottomSheet({
                   <button
                     key={item.id}
                     type="button"
+                    aria-pressed={active}
                     onClick={() =>
                       handleFilterChange(item.id)
                     }
