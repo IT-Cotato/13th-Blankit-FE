@@ -169,7 +169,7 @@ export function TaskPlaylistPage() {
     feedbackToastTimerRef.current = setTimeout(() => {
       setShowFeedbackToast(false);
       feedbackToastTimerRef.current = null;
-    }, 2500);
+    }, 3000);
   };
 
   return (

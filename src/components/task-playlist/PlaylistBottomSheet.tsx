@@ -277,6 +277,15 @@ export function PlaylistBottomSheet({
     <>
       <section
         aria-label="과업 플레이리스트"
+        onPointerDown={(event) => {
+          event.stopPropagation();
+        }}
+        onPointerUp={(event) => {
+          event.stopPropagation();
+        }}
+        onPointerCancel={(event) => {
+          event.stopPropagation();
+        }}
         className={`fixed bottom-[90px] left-0 right-0 z-40 rounded-t-[16px] bg-black-850 transition-[height] duration-300 ${
           open
             ? "h-[calc(100dvh-154px)]"
