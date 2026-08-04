@@ -7,10 +7,35 @@ interface TaskMosaicProgressProps {
 
 const MOSAIC_SLOT_COUNT = 100;
 
+function getMosaicSlotColorClassName(
+  isCompleted: boolean,
+  isOvertime: boolean,
+) {
+  if (!isCompleted) {
+    return "bg-black-850";
+  }
+
+  if (isOvertime) {
+    return "bg-orange-500";
+  }
+
+  return "bg-purple-500";
+}
+
 export function TaskMosaicProgress({
   elapsedSeconds,
   estimatedMinutes,
 }: TaskMosaicProgressProps) {
+  const estimatedSeconds = Math.max(
+    0,
+    estimatedMinutes * 60,
+  );
+
+  const currentSeconds = Math.min(
+    Math.max(0, elapsedSeconds),
+    estimatedSeconds,
+  );
+
   const { completedSlots, recommendedSlots } =
     getTaskMosaicState(
       elapsedSeconds,
@@ -23,11 +48,8 @@ export function TaskMosaicProgress({
       role="progressbar"
       aria-label="현재 과업 진행 시간"
       aria-valuemin={0}
-      aria-valuemax={estimatedMinutes * 60}
-      aria-valuenow={Math.min(
-        elapsedSeconds,
-        estimatedMinutes * 60,
-      )}
+      aria-valuemax={estimatedSeconds}
+      aria-valuenow={currentSeconds}
       className="grid w-full max-w-[222px] grid-cols-10 gap-2"
     >
       {Array.from(
@@ -41,13 +63,10 @@ export function TaskMosaicProgress({
             <span
               key={index}
               aria-hidden="true"
-              className={`aspect-square rounded-full transition-colors duration-300 ${
-                !isCompleted
-                  ? "bg-black-850"
-                  : isOvertime
-                    ? "bg-orange-500"
-                    : "bg-purple-500"
-              }`}
+              className={`aspect-square rounded-full transition-colors duration-300 ${getMosaicSlotColorClassName(
+                isCompleted,
+                isOvertime,
+              )}`}
             />
           );
         },

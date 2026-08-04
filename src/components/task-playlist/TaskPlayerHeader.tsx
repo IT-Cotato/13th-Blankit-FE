@@ -24,7 +24,7 @@ export function TaskPlayerHeader({
         <div className="min-w-0 flex-1">
           <h1
             id="current-task-title"
-            className="truncate text-[14px] font-medium text-black-100"
+            className="line-clamp-2 text-[14px] font-medium text-black-100"
           >
             {task.title}
           </h1>
