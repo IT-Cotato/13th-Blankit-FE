@@ -86,7 +86,7 @@ export function FeedbackProgressSlider({
           type="range"
           min={0}
           max={100}
-          step={1}
+          step={10}
           value={boundedValue}
           disabled={disabled}
           onChange={(event) =>
