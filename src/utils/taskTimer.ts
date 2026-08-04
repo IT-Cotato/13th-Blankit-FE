@@ -35,13 +35,30 @@ export function getTaskProgress(
 }
 
 export function formatTimer(seconds: number) {
-  const safeSeconds = Math.max(0, Math.floor(seconds));
-  const minutes = Math.floor(safeSeconds / 60);
+  const safeSeconds = Number.isFinite(seconds)
+    ? Math.max(0, Math.floor(seconds))
+    : 0;
+
+  const hours = Math.floor(safeSeconds / 3600);
+  const minutes = Math.floor(
+    (safeSeconds % 3600) / 60,
+  );
   const remainingSeconds = safeSeconds % 60;
 
-  return `${String(minutes).padStart(2, "0")}:${String(
+  const formattedMinutes = String(minutes).padStart(
+    2,
+    "0",
+  );
+
+  const formattedSeconds = String(
     remainingSeconds,
-  ).padStart(2, "0")}`;
+  ).padStart(2, "0");
+
+  if (hours > 0) {
+    return `${hours}:${formattedMinutes}:${formattedSeconds}`;
+  }
+
+  return `${formattedMinutes}:${formattedSeconds}`;
 }
 
 export interface TaskMosaicState {

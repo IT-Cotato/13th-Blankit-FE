@@ -13,9 +13,13 @@ const DEFAULT_STEP_TITLES = [
 export function createFeedbackDraft(
   progress: number,
 ): TaskFeedbackDraft {
+  const boundedProgress = Number.isFinite(progress)
+    ? Math.min(100, Math.max(0, progress))
+    : 0;
+
   return {
     memo: "",
-    progress,
+    progress: boundedProgress,
     progressTouched: false,
     steps: [],
   };
@@ -58,11 +62,16 @@ export function appendFeedbackStep(
 export function canCompleteFeedback(
   draft: TaskFeedbackDraft,
 ) {
-  return (
+  const hasValidStepTitles = draft.steps.every(
+    (step) => step.title.trim().length > 0,
+  );
+
+  const hasFeedback =
     draft.memo.trim().length > 0 ||
     draft.progressTouched ||
-    draft.steps.some((step) => step.progressTouched)
-  );
+    draft.steps.some((step) => step.progressTouched);
+
+  return hasValidStepTitles && hasFeedback;
 }
 
 export function getFeedbackCompletionResult(

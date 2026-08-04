@@ -15,7 +15,7 @@ export function selectPlaylistTask(
     (task) => task.id === taskId,
   );
 
-  if (selectedIndex < 0) {
+  if (selectedIndex <= 0) {
     return playlist;
   }
 
