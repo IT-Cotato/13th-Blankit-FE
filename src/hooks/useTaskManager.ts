@@ -5,6 +5,10 @@ import type { TaskComposerFlowHandle } from "@/components/task-create/TaskCompos
 import { mockTasks } from "@/mocks/tasks";
 import type { Task } from "@/types/task";
 
+import { createTask } from "@/api/tasks";
+
+import type { TaskCreateRequest } from "@/types/taskApi";
+
 interface UseTaskManagerOptions {
   showToast: (message: string) => void;
 }
@@ -43,9 +47,18 @@ export function useTaskManager({
     setTaskTitle("");
   }
 
-  function completeCreate() {
-    closeComposer();
-    showToast("과업 추가가 완료되었습니다.");
+  async function completeCreate(
+    request: TaskCreateRequest,
+  ) {
+    try {
+      await createTask(request);
+
+      closeComposer();
+      showToast("과업 추가가 완료되었습니다.");
+    } catch (error) {
+      console.error(error);
+      showToast("과업 추가에 실패했습니다.");
+    }
   }
 
   function editSelectedTask() {

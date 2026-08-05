@@ -18,10 +18,11 @@ import { formatDeadline } from "@/components/task-create/date/utils/calendar";
 import { getFirstRepeatDate } from "@/components/task-create/date/utils/repeat";
 import { useDateFlow } from "@/components/task-create/date/useDateFlow";
 import { SimilarTaskSheet } from "@/components/task-create/similar-task/SimilarTaskSheet";
-import { resolveTaskDeadline } from "@/components/task-create/taskCreateUtils";
+import { createNormalTaskRequest, resolveTaskDeadline } from "@/components/task-create/taskCreateUtils";
 
 import { mockTasks } from "@/mocks/tasks";
 import type { Task } from "@/types/task";
+import type { TaskCreateRequest } from "@/types/taskApi";
 
 export interface TaskComposerFlowHandle {
   focus: () => void;
@@ -32,7 +33,7 @@ interface TaskComposerFlowProps {
   task: Task | null;
   onTitleChange: (title: string) => void;
   onClose: () => void;
-  onComplete: (similarTaskId: number | null) => void;
+  onComplete: (request: TaskCreateRequest) => void;
   onUpdate?: (task: Task) => void;
 }
 
@@ -100,17 +101,36 @@ export const TaskComposerFlow = forwardRef<
       onUpdate({
         ...task,
         title: title.trim(),
-        category: categoryFlow.selectedCategory ?? task.category,
+        category:
+          categoryFlow.selectedCategory ??
+          task.category,
         deadline: resolveTaskDeadline({
           selectedDate: dateFlow.selectedDate,
-          repeatSettings: dateFlow.repeatSettings,
+          repeatSettings:
+            dateFlow.repeatSettings,
           fallbackDeadline: task.deadline,
         }),
       });
       return;
     }
 
-    onComplete(similarTaskId);
+    const selectedCategory =
+      categoryFlow.selectedCategory;
+    const selectedDate = dateFlow.selectedDate;
+
+    if (!selectedCategory || !selectedDate) {
+      return;
+    }
+
+    const request = createNormalTaskRequest({
+      title,
+      selectedDate,
+      categoryId: selectedCategory.categoryId,
+      alarm: alarmFlow.selectedAlarm,
+      similarTaskId,
+    });
+
+    onComplete(request);
   }
 
   useImperativeHandle(ref, () => ({

@@ -23,7 +23,7 @@ const INITIAL_CATEGORIES: Category[] = [
     categoryId: 3,
     categoryName: "기념일",
     color: "#D3FB65",
-    iconKey: "calendar",
+    iconKey: "pin",
   },
 ];
 
