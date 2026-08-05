@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 
 import {
@@ -9,7 +9,7 @@ import {
   updateCategory,
 } from "@/api/categories";
 
-import { TOAST_DURATION_MS } from "@/constants/toast";
+import { useToast } from "@/hooks/useToast";
 
 import type { ApiEnvelope } from "@/types/auth";
 
@@ -33,7 +33,7 @@ export function useCategoryFlow({
   onReturnToComposer,
   initialCategory = null,
 }: UseCategoryFlowOptions = {}) {
-  const errorTimerRef = useRef<number | null>(null);
+  const errorToast = useToast();
 
   const [view, setView] = useState<CategoryFlowView>("composer");
   const [categories, setCategories] = useState<Category[]>([]);
@@ -49,15 +49,6 @@ export function useCategoryFlow({
   const [editable, setEditable] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (errorTimerRef.current !== null) {
-        window.clearTimeout(errorTimerRef.current);
-      }
-    };
-  }, []);
 
   function getApiErrorMessage(error: unknown): string {
     if (axios.isAxiosError<ApiEnvelope<unknown>>(error)) {
@@ -74,24 +65,14 @@ export function useCategoryFlow({
 
   function showError(error: unknown) {
     const message = getApiErrorMessage(error);
-
-    if (errorTimerRef.current !== null) {
-      window.clearTimeout(errorTimerRef.current);
-    }
-
-    setErrorMessage(message);
-
-    errorTimerRef.current = window.setTimeout(() => {
-      setErrorMessage(null);
-      errorTimerRef.current = null;
-    }, TOAST_DURATION_MS);
+    errorToast.showToast(message);
   }
 
   async function openCategories() {
     setView("category-list");
     setEditable(false);
     setLoading(true);
-    setErrorMessage(null);
+    errorToast.hideToast();
 
     try {
       const nextCategories = await getCategories();
@@ -204,7 +185,18 @@ export function useCategoryFlow({
       setPendingDeleteCategory(null);
     } catch (error) {
       setPendingDeleteCategory(null);
-      showError(error);
+
+      if (
+        axios.isAxiosError<ApiEnvelope<unknown>>(error) &&
+        error.response?.data?.message ===
+          "과업이 연결된 카테고리는 삭제할 수 없습니다."
+      ) {
+        errorToast.showToast(
+          "과업이 포함된 카테고리는 삭제할 수 없어요.",
+        );
+      } else {
+        showError(error);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -242,7 +234,7 @@ export function useCategoryFlow({
     editable,
     loading,
     submitting,
-    errorMessage,
+    errorMessage: errorToast.message,
     openCategories,
     startCreate,
     startUpdate,
