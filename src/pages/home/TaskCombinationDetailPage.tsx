@@ -192,7 +192,6 @@ export function TaskCombinationDetailPage() {
             <li key={task.id}>
               <TaskChip
                 title={task.title}
-                lastMemo={task.lastMemo}
                 progressRate={task.progressRate}
                 priority={task.priority}
                 status={task.status}

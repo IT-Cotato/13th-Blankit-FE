@@ -1,23 +1,50 @@
 import { CategoryIconBadge } from "@/components/category/CategoryIconBadge";
-import { getCategoryPresentation } from "@/constants/category";
+import {
+  CATEGORY_ICON_MAP,
+  getCategoryPresentation,
+} from "@/constants/category";
 
-import type { Category } from "@/types/category";
+import type {
+  Category,
+  CategoryIconKey,
+} from "@/types/category";
+
 import type {
   TaskPriority,
   TaskStatus,
 } from "@/types/task";
 
-interface TaskChipProps {
+interface TaskChipBaseProps {
   title: string;
-  lastMemo: string | null;
-  progressRate: number;
   priority: TaskPriority;
-  status: TaskStatus;
-  category: Category;
+  progressRate?: number;
+  status?: TaskStatus;
   onClick?: () => void;
 }
 
-const PRIORITY_STYLES = {
+type TaskChipCategoryProps =
+  | {
+      category: Category;
+      categoryColor?: undefined;
+      categoryIconKey?: undefined;
+    }
+  | {
+      category?: undefined;
+      categoryColor: string;
+      categoryIconKey: CategoryIconKey;
+    };
+
+type TaskChipProps =
+  TaskChipBaseProps &
+  TaskChipCategoryProps;
+
+const PRIORITY_STYLES: Record<
+  TaskPriority,
+  {
+    textClassName: string;
+    color: string;
+  }
+> = {
   HIGH: {
     textClassName: "text-red-400",
     color: "var(--color-red-400)",
@@ -30,39 +57,51 @@ const PRIORITY_STYLES = {
     textClassName: "text-lime-400",
     color: "var(--color-lime-400)",
   },
-} satisfies Record<
-  TaskPriority,
-  {
-    textClassName: string;
-    color: string;
-  }
->;
+};
 
 const PROGRESS_SIZE = 39;
 const PROGRESS_STROKE_WIDTH = 3;
-const PROGRESS_CENTER = PROGRESS_SIZE / 2;
+const PROGRESS_CENTER =
+  PROGRESS_SIZE / 2;
 
 const PROGRESS_RADIUS =
-  (PROGRESS_SIZE - PROGRESS_STROKE_WIDTH) / 2;
+  (PROGRESS_SIZE -
+    PROGRESS_STROKE_WIDTH) /
+  2;
 
 const PROGRESS_CIRCUMFERENCE =
   2 * Math.PI * PROGRESS_RADIUS;
 
-export function TaskChip({
-  title,
-  lastMemo,
-  progressRate,
-  priority,
-  status,
-  category,
-  onClick,
-}: TaskChipProps) {
+export function TaskChip(
+  props: TaskChipProps,
+) {
+  const {
+    title,
+    priority,
+    progressRate,
+    status = "TODO",
+    onClick,
+  } = props;
+
   const categoryPresentation =
-    getCategoryPresentation(category);
+    props.category !== undefined
+      ? getCategoryPresentation(
+          props.category,
+        )
+      : {
+          color: props.categoryColor,
+          icon:
+            CATEGORY_ICON_MAP[
+              props.categoryIconKey
+            ],
+        };
+
+  const hasProgressRate =
+    progressRate !== undefined;
 
   const clampedProgressRate = Math.min(
     100,
-    Math.max(0, progressRate),
+    Math.max(0, progressRate ?? 0),
   );
 
   const progressLevel = Math.floor(
@@ -73,21 +112,22 @@ export function TaskChip({
     PROGRESS_CIRCUMFERENCE *
     (1 - clampedProgressRate / 100);
 
-  const priorityStyle = PRIORITY_STYLES[priority];
+  const priorityStyle =
+    PRIORITY_STYLES[priority];
+
   const isDone = status === "DONE";
 
-  const memo =
-    lastMemo?.trim() || "아직 작성된 메모가 없어요";
+  const ariaLabel = isDone
+    ? `${title}, 완료`
+    : hasProgressRate
+      ? `${title}, 진행도 ${progressLevel}`
+      : `${title}, 우선순위 ${priority}`;
 
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={
-        isDone
-            ? `${title}, 완료, 메모: ${memo}`
-            : `${title}, 진행도 ${progressLevel}, 메모: ${memo}`
-        }
+      aria-label={ariaLabel}
       className="
         flex w-full items-center gap-4
         rounded-[12px] bg-black-850
@@ -110,24 +150,16 @@ export function TaskChip({
         >
           {title}
         </p>
-
-        <p
-          className="
-            mt-0.5 truncate text-[12px] font-medium
-            leading-[150%] text-black-600
-          "
-        >
-          {memo}
-        </p>
       </div>
 
       {isDone ? (
         <div
           aria-hidden="true"
           className="
-            flex h-[39px] w-[39px] shrink-0
-            items-center justify-center
-            rounded-full bg-lime-500
+            flex h-[39px] w-[39px]
+            shrink-0 items-center
+            justify-center rounded-full
+            bg-lime-500
           "
         >
           <svg
@@ -145,12 +177,13 @@ export function TaskChip({
             />
           </svg>
         </div>
-      ) : (
+      ) : hasProgressRate ? (
         <div
           aria-hidden="true"
           className="
-            relative flex h-[39px] w-[39px] shrink-0
-            items-center justify-center
+            relative flex h-[39px] w-[39px]
+            shrink-0 items-center
+            justify-center
           "
         >
           <svg
@@ -165,7 +198,9 @@ export function TaskChip({
               cy={PROGRESS_CENTER}
               r={PROGRESS_RADIUS}
               stroke="var(--color-black-800)"
-              strokeWidth={PROGRESS_STROKE_WIDTH}
+              strokeWidth={
+                PROGRESS_STROKE_WIDTH
+              }
               fill="none"
             />
 
@@ -174,13 +209,19 @@ export function TaskChip({
                 cx={PROGRESS_CENTER}
                 cy={PROGRESS_CENTER}
                 r={PROGRESS_RADIUS}
-                stroke={priorityStyle.color}
-                strokeWidth={PROGRESS_STROKE_WIDTH}
+                stroke={
+                  priorityStyle.color
+                }
+                strokeWidth={
+                  PROGRESS_STROKE_WIDTH
+                }
                 strokeLinecap="round"
                 strokeDasharray={
                   PROGRESS_CIRCUMFERENCE
                 }
-                strokeDashoffset={progressOffset}
+                strokeDashoffset={
+                  progressOffset
+                }
                 fill="none"
               />
             )}
@@ -188,7 +229,8 @@ export function TaskChip({
 
           <span
             className={`
-              relative z-10 text-[16px] font-semibold
+              relative z-10
+              text-[16px] font-semibold
               leading-none
               ${priorityStyle.textClassName}
             `}
@@ -196,7 +238,7 @@ export function TaskChip({
             {progressLevel}
           </span>
         </div>
-      )}
+      ) : null}
     </button>
   );
 }

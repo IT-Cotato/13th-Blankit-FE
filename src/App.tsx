@@ -145,7 +145,6 @@ function App() {
               path="/task-recommendations"
               element={
                 <TaskRecommendationsPage
-                  tasks={taskManager.tasks}
                   onTaskClick={taskManager.selectTask}
                 />
               }
