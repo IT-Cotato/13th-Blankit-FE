@@ -181,6 +181,9 @@ function App() {
         )}
 
       <TaskActionLayer
+        taskFormOptions={
+          taskManager.taskFormOptions
+        }
         aboveBottomNavigation={
           pageHasBottomNavigation
         }

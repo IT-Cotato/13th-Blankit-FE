@@ -35,6 +35,21 @@ const ALARM_MINUTES_MAP: Partial<
   "일주일 전": 10080,
 };
 
+const REMINDER_ALARM_MAP: Record<
+  ReminderOffsetMinutes,
+  AlarmOption
+> = {
+  1440: "1일 전",
+  4320: "3일 전",
+  10080: "일주일 전",
+};
+
+export function reminderOffsetToAlarmOption(
+  minutes: ReminderOffsetMinutes,
+): AlarmOption {
+  return REMINDER_ALARM_MAP[minutes];
+}
+
 function isDayOfMonth(
   day: RepeatDay,
 ): day is DayOfMonth {

@@ -12,35 +12,35 @@ const WORK_CATEGORY = {
   categoryId: 101,
   categoryName: "업무",
   color: "#6FD4FF",
-  iconKey: "ctgy-4",
+  iconKey: "msg",
 } satisfies Category;
 
 const SUBMIT_CATEGORY = {
   categoryId: 102,
   categoryName: "제출",
   color: "#FF9A33",
-  iconKey: "ctgy-5",
+  iconKey: "pin",
 } satisfies Category;
 
 const STUDY_CATEGORY = {
   categoryId: 103,
   categoryName: "공부",
   color: "#B3BBFA",
-  iconKey: "ctgy-9",
+  iconKey: "pen",
 } satisfies Category;
 
 const ORGANIZE_CATEGORY = {
   categoryId: 104,
   categoryName: "정리",
   color: "#5BE478",
-  iconKey: "ctgy-2",
+  iconKey: "note",
 } satisfies Category;
 
 const CREATE_CATEGORY = {
   categoryId: 105,
   categoryName: "창작",
   color: "#F2B3FA",
-  iconKey: "ctgy-10",
+  iconKey: "exercise",
 } satisfies Category;
 
 export const taskCombinations = [

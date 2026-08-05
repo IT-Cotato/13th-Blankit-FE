@@ -10,9 +10,11 @@ import type { TaskComposerFlowHandle } from "@/components/task-create/TaskCompos
 import { TaskActionSheet } from "@/components/task/TaskActionSheet";
 
 import type { Task } from "@/types/task";
-import type { TaskCreateRequest } from "@/types/taskApi";
+import type { TaskCreateRequest, TaskFormOptionsResponse } from "@/types/taskApi";
 
 interface TaskActionLayerProps {
+  taskFormOptions:
+    TaskFormOptionsResponse | null;
   aboveBottomNavigation: boolean;
   isComposerOpen: boolean;
   editingTask: Task | null;
@@ -38,6 +40,7 @@ interface TaskActionLayerProps {
 }
 
 export function TaskActionLayer({
+  taskFormOptions,
   aboveBottomNavigation,
   isComposerOpen,
   editingTask,
@@ -59,6 +62,7 @@ export function TaskActionLayer({
     <>
       {isComposerOpen && (
         <TaskComposerFlow
+          formOptions={taskFormOptions}
           key={
             editingTask?.taskId ?? "create"
           }
