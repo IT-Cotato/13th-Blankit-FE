@@ -1,3 +1,4 @@
+import type { Category } from "@/types/category";
 import type { TaskPriority, TaskStatus } from "@/types/task";
 
 export type CombinationModeId =
@@ -23,6 +24,7 @@ export interface CombinationTask {
   categoryId: string;
   categoryName: string;
   categoryIcon: string;
+  category: Category;
 }
 
 export interface TaskCombination {

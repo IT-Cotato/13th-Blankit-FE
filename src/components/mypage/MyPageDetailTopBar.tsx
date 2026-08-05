@@ -1,7 +1,9 @@
 import { TopBarShell } from "@/components/layout/top-bar/TopBarShell";
 
-type CompletedTaskTopBarProps = {
+type MyPageDetailTopBarProps = {
+  title: string;
   onBack: () => void;
+  titleClassName?: string;
 };
 
 function BackIcon() {
@@ -18,7 +20,11 @@ function BackIcon() {
   );
 }
 
-export function CompletedTaskTopBar({ onBack }: CompletedTaskTopBarProps) {
+export function MyPageDetailTopBar({
+  title,
+  onBack,
+  titleClassName = "",
+}: MyPageDetailTopBarProps) {
   return (
     <TopBarShell>
       <div className="relative flex h-full w-full items-center justify-center">
@@ -31,8 +37,10 @@ export function CompletedTaskTopBar({ onBack }: CompletedTaskTopBarProps) {
           <BackIcon />
         </button>
 
-        <h1 className="text-base font-semibold leading-6 tracking-[-0.24px] text-black-100">
-          내 완료한 과업 보기
+        <h1
+          className={`text-base font-semibold leading-6 tracking-[-0.24px] text-black-100 ${titleClassName}`}
+        >
+          {title}
         </h1>
       </div>
     </TopBarShell>

@@ -5,8 +5,43 @@ import quickTryModeIcon from "@/assets/icons/task-combination/quick-try-mode.svg
 import archiveCategoryIcon from "@/assets/icons/task-category/archive.svg";
 import briefcaseCategoryIcon from "@/assets/icons/task-category/briefcase.svg";
 import pencilCategoryIcon from "@/assets/icons/task-category/pencil.svg";
-
+import type { Category } from "@/types/category";
 import type { TaskCombination } from "@/types/taskCombination";
+
+const WORK_CATEGORY = {
+  categoryId: 101,
+  categoryName: "업무",
+  color: "#6FD4FF",
+  iconKey: "ctgy-4",
+} satisfies Category;
+
+const SUBMIT_CATEGORY = {
+  categoryId: 102,
+  categoryName: "제출",
+  color: "#FF9A33",
+  iconKey: "ctgy-5",
+} satisfies Category;
+
+const STUDY_CATEGORY = {
+  categoryId: 103,
+  categoryName: "공부",
+  color: "#B3BBFA",
+  iconKey: "ctgy-9",
+} satisfies Category;
+
+const ORGANIZE_CATEGORY = {
+  categoryId: 104,
+  categoryName: "정리",
+  color: "#5BE478",
+  iconKey: "ctgy-2",
+} satisfies Category;
+
+const CREATE_CATEGORY = {
+  categoryId: 105,
+  categoryName: "창작",
+  color: "#F2B3FA",
+  iconKey: "ctgy-10",
+} satisfies Category;
 
 export const taskCombinations = [
   {
@@ -27,6 +62,7 @@ export const taskCombinations = [
         categoryId: "work",
         categoryName: "업무",
         categoryIcon: briefcaseCategoryIcon,
+        category: WORK_CATEGORY,
       },
       {
         id: "fire-2",
@@ -39,6 +75,7 @@ export const taskCombinations = [
         categoryId: "submit",
         categoryName: "제출",
         categoryIcon: archiveCategoryIcon,
+        category: SUBMIT_CATEGORY,
       },
     ],
   },
@@ -60,6 +97,7 @@ export const taskCombinations = [
         categoryId: "study",
         categoryName: "공부",
         categoryIcon: pencilCategoryIcon,
+        category: STUDY_CATEGORY,
       },
       {
         id: "balance-2",
@@ -72,6 +110,7 @@ export const taskCombinations = [
         categoryId: "organize",
         categoryName: "정리",
         categoryIcon: archiveCategoryIcon,
+        category: WORK_CATEGORY,
       },
     ],
   },
@@ -93,6 +132,7 @@ export const taskCombinations = [
         categoryId: "work",
         categoryName: "업무",
         categoryIcon: briefcaseCategoryIcon,
+        category: ORGANIZE_CATEGORY,
       },
       {
         id: "quick-try-2",
@@ -105,6 +145,7 @@ export const taskCombinations = [
         categoryId: "organize",
         categoryName: "정리",
         categoryIcon: archiveCategoryIcon,
+        category: CREATE_CATEGORY,
       },
     ],
   },
@@ -126,6 +167,7 @@ export const taskCombinations = [
         categoryId: "work",
         categoryName: "업무",
         categoryIcon: briefcaseCategoryIcon,
+        category: WORK_CATEGORY,
       },
       {
         id: "get-it-done-2",
@@ -138,6 +180,7 @@ export const taskCombinations = [
         categoryId: "create",
         categoryName: "창작",
         categoryIcon: pencilCategoryIcon,
+        category: ORGANIZE_CATEGORY,
       },
     ],
   },

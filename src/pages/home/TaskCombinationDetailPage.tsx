@@ -196,7 +196,7 @@ export function TaskCombinationDetailPage() {
                 progressRate={task.progressRate}
                 priority={task.priority}
                 status={task.status}
-                categoryIcon={task.categoryIcon}
+                category={task.category}
               />
             </li>
           ))}
