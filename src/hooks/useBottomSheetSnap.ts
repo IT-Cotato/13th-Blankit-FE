@@ -78,6 +78,8 @@ export const useBottomSheetSnap = ({
     const [dragHeight, setDragHeight] = useState<number | null>(null);
     const [isDragging, setIsDragging] = useState(false);
 
+    const { height: viewportHeight, keyboardInset } = useVisualViewport();
+
     const headerHeight = useElementRectValue(
         headerSelector,
         (rect) => rect.height,
@@ -88,28 +90,27 @@ export const useBottomSheetSnap = ({
         (rect) => rect.bottom,
         0,
     );
+    const effectiveNavBarHeight = NAV_BAR_HEIGHT_PX + keyboardInset;
 
     const [snapHeights, setSnapHeights] = useState<SnapHeights>(() =>
         computeSnapHeights({
-            navBarHeight: NAV_BAR_HEIGHT_PX,
-            headerHeight: HEADER_HEIGHT_FALLBACK_PX,
-            calendarBottom: 0,
+            viewportHeight,
+            navBarHeight: effectiveNavBarHeight,
+            headerHeight,
+            calendarBottom: contentBottom,
         }),
     );
 
     useEffect(() => {
-        const recompute = () =>
-            setSnapHeights(
-                computeSnapHeights({
-                    navBarHeight: NAV_BAR_HEIGHT_PX,
-                    headerHeight,
-                    calendarBottom: contentBottom,
-                }),
-            );
-        recompute();
-        window.addEventListener("resize", recompute);
-        return () => window.removeEventListener("resize", recompute);
-    }, [headerHeight, contentBottom]);
+        setSnapHeights(
+            computeSnapHeights({
+                viewportHeight,
+                navBarHeight: effectiveNavBarHeight,
+                headerHeight,
+                calendarBottom: contentBottom,
+            }),
+        );
+    }, [viewportHeight, effectiveNavBarHeight, headerHeight, contentBottom]);
 
     const dragStartRef = useRef<{
         pointerId: number;
@@ -147,7 +148,7 @@ export const useBottomSheetSnap = ({
         const dragStart = dragStartRef.current;
         if (!dragStart || event.pointerId !== dragStart.pointerId) return;
 
-        const deltaY = dragStart.startY - event.clientY; // 위로 드래그하면 양수
+        const deltaY = dragStart.startY - event.clientY;
         setDragHeight(clampHeight(dragStart.startHeight + deltaY));
 
         const now = performance.now();
@@ -216,7 +217,7 @@ export const useBottomSheetSnap = ({
     };
 
     return {
-        navBarHeight: NAV_BAR_HEIGHT_PX,
+        navBarHeight: effectiveNavBarHeight,
         sheetHeight: dragHeight ?? snapHeights[currentSnapPoint],
         isDragging,
         isFull: currentSnapPoint === "full",

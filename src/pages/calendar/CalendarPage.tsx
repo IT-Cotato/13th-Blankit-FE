@@ -87,6 +87,7 @@ export const CalendarPage = () => {
             <div className="px-5 pt-5">
                 <CalendarGrid
                     monthDays={monthDays}
+                    selectedDate={selectedDate}
                     onSelectDate={handleSelectDate}
                 />
             </div>

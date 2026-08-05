@@ -1,4 +1,5 @@
 import type { Task } from "@/types/task";
+import { CalendarDayButton } from "@/components/calendar/CalendarDayButton";
 
 export interface CalendarDayCell {
     key: string;
@@ -12,15 +13,16 @@ const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 interface CalendarGridProps {
     monthDays: CalendarDayCell[];
+    selectedDate: string | null;
     onSelectDate: (dateKey: string) => void;
 }
 
 export const CalendarGrid = ({
     monthDays,
+    selectedDate,
     onSelectDate,
 }: CalendarGridProps) => {
     return (
-        // id="calendar-grid": CalendarTaskSheet가 캘린더 하단 위치를 측정하는 데 씁니다.
         <section
             id="calendar-grid"
             className="rounded-2xl border px-5 pt-5 border-black-800 bg-black-850 p-[18px]"
@@ -61,47 +63,13 @@ export const CalendarGrid = ({
                         );
                     }
 
-                    const handleSelect = () => {
-                        onSelectDate(day.key);
-                    };
-
                     return (
-                        <button
+                        <CalendarDayButton
                             key={day.key}
-                            type="button"
-                            onClick={handleSelect}
-                            className={`flex h-10.5 flex-col items-center justify-center rounded-[10px] bg-black-800 ${
-                                day.isToday ? "border border-green-500" : ""
-                            }`}
-                        >
-                            <span
-                                style={{
-                                    color: day.isToday
-                                        ? "var(--green-500, #22C55E)"
-                                        : "var(--black-300, #DFE1E4)",
-                                    textAlign: "center",
-                                    fontFamily: "Pretendard",
-                                    fontSize: "14px",
-                                    fontWeight: 500,
-                                    lineHeight: "150%",
-                                    letterSpacing: "-0.21px",
-                                }}
-                            >
-                                {day.day}
-                            </span>
-                            <div className="mt-1 flex items-center justify-center gap-1">
-                                {day.tasks.map((task) => (
-                                    <span
-                                        key={`${day.key}-${task.taskId}`}
-                                        className="h-1.5 w-1.5 rounded-full"
-                                        style={{
-                                            backgroundColor:
-                                                task.category.color,
-                                        }}
-                                    />
-                                ))}
-                            </div>
-                        </button>
+                            day={day}
+                            isSelected={day.key === selectedDate}
+                            onSelect={onSelectDate}
+                        />
                     );
                 })}
             </div>
