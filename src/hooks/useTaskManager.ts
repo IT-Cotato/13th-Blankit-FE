@@ -1,13 +1,14 @@
 import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
+import { createTask, getTaskFormOptions } from "@/api/tasks";
+
 import type { TaskComposerFlowHandle } from "@/components/task-create/TaskComposerFlow";
+
 import { mockTasks } from "@/mocks/tasks";
+
 import type { Task } from "@/types/task";
-
-import { createTask } from "@/api/tasks";
-
-import type { TaskCreateRequest } from "@/types/taskApi";
+import type { TaskCreateRequest, TaskFormOptionsResponse } from "@/types/taskApi";
 
 interface UseTaskManagerOptions {
   showToast: (message: string) => void;
@@ -29,16 +30,40 @@ export function useTaskManager({
   const [taskTitle, setTaskTitle] = useState("");
   const [isComposerOpen, setIsComposerOpen] =
     useState(false);
+  const [taskFormOptions, setTaskFormOptions] = 
+    useState<TaskFormOptionsResponse | null>(null);
+  const [ openingComposer, setOpeningComposer] = 
+    useState(false);
 
-  function openComposer() {
-    flushSync(() => {
-      setEditingTask(null);
-      setSelectedTaskId(null);
-      setTaskTitle("");
-      setIsComposerOpen(true);
-    });
 
-    composerRef.current?.focus();
+  async function openComposer() {
+    if (openingComposer) {
+      return;
+    }
+
+    try {
+      setOpeningComposer(true);
+
+      const formOptions =
+        await getTaskFormOptions();
+
+      flushSync(() => {
+        setTaskFormOptions(formOptions);
+        setEditingTask(null);
+        setSelectedTaskId(null);
+        setTaskTitle("");
+        setIsComposerOpen(true);
+      });
+
+      composerRef.current?.focus();
+    } catch (error) {
+      console.error(error);
+      showToast(
+        "과업 등록 정보를 불러오지 못했습니다.",
+      );
+    } finally {
+      setOpeningComposer(false);
+    }
   }
 
   function closeComposer() {
@@ -118,6 +143,8 @@ export function useTaskManager({
 
   return {
     tasks,
+    taskFormOptions,
+    openingComposer,
     selectedTaskId,
     editingTask,
     taskPendingDelete,
@@ -131,9 +158,11 @@ export function useTaskManager({
     completeCreate,
     editSelectedTask,
     updateTask,
-    closeActionSheet: () => setSelectedTaskId(null),
+    closeActionSheet: () =>
+      setSelectedTaskId(null),
     requestDelete,
-    cancelDelete: () => setTaskPendingDelete(null),
+    cancelDelete: () =>
+      setTaskPendingDelete(null),
     confirmDelete,
   };
 }
