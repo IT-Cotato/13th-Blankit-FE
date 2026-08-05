@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 
 import { OnboardingCarousel } from "@/components/onboarding/OnboardingCarousel";
 import { onboardingCards } from "@/data/onboardingCards";
+import { useAuthStore } from "@/store/authStore";
 
 export const OnboardingPage = () => {
     const navigate = useNavigate();
     const [currentIndex, setCurrentIndex] = useState(0);
+    const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
     const isLastCard = currentIndex === onboardingCards.length - 1;
 
@@ -22,6 +24,11 @@ export const OnboardingPage = () => {
 
         setCurrentIndex((previousIndex) => previousIndex + 1);
     };
+
+    // 이미 로그인된 상태로 /onboarding에 접근한 경우 홈으로 즉시 리다이렉트
+    if (isAuthenticated) {
+        return <Navigate to="/" replace />;
+    }
 
     return (
         <div className="flex flex-1 items-center justify-center min-h-dvh flex-col bg-black-900 pt-[19.591px] pb-[31.875px]">
