@@ -19,33 +19,69 @@ export function ConfirmModal({
   onCancel,
   onConfirm,
 }: ConfirmModalProps) {
+  const dialogRef = useRef<HTMLElement>(null);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
+  const onCancelRef = useRef(onCancel);
+
+  useEffect(() => {
+    onCancelRef.current = onCancel;
+  }, [onCancel]);
 
   useEffect(() => {
     if (!open) {
       return;
     }
+
+    const previouslyFocusedElement =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
 
     cancelButtonRef.current?.focus();
-  }, [open]);
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
 
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape" && !submitting) {
-        onCancel();
+        if (!submitting) {
+          onCancelRef.current();
+        }
+
+        return;
+      }
+
+      if (event.key !== "Tab") {
+        return;
+      }
+
+      const focusableElements =
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          "button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])",
+        );
+
+      if (!focusableElements?.length) {
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
       }
     }
 
-    window.addEventListener("keydown", closeOnEscape);
+    document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      window.removeEventListener("keydown", closeOnEscape);
+      document.removeEventListener("keydown", handleKeyDown);
+      previouslyFocusedElement?.focus();
     };
-  }, [onCancel, open, submitting]);
+  }, [open, submitting]);
 
   if (!open) {
     return null;
@@ -54,6 +90,7 @@ export function ConfirmModal({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-5">
       <section
+        ref={dialogRef}
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="confirm-modal-title"
@@ -62,7 +99,7 @@ export function ConfirmModal({
       >
         <h2
           id="confirm-modal-title"
-          className="flex h-[72px] items-center justify-center px-2 py-6 text-center text-[16px] font-medium text-black-100"
+          className="flex h-[72px] items-center justify-center whitespace-pre-line px-2 py-6 text-center text-[16px] font-medium text-black-100"
         >
           {title}
         </h2>

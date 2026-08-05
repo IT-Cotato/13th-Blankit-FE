@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import arrowDownIcon from "@/assets/icons/task-combination/arrow-down.svg";
 import checkIcon from "@/assets/icons/task-combination/check.svg";
 import backIcon from "@/assets/icons/header/back.svg";
-import { ConfirmationDialog } from "@/components/task-combination/ConfirmationDialog";
+import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { Toast } from "@/components/task-combination/Toast";
 import { TaskChip } from "@/components/task/TaskChip";
 import { getTaskCombination } from "@/mocks/taskCombinations";
@@ -206,12 +206,12 @@ export function TaskCombinationDetailPage() {
         <Toast message="할 일이 다음에 재생됩니다." />
       )}
 
-      <ConfirmationDialog
+      <ConfirmModal
         open={isDeleteDialogOpen}
-        title="리스트에 추가된 모든 과업을 삭제하시겠습니까?"
+        title={"리스트에서 모든 과업을\n삭제하시겠습니까?"}
         onCancel={handleDeleteCancel}
         onConfirm={handleDelete}
-        isSubmitting={isDeleting}
+        submitting={isDeleting}
       />
     </>
   );
