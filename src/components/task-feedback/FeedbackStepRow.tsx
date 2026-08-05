@@ -30,10 +30,18 @@ export function FeedbackStepRow({
   const handlePointerDown = (
     event: React.PointerEvent<HTMLDivElement>,
   ) => {
+    const target = event.target as HTMLElement;
+    const input = target.closest("input");
+
+    const isProgressSlider = input?.type === "range";
+    const isFocusedTitleInput =
+      input?.type === "text" &&
+      document.activeElement === input;
+
     if (
-      (event.target as HTMLElement).closest(
-        "input, button",
-      )
+      target.closest("button") ||
+      isProgressSlider ||
+      isFocusedTitleInput
     ) {
       return;
     }
@@ -104,6 +112,7 @@ export function FeedbackStepRow({
         }`}
       >
         <input
+          type="text"
           value={step.title}
           onChange={(event) =>
             onTitleChange(event.target.value)

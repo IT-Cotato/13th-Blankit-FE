@@ -49,14 +49,6 @@ export function FeedbackProgressSlider({
               : "bg-black-750"
           }`}
         >
-          {!disabled && (
-            <span
-              aria-hidden="true"
-              className="absolute bottom-0 left-0 top-0 bg-green-500"
-              style={{ width: sliderPosition }}
-            />
-          )}
-
           {PROGRESS_MARKS.map((mark) => (
             <span
               key={mark}
@@ -71,6 +63,14 @@ export function FeedbackProgressSlider({
               }}
             />
           ))}
+
+          {!disabled && (
+            <span
+              aria-hidden="true"
+              className="absolute bottom-0 left-0 top-0 bg-green-500"
+              style={{ width: sliderPosition }}
+            />
+          )}
         </div>
 
         <span

@@ -2,7 +2,7 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import { useState } from "react";
 
 import { BottomNavigation } from "./components/layout/BottomNavigation";
-import { PlaylistTaskBar } from "./components/task-combination/PlaylistTaskBar";
+import { CurrentTaskMiniPlayer } from "./components/task-combination/CurrentTaskMiniPlayer";
 
 import { CalendarPage } from "./pages/calendar/CalendarPage";
 import { HomePage } from "./pages/home/HomePage";
@@ -14,7 +14,7 @@ import { TaskPlaylistPage } from "./pages/task-playlist/TaskPlaylistPage";
 
 import { TaskCombinationDetailPage } from "./pages/home/TaskCombinationDetailPage";
 import { usePlaylistStore } from "./store/usePlaylistStore";
-import { shouldShowPlaylistTaskBar } from "./utils/playlistTaskBarRoutes";
+import { shouldShowCurrentTaskMiniPlayer } from "./utils/currentTaskMiniPlayerRoutes";
 import { SplashScreen } from "./components/splash/SplashScreen";
 import { OnboardingPage } from "./pages/onboarding/OnboardingPage";
 import { LoginPage } from "./pages/login/LoginPage";
@@ -47,9 +47,9 @@ function App() {
     return <SplashScreen onFinish={handleSplashFinish} />;
   }
   
-  const hasPlaylistTaskBar =
+  const hasCurrentTaskMiniPlayer =
     Boolean(currentPlaylistTask) &&
-    shouldShowPlaylistTaskBar(location.pathname) &&
+    shouldShowCurrentTaskMiniPlayer(location.pathname) &&
     !PAGES_WITHOUT_BOTTOM_NAVIGATION.includes(
       location.pathname,
     );
@@ -58,7 +58,7 @@ function App() {
     <>
       <main
         className={
-          hasPlaylistTaskBar
+          hasCurrentTaskMiniPlayer
             ? "min-h-screen pb-[calc(170px+env(safe-area-inset-bottom))]"
             : hasBottomNavigation
               ? "min-h-screen pb-[calc(90px+env(safe-area-inset-bottom))]"
@@ -93,8 +93,8 @@ function App() {
 
       {hasBottomNavigation && <BottomNavigation />}
 
-      {hasPlaylistTaskBar && currentPlaylistTask && (
-        <PlaylistTaskBar task={currentPlaylistTask} />
+      {hasCurrentTaskMiniPlayer && currentPlaylistTask && (
+        <CurrentTaskMiniPlayer task={currentPlaylistTask} />
       )}
     </>
   );

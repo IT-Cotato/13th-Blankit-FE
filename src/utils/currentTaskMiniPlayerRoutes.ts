@@ -1,4 +1,4 @@
-export function shouldShowPlaylistTaskBar(
+export function shouldShowCurrentTaskMiniPlayer(
   pathname: string,
 ) {
   return (

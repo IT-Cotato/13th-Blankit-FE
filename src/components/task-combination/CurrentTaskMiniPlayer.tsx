@@ -9,13 +9,13 @@ import type { PlaylistTask } from "@/types/taskCombination";
 
 import { TaskTimerToggleIcon } from "./TaskTimerToggleIcon";
 
-interface PlaylistTaskBarProps {
+interface CurrentTaskMiniPlayerProps {
   task: PlaylistTask;
 }
 
-export function PlaylistTaskBar({
+export function CurrentTaskMiniPlayer({
   task,
-}: PlaylistTaskBarProps) {
+}: CurrentTaskMiniPlayerProps) {
   const navigate = useNavigate();
   const combination = getTaskCombination(
     task.sourceModeId,

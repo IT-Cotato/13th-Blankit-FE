@@ -66,12 +66,13 @@ export function canCompleteFeedback(
     (step) => step.title.trim().length > 0,
   );
 
-  const hasFeedback =
-    draft.memo.trim().length > 0 ||
+  const hasMemo = draft.memo.trim().length > 0;
+
+  const hasProgress =
     draft.progressTouched ||
     draft.steps.some((step) => step.progressTouched);
 
-  return hasValidStepTitles && hasFeedback;
+  return hasValidStepTitles && hasMemo && hasProgress;
 }
 
 export function getFeedbackCompletionResult(

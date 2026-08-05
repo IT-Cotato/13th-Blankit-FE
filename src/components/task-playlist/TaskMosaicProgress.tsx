@@ -12,7 +12,7 @@ function getMosaicSlotColorClassName(
   isOvertime: boolean,
 ) {
   if (!isCompleted) {
-    return "bg-black-850";
+    return "bg-black-800";
   }
 
   if (isOvertime) {
