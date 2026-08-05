@@ -18,7 +18,7 @@ import { formatDeadline } from "@/components/task-create/date/utils/calendar";
 import { getFirstRepeatDate } from "@/components/task-create/date/utils/repeat";
 import { useDateFlow } from "@/components/task-create/date/useDateFlow";
 import { SimilarTaskSheet } from "@/components/task-create/similar-task/SimilarTaskSheet";
-import { createNormalTaskRequest, resolveTaskDeadline } from "@/components/task-create/taskCreateUtils";
+import { createTaskRequest, resolveTaskDeadline } from "@/components/task-create/taskCreateUtils";
 
 import { mockTasks } from "@/mocks/tasks";
 import type { Task } from "@/types/task";
@@ -33,7 +33,7 @@ interface TaskComposerFlowProps {
   task: Task | null;
   onTitleChange: (title: string) => void;
   onClose: () => void;
-  onComplete: (request: TaskCreateRequest) => void;
+  onComplete: (request: TaskCreateRequest) => void | Promise<void>;
   onUpdate?: (task: Task) => void;
 }
 
@@ -116,15 +116,19 @@ export const TaskComposerFlow = forwardRef<
 
     const selectedCategory =
       categoryFlow.selectedCategory;
-    const selectedDate = dateFlow.selectedDate;
 
-    if (!selectedCategory || !selectedDate) {
+    if (
+      !selectedCategory ||
+      (!dateFlow.selectedDate &&
+        !dateFlow.repeatSettings)
+    ) {
       return;
     }
 
-    const request = createNormalTaskRequest({
+    const request = createTaskRequest({
       title,
-      selectedDate,
+      selectedDate: dateFlow.selectedDate,
+      repeatSettings: dateFlow.repeatSettings,
       categoryId: selectedCategory.categoryId,
       alarm: alarmFlow.selectedAlarm,
       similarTaskId,

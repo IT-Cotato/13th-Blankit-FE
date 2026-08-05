@@ -8,17 +8,25 @@ import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { TaskComposerFlow } from "@/components/task-create/TaskComposerFlow";
 import type { TaskComposerFlowHandle } from "@/components/task-create/TaskComposerFlow";
 import { TaskActionSheet } from "@/components/task/TaskActionSheet";
+
 import type { Task } from "@/types/task";
+import type { TaskCreateRequest } from "@/types/taskApi";
 
 interface TaskActionLayerProps {
   aboveBottomNavigation: boolean;
   isComposerOpen: boolean;
   editingTask: Task | null;
   taskTitle: string;
-  composerRef: RefObject<TaskComposerFlowHandle | null>;
-  onTitleChange: Dispatch<SetStateAction<string>>;
+  composerRef: RefObject<
+    TaskComposerFlowHandle | null
+  >;
+  onTitleChange: Dispatch<
+    SetStateAction<string>
+  >;
   onCloseComposer: () => void;
-  onCompleteCreate: () => void;
+  onCompleteCreate: (
+    request: TaskCreateRequest,
+  ) => void | Promise<void>;
   onUpdateTask: (task: Task) => void;
   actionSheetOpen: boolean;
   onCloseActionSheet: () => void;
@@ -51,7 +59,9 @@ export function TaskActionLayer({
     <>
       {isComposerOpen && (
         <TaskComposerFlow
-          key={editingTask?.taskId ?? "create"}
+          key={
+            editingTask?.taskId ?? "create"
+          }
           ref={composerRef}
           title={taskTitle}
           task={editingTask}
@@ -64,7 +74,9 @@ export function TaskActionLayer({
 
       <TaskActionSheet
         open={actionSheetOpen}
-        aboveBottomNavigation={aboveBottomNavigation}
+        aboveBottomNavigation={
+          aboveBottomNavigation
+        }
         onClose={onCloseActionSheet}
         onEdit={onEditTask}
         onDelete={onRequestDelete}

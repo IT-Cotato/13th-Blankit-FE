@@ -2,11 +2,8 @@ import { formatDateKey } from "./date/utils/calendar";
 import { getFirstRepeatDate } from "./date/utils/repeat";
 
 import type { AlarmOption } from "./alarm/alarmOptions";
-import type { RepeatSettings } from "./date/repeatTypes";
-import type {
-  ReminderOffsetMinutes,
-  TaskCreateRequest,
-} from "@/types/taskApi";
+import type { DayOfMonth, RepeatDay, RepeatSettings } from "./date/repeatTypes";
+import type { ReminderOffsetMinutes, RepeatRuleRequest, TaskCreateRequest } from "@/types/taskApi";
 
 interface ResolveTaskDeadlineOptions {
   selectedDate: Date | null;
@@ -38,21 +35,82 @@ const ALARM_MINUTES_MAP: Partial<
   "일주일 전": 10080,
 };
 
-interface CreateNormalTaskRequestParams {
+function isDayOfMonth(
+  day: RepeatDay,
+): day is DayOfMonth {
+  return day !== "last";
+}
+
+interface CreateTaskRequestParams {
   title: string;
-  selectedDate: Date;
+  selectedDate: Date | null;
+  repeatSettings: RepeatSettings | null;
   categoryId: number;
   alarm: AlarmOption;
   similarTaskId: number | null;
 }
 
-export function createNormalTaskRequest({
+export function createRepeatRuleRequest(
+  settings: RepeatSettings,
+): RepeatRuleRequest {
+  const commonValues = {
+    startDate: formatDateKey(settings.startDate),
+    endDate: settings.endDate
+      ? formatDateKey(settings.endDate)
+      : null,
+  };
+
+  switch (settings.pattern.type) {
+    case "weekly":
+      return {
+        frequency: "WEEKLY",
+        daysOfWeek: settings.pattern.weekdays,
+        ...commonValues,
+      };
+
+    case "monthly":
+      return {
+        frequency: "MONTHLY",
+        daysOfMonth:
+          settings.pattern.days.filter(
+            isDayOfMonth,
+          ),
+        lastDayOfMonth:
+          settings.pattern.days.includes("last"),
+        ...commonValues,
+      };
+
+    case "yearly": {
+      if (settings.pattern.month === null) {
+        throw new Error(
+          "연 반복의 월을 선택해주세요.",
+        );
+      }
+
+      return {
+        frequency: "YEARLY",
+        monthOfYear:
+          settings.pattern.month + 1,
+        daysOfMonth:
+          settings.pattern.days.filter(
+            isDayOfMonth,
+          ),
+        lastDayOfMonth:
+          settings.pattern.days.includes("last"),
+        ...commonValues,
+      };
+    }
+  }
+}
+
+export function createTaskRequest({
   title,
   selectedDate,
+  repeatSettings,
   categoryId,
   alarm,
   similarTaskId,
-}: CreateNormalTaskRequestParams): TaskCreateRequest {
+}: CreateTaskRequestParams): TaskCreateRequest {
   const notifyBefore = ALARM_MINUTES_MAP[alarm];
 
   if (notifyBefore === undefined) {
@@ -61,13 +119,26 @@ export function createNormalTaskRequest({
     );
   }
 
+  if (!selectedDate && !repeatSettings) {
+    throw new Error(
+      "과업 날짜 또는 반복 설정이 필요합니다.",
+    );
+  }
+
   return {
     title: title.trim(),
-    deadline: formatDateKey(selectedDate),
     categoryId,
     notifyBefore,
     notificationEnabled: true,
     estimatedTime: null,
     similarTaskId,
+    ...(repeatSettings
+      ? {
+          repeatRule:
+            createRepeatRuleRequest(repeatSettings),
+        }
+      : {
+          deadline: formatDateKey(selectedDate as Date),
+        }),
   };
 }
