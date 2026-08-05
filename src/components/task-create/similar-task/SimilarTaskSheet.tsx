@@ -15,14 +15,16 @@ import { toggleSelectedTask } from "./similarTaskUtils";
 
 interface SimilarTaskSheetProps {
   categories: Category[];
+  submitting: boolean;
   onBack: () => void;
   onComplete: (
     similarTaskId: number | null,
-  ) => void;
+  ) => void | Promise<void>;
 }
 
 export function SimilarTaskSheet({
   categories,
+  submitting,
   onBack,
   onComplete,
 }: SimilarTaskSheetProps) {
@@ -131,6 +133,7 @@ export function SimilarTaskSheet({
         <button
           type="button"
           aria-label="과업 입력으로 돌아가기"
+          disabled={submitting}
           onClick={onBack}
           className="absolute left-5 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-start"
         >
@@ -258,7 +261,7 @@ export function SimilarTaskSheet({
       <footer className="flex shrink-0 gap-[10px] border-t border-black-800 bg-black-850 px-5 pb-5 pt-4">
         <button
           type="button"
-          disabled={hasSelection}
+          disabled={hasSelection || submitting}
           onClick={() => onComplete(null)}
           className="h-12 grow basis-auto rounded-[8px] bg-black-700 px-[24px] text-[14px] font-medium text-black-100 disabled:cursor-not-allowed disabled:opacity-40"
         >

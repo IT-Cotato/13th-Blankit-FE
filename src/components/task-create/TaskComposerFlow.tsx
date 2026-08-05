@@ -60,6 +60,9 @@ export const TaskComposerFlow = forwardRef<
     "composer" | "similar"
   >("composer");
 
+  const [submitting, setSubmitting] =
+  useState(false);
+
   const inputRef =
     useRef<HTMLInputElement>(null);
 
@@ -137,9 +140,13 @@ export const TaskComposerFlow = forwardRef<
       ? "반복 설정"
       : "날짜 선택";
 
-  function handleComplete(
+  async function handleComplete(
     similarTaskId: number | null,
   ) {
+    if (submitting) {
+      return;
+    }
+
     if (task && onUpdate) {
       onUpdate({
         ...task,
@@ -152,8 +159,7 @@ export const TaskComposerFlow = forwardRef<
             dateFlow.selectedDate,
           repeatSettings:
             dateFlow.repeatSettings,
-          fallbackDeadline:
-            task.deadline,
+          fallbackDeadline: task.deadline,
         }),
       });
 
@@ -183,7 +189,12 @@ export const TaskComposerFlow = forwardRef<
       similarTaskId,
     });
 
-    void onComplete(request);
+    try {
+      setSubmitting(true);
+      await onComplete(request);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   useImperativeHandle(ref, () => ({
@@ -230,6 +241,7 @@ export const TaskComposerFlow = forwardRef<
       {step === "similar" && (
         <SimilarTaskSheet
           categories={categoryFlow.categories}
+          submitting={submitting}
           onBack={() => {
             setStep("composer");
             focusTaskInput();

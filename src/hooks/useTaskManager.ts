@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
@@ -79,10 +80,23 @@ export function useTaskManager({
       await createTask(request);
 
       closeComposer();
-      showToast("과업 추가가 완료되었습니다.");
+      showToast(
+        "과업 추가가 완료되었습니다.",
+      );
     } catch (error) {
       console.error(error);
-      showToast("과업 추가에 실패했습니다.");
+
+      const serverMessage =
+        axios.isAxiosError<{
+          message?: string;
+        }>(error)
+          ? error.response?.data?.message
+          : undefined;
+
+      showToast(
+        serverMessage ??
+          "과업 추가에 실패했습니다.",
+      );
     }
   }
 
