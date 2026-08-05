@@ -8,27 +8,32 @@ import mypageBlackIcon from "@/assets/icons/bottom-nav/mypage-black.svg";
 import mypageGreenIcon from "@/assets/icons/bottom-nav/mypage-green.svg";
 
 const bottomNavItems = [
-  {
-    label: "home",
-    to: "/",
-    activePaths: ["/", "/home/search"],
-    icon: homeBlackIcon,
-    activeIcon: homeGreenIcon,
-  },
-  {
-    label: "calendar",
-    to: "/calendar",
-    activePaths: ["/calendar"],
-    icon: calendarBlackIcon,
-    activeIcon: calendarGreenIcon,
-  },
-  {
-    label: "mypage",
-    to: "/mypage",
-    activePaths: ["/mypage"],
-    icon: mypageBlackIcon,
-    activeIcon: mypageGreenIcon,
-  },
+    {
+      label: "home",
+      to: "/",
+      activePaths: [
+        "/",
+        "/home/search",
+        "/task-combinations",
+        "/task-playlist",
+      ],
+      icon: homeBlackIcon,
+      activeIcon: homeGreenIcon,
+    },
+    {
+      label: "calendar",
+      to: "/calendar",
+      activePaths: ["/calendar"],
+      icon: calendarBlackIcon,
+      activeIcon: calendarGreenIcon,
+    },
+    {
+      label: "mypage",
+      to: "/mypage",
+      activePaths: ["/mypage"],
+      icon: mypageBlackIcon,
+      activeIcon: mypageGreenIcon,
+    }
 ];
 
 export function BottomNavigation() {
