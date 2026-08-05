@@ -1,16 +1,16 @@
 export type CategoryIconKey =
-  | "ctgy-1"
-  | "ctgy-2"
-  | "ctgy-3"
-  | "ctgy-4"
-  | "ctgy-5"
-  | "ctgy-6"
-  | "ctgy-7"
-  | "ctgy-8"
-  | "ctgy-9"
-  | "ctgy-10"
-  | "ctgy-11"
-  | "ctgy-12";
+  | "alarm"
+  | "note"
+  | "work"
+  | "daily"
+  | "calendar"
+  | "checklist"
+  | "hobby"
+  | "study"
+  | "book"
+  | "exercise"
+  | "housework"
+  | "goal";
 
 export type CategoryFormMode = "create" | "update";
 

@@ -16,19 +16,22 @@ import type {
   CategoryIconKey,
 } from "@/types/category";
 
-export const CATEGORY_ICON_MAP: Record<CategoryIconKey, string> = {
-  "ctgy-1": ctgy1Icon,
-  "ctgy-2": ctgy2Icon,
-  "ctgy-3": ctgy3Icon,
-  "ctgy-4": ctgy4Icon,
-  "ctgy-5": ctgy5Icon,
-  "ctgy-6": ctgy6Icon,
-  "ctgy-7": ctgy7Icon,
-  "ctgy-8": ctgy8Icon,
-  "ctgy-9": ctgy9Icon,
-  "ctgy-10": ctgy10Icon,
-  "ctgy-11": ctgy11Icon,
-  "ctgy-12": ctgy12Icon,
+export const CATEGORY_ICON_MAP: Record<
+  CategoryIconKey,
+  string
+> = {
+  alarm: ctgy1Icon,
+  note: ctgy2Icon,
+  work: ctgy3Icon,
+  daily: ctgy4Icon,
+  calendar: ctgy5Icon,
+  checklist: ctgy6Icon,
+  hobby: ctgy7Icon,
+  study: ctgy8Icon,
+  book: ctgy9Icon,
+  exercise: ctgy10Icon,
+  housework: ctgy11Icon,
+  goal: ctgy12Icon,
 };
 
 export const CATEGORY_ICON_OPTIONS = (

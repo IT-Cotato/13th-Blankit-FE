@@ -1,13 +1,17 @@
 import { useEffect, useRef, useState } from "react";
+import axios from "axios";
 
 import {
-  createMockCategory,
-  deleteMockCategory,
-  getMockAvailableColors,
-  getMockCategories,
-  updateMockCategory,
-} from "@/mocks/categories";
+  createCategory,
+  deleteCategory,
+  getAvailableCategoryColors,
+  getCategories,
+  updateCategory,
+} from "@/api/categories";
+
 import { TOAST_DURATION_MS } from "@/constants/toast";
+
+import type { ApiEnvelope } from "@/types/auth";
 
 import type {
   Category,
@@ -55,17 +59,28 @@ export function useCategoryFlow({
     };
   }, []);
 
+  function getApiErrorMessage(error: unknown): string {
+    if (axios.isAxiosError<ApiEnvelope<unknown>>(error)) {
+      return (
+        error.response?.data?.message ??
+        "요청을 처리하지 못했습니다."
+      );
+    }
+
+    return error instanceof Error
+      ? error.message
+      : "요청을 처리하지 못했습니다.";
+  }
+
   function showError(error: unknown) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "요청을 처리하지 못했습니다.";
+    const message = getApiErrorMessage(error);
 
     if (errorTimerRef.current !== null) {
       window.clearTimeout(errorTimerRef.current);
     }
 
     setErrorMessage(message);
+
     errorTimerRef.current = window.setTimeout(() => {
       setErrorMessage(null);
       errorTimerRef.current = null;
@@ -79,7 +94,7 @@ export function useCategoryFlow({
     setErrorMessage(null);
 
     try {
-      const nextCategories = await getMockCategories();
+      const nextCategories = await getCategories();
       setCategories(nextCategories);
     } catch (error) {
       showError(error);
@@ -91,7 +106,7 @@ export function useCategoryFlow({
   async function startCreate() {
     try {
       setLoading(true);
-      const colors = await getMockAvailableColors();
+      const colors = await getAvailableCategoryColors();
 
       if (colors.length === 0) {
         showError(
@@ -114,7 +129,9 @@ export function useCategoryFlow({
   async function startUpdate(category: Category) {
     try {
       setLoading(true);
-      const colors = await getMockAvailableColors(category.categoryId);
+      const colors = await getAvailableCategoryColors(
+        category.categoryId,
+      );
 
       setAvailableColors(colors);
       setEditingCategory(category);
@@ -132,12 +149,12 @@ export function useCategoryFlow({
       setSubmitting(true);
 
       if (formMode === "create") {
-        const created = await createMockCategory(values);
+        const created = await createCategory(values);
 
         setCategories((current) => [...current, created]);
         setSelectedCategory(created);
       } else if (editingCategory) {
-        const updated = await updateMockCategory(
+        const updated = await updateCategory(
           editingCategory.categoryId,
           values,
         );
@@ -172,7 +189,7 @@ export function useCategoryFlow({
       setSubmitting(true);
 
       const deletedCategoryId = pendingDeleteCategory.categoryId;
-      await deleteMockCategory(deletedCategoryId);
+      await deleteCategory(deletedCategoryId);
 
       const remaining = categories.filter(
         (category) => category.categoryId !== deletedCategoryId,

@@ -31,7 +31,7 @@ export function CategoryFormSheet({
   mode,
   initialName = "",
   initialColor,
-  initialIconKey = "ctgy-1",
+  initialIconKey = "alarm",
   colors,
   submitting = false,
   onBack,
@@ -41,7 +41,7 @@ export function CategoryFormSheet({
   const { height: viewportHeight, keyboardInset } = useVisualViewport();
 
   const [name, setName] = useState(initialName);
-  const [color, setColor] = useState(initialColor ?? colors[0] ?? "");
+  const [color, setColor] = useState(initialColor ?? "");
   const [selectedIconKey, setSelectedIconKey] =
     useState<CategoryIconKey>(initialIconKey);
 

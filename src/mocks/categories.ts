@@ -11,19 +11,19 @@ const INITIAL_CATEGORIES: Category[] = [
     categoryId: 1,
     categoryName: "학업",
     color: "#FC5F5F",
-    iconKey: "ctgy-9",
+    iconKey: "study",
   },
   {
     categoryId: 2,
     categoryName: "일상",
     color: "#FF9A33",
-    iconKey: "ctgy-4",
+    iconKey: "housework",
   },
   {
     categoryId: 3,
     categoryName: "기념일",
     color: "#D3FB65",
-    iconKey: "ctgy-5",
+    iconKey: "calendar",
   },
 ];
 
