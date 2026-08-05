@@ -21,7 +21,6 @@ import { useDateFlow } from "@/components/task-create/date/useDateFlow";
 import { SimilarTaskSheet } from "@/components/task-create/similar-task/SimilarTaskSheet";
 import { createTaskRequest, reminderOffsetToAlarmOption, resolveTaskDeadline } from "@/components/task-create/taskCreateUtils";
 
-import { mockTasks } from "@/mocks/tasks";
 import type { Task } from "@/types/task";
 import type { TaskCreateRequest, TaskFormOptionsResponse } from "@/types/taskApi";
 
@@ -230,7 +229,7 @@ export const TaskComposerFlow = forwardRef<
 
       {step === "similar" && (
         <SimilarTaskSheet
-          tasks={mockTasks}
+          categories={categoryFlow.categories}
           onBack={() => {
             setStep("composer");
             focusTaskInput();

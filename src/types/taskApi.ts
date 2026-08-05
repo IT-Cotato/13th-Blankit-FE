@@ -1,4 +1,4 @@
-import type { Category } from "@/types/category";
+import type { Category, CategoryIconKey } from "@/types/category";
 import type {
   TaskPriority,
   TaskStatus,
@@ -132,4 +132,22 @@ export interface TaskFormOptionsResponse {
   categories: Category[];
   reminderRange: ReminderRangeResponse;
   reminderOptions: ReminderOffsetMinutes[];
+}
+
+export interface TaskHistoryItemResponse {
+  taskId: number;
+  title: string;
+  categoryId: number;
+  categoryName: string;
+  categoryColor: string;
+  categoryIconKey: CategoryIconKey;
+  deadline: string;
+  totalElapsedTime: number;
+}
+
+export interface TaskHistoryParams {
+  keyword?: string;
+  categoryId?: number;
+  page?: number;
+  size?: number;
 }

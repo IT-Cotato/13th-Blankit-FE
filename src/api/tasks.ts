@@ -6,6 +6,8 @@ import type {
   TaskCreateRequest,
   TaskDetailResponse,
   TaskFormOptionsResponse,
+  TaskHistoryItemResponse,
+  TaskHistoryParams,
   TaskListParams,
   TaskListResponse,
   TaskUpdateRequest,
@@ -65,6 +67,18 @@ Promise<TaskFormOptionsResponse> {
   const response = await apiClient.get<
     ApiEnvelope<TaskFormOptionsResponse>
   >("/api/tasks/form-options");
+
+  return response.data.data;
+}
+
+export async function getTaskHistory(
+  params: TaskHistoryParams = {},
+): Promise<PageResponse<TaskHistoryItemResponse>> {
+  const response = await apiClient.get<
+    ApiEnvelope<PageResponse<TaskHistoryItemResponse>>
+  >("/api/tasks/history", {
+    params,
+  });
 
   return response.data.data;
 }

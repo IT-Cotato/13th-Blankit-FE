@@ -1,55 +1,124 @@
-import { useMemo, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import { getTaskHistory } from "@/api/tasks";
 
 import backIcon from "@/assets/icons/back-button-black-600.svg";
-import type { Task } from "@/types/task";
+
+import type { Category } from "@/types/category";
+import type { TaskHistoryItemResponse } from "@/types/taskApi";
 
 import { SimilarTaskCard } from "./SimilarTaskCard";
-import {
-  filterSimilarTasks,
-  getTaskCategories,
-  toggleSelectedTask,
-} from "./similarTaskUtils";
+import { toggleSelectedTask } from "./similarTaskUtils";
 
 interface SimilarTaskSheetProps {
-  tasks: Task[];
+  categories: Category[];
   onBack: () => void;
-  onComplete: (similarTaskId: number | null) => void;
+  onComplete: (
+    similarTaskId: number | null,
+  ) => void;
 }
 
 export function SimilarTaskSheet({
-  tasks,
+  categories,
   onBack,
   onComplete,
 }: SimilarTaskSheetProps) {
-  const categories = useMemo(() => getTaskCategories(tasks), [tasks]);
+  const [tasks, setTasks] = useState<
+    TaskHistoryItemResponse[]
+  >([]);
+
   const [query, setQuery] = useState("");
-  const [selectedCategoryId, setSelectedCategoryId] = useState<
-    number | null
-  >(() => categories[0]?.categoryId ?? null);
-  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(
-    null,
-  );
+  const [debouncedQuery, setDebouncedQuery] =
+    useState("");
 
-  const visibleTasks = useMemo(
-    () => filterSimilarTasks(tasks, query, selectedCategoryId),
-    [query, selectedCategoryId, tasks],
-  );
+  const [
+    selectedCategoryId,
+    setSelectedCategoryId,
+  ] = useState<number | null>(null);
 
-  const hasSelection = selectedTaskId !== null;
+  const [
+    selectedTaskId,
+    setSelectedTaskId,
+  ] = useState<number | null>(null);
 
-  function clearHiddenSelection(
-    nextQuery: string,
-    nextCategoryId: number | null,
-  ) {
-    if (
-      selectedTaskId !== null &&
-      !filterSimilarTasks(tasks, nextQuery, nextCategoryId).some(
-        (task) => task.taskId === selectedTaskId,
-      )
-    ) {
-      setSelectedTaskId(null);
+  const [loading, setLoading] =
+    useState(true);
+
+  const [errorMessage, setErrorMessage] =
+    useState<string | null>(null);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(
+      () => {
+        setDebouncedQuery(query.trim());
+      },
+      300,
+    );
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [query]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadTaskHistory() {
+      try {
+        setLoading(true);
+        setErrorMessage(null);
+
+        const response = await getTaskHistory({
+          keyword:
+            debouncedQuery.length > 0
+              ? debouncedQuery
+              : undefined,
+          categoryId:
+            selectedCategoryId ??
+            undefined,
+          page: 0,
+          size: 20,
+        });
+
+        if (cancelled) {
+          return;
+        }
+
+        setTasks(response.content);
+        setSelectedTaskId(null);
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
+        console.error(error);
+        setTasks([]);
+        setSelectedTaskId(null);
+        setErrorMessage(
+          "이전 완료 과업을 불러오지 못했습니다.",
+        );
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
     }
-  }
+
+    void loadTaskHistory();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    debouncedQuery,
+    selectedCategoryId,
+  ]);
+
+  const hasSelection =
+    selectedTaskId !== null;
 
   return (
     <section
@@ -65,8 +134,13 @@ export function SimilarTaskSheet({
           onClick={onBack}
           className="absolute left-5 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-start"
         >
-          <img src={backIcon} alt="" className="h-3 w-2" />
+          <img
+            src={backIcon}
+            alt=""
+            className="h-3 w-2"
+          />
         </button>
+
         <h2 className="text-[16px] font-semibold text-black-100">
           비슷한 과업 선택하기
         </h2>
@@ -80,9 +154,8 @@ export function SimilarTaskSheet({
             value={query}
             placeholder="검색어 입력"
             onChange={(event) => {
-              const nextQuery = event.target.value;
-              setQuery(nextQuery);
-              clearHiddenSelection(nextQuery, selectedCategoryId);
+              setQuery(event.target.value);
+              setSelectedTaskId(null);
             }}
             className="min-w-0 flex-1 bg-transparent text-[16px] text-black-100 outline-none placeholder:text-black-600"
           />
@@ -91,9 +164,28 @@ export function SimilarTaskSheet({
         {categories.length > 0 && (
           <div className="-mx-5 mt-3 overflow-x-auto px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div className="flex w-max gap-2.5">
+              <button
+                type="button"
+                aria-pressed={
+                  selectedCategoryId === null
+                }
+                onClick={() => {
+                  setSelectedCategoryId(null);
+                  setSelectedTaskId(null);
+                }}
+                className={`h-[33px] rounded-[6px] px-2.5 py-1.5 text-[14px] font-medium transition-colors ${
+                  selectedCategoryId === null
+                    ? "bg-black-650 text-black-900"
+                    : "bg-black-750/50 text-black-500"
+                }`}
+              >
+                전체
+              </button>
+
               {categories.map((category) => {
                 const active =
-                  selectedCategoryId === category.categoryId;
+                  selectedCategoryId ===
+                  category.categoryId;
 
                 return (
                   <button
@@ -101,7 +193,9 @@ export function SimilarTaskSheet({
                     type="button"
                     aria-pressed={active}
                     onClick={() => {
-                      setSelectedCategoryId(category.categoryId);
+                      setSelectedCategoryId(
+                        category.categoryId,
+                      );
                       setSelectedTaskId(null);
                     }}
                     className={`h-[33px] rounded-[6px] px-2.5 py-1.5 text-[14px] font-medium transition-colors ${
@@ -120,16 +214,33 @@ export function SimilarTaskSheet({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-4">
-        {visibleTasks.length > 0 ? (
+        {loading ? (
+          <div className="flex h-full min-h-40 items-center justify-center">
+            <p className="text-[14px] font-semibold text-black-500">
+              이전 과업을 불러오는 중입니다.
+            </p>
+          </div>
+        ) : errorMessage ? (
+          <div className="flex h-full min-h-40 items-center justify-center">
+            <p className="text-[14px] font-semibold text-red-400">
+              {errorMessage}
+            </p>
+          </div>
+        ) : tasks.length > 0 ? (
           <div className="flex flex-col gap-3">
-            {visibleTasks.map((task) => (
+            {tasks.map((task) => (
               <SimilarTaskCard
                 key={task.taskId}
                 task={task}
-                selected={selectedTaskId === task.taskId}
+                selected={
+                  selectedTaskId === task.taskId
+                }
                 onClick={() => {
                   setSelectedTaskId((current) =>
-                    toggleSelectedTask(current, task.taskId),
+                    toggleSelectedTask(
+                      current,
+                      task.taskId,
+                    ),
                   );
                 }}
               />
@@ -138,7 +249,7 @@ export function SimilarTaskSheet({
         ) : (
           <div className="flex h-full min-h-40 items-center justify-center">
             <p className="text-[14px] font-semibold text-black-100">
-              재생 목록이 없습니다.
+              이전 완료 과업이 없습니다.
             </p>
           </div>
         )}
@@ -151,12 +262,15 @@ export function SimilarTaskSheet({
           onClick={() => onComplete(null)}
           className="h-12 grow basis-auto rounded-[8px] bg-black-700 px-[24px] text-[14px] font-medium text-black-100 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          비슷한 경험이 없어요.
+          비슷한 경험이 없어요
         </button>
+
         <button
           type="button"
           disabled={!hasSelection}
-          onClick={() => onComplete(selectedTaskId)}
+          onClick={() =>
+            onComplete(selectedTaskId)
+          }
           className="h-12 grow basis-auto rounded-[8px] bg-green-500 px-[24px] text-[14px] font-medium text-black-900 disabled:cursor-not-allowed disabled:bg-black-600 disabled:text-black-900"
         >
           선택
