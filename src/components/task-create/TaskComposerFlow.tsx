@@ -19,10 +19,9 @@ import { formatDeadline } from "@/components/task-create/date/utils/calendar";
 import { getFirstRepeatDate } from "@/components/task-create/date/utils/repeat";
 import { useDateFlow } from "@/components/task-create/date/useDateFlow";
 import { SimilarTaskSheet } from "@/components/task-create/similar-task/SimilarTaskSheet";
-import { createTaskRequest, reminderOffsetToAlarmOption, resolveTaskDeadline } from "@/components/task-create/taskCreateUtils";
+import { createTaskRequest, createTaskUpdateRequest, reminderOffsetToAlarmOption, repeatRuleResponseToSettings } from "@/components/task-create/taskCreateUtils";
 
-import type { Task } from "@/types/task";
-import type { TaskCreateRequest, TaskDetailResponse, TaskFormOptionsResponse } from "@/types/taskApi";
+import type { TaskCreateRequest, TaskDetailResponse, TaskFormOptionsResponse, TaskUpdateRequest } from "@/types/taskApi";
 
 export interface TaskComposerFlowHandle {
   focus: () => void;
@@ -39,14 +38,9 @@ interface TaskComposerFlowProps {
     request: TaskCreateRequest,
   ) => void | Promise<void>;
   onUpdate?: (
-    task: Pick<
-      Task,
-      | "taskId"
-      | "title"
-      | "category"
-      | "deadline"
-    >,
-  ) => void;
+    taskId: number,
+    request: TaskUpdateRequest,
+  ) => void | Promise<void>;
 }
 
 export const TaskComposerFlow = forwardRef<
@@ -81,12 +75,17 @@ export const TaskComposerFlow = forwardRef<
   }
 
   const initialAlarm: AlarmOption =
-    formOptions
+    task
       ? reminderOffsetToAlarmOption(
-          formOptions
-            .defaultReminderOffsetMinutes,
+          task.notificationSetting
+            .notifyBefore,
         )
-      : "1일 전";
+      : formOptions
+        ? reminderOffsetToAlarmOption(
+            formOptions
+              .defaultReminderOffsetMinutes,
+          )
+        : "1일 전";
 
   const reminderOptions: AlarmOption[] =
     formOptions?.reminderOptions.map(
@@ -100,6 +99,7 @@ export const TaskComposerFlow = forwardRef<
   const categoryFlow = useCategoryFlow({
     onReturnToComposer: focusTaskInput,
     initialCategory: task?.category ?? null,
+    initialCategories: formOptions?.categories ?? []
   });
 
   const alarmFlow = useAlarmFlow({
@@ -107,13 +107,25 @@ export const TaskComposerFlow = forwardRef<
     initialAlarm,
   });
 
+  const initialRepeatSettings =
+    task?.repeatRule
+      ? repeatRuleResponseToSettings(
+          task.repeatRule,
+        )
+      : null;
+
   const dateFlow = useDateFlow({
     onReturnToComposer: focusTaskInput,
-    initialDate: task?.deadline
-      ? new Date(
-          `${task.deadline}T00:00:00`,
-        )
-      : null,
+
+    initialDate:
+      task && !task.repeatRule
+        ? new Date(
+            `${task.deadline}T00:00:00`,
+          )
+        : null,
+
+    initialRepeat:
+      initialRepeatSettings,
   });
 
   const isComposerVisible =
@@ -155,26 +167,6 @@ export const TaskComposerFlow = forwardRef<
       return;
     }
 
-    if (task && onUpdate) {
-      onUpdate({
-        taskId: task.taskId,
-        title: title.trim(),
-        category:
-          categoryFlow.selectedCategory ??
-          task.category,
-        deadline: resolveTaskDeadline({
-          selectedDate:
-            dateFlow.selectedDate,
-          repeatSettings:
-            dateFlow.repeatSettings,
-          fallbackDeadline:
-            task.deadline,
-        }),
-      });
-
-      return;
-    }
-
     const selectedCategory =
       categoryFlow.selectedCategory;
 
@@ -183,6 +175,35 @@ export const TaskComposerFlow = forwardRef<
       (!dateFlow.selectedDate &&
         !dateFlow.repeatSettings)
     ) {
+      return;
+    }
+
+    if (task && onUpdate) {
+      const request =
+        createTaskUpdateRequest({
+          title,
+          selectedDate:
+            dateFlow.selectedDate,
+          repeatSettings:
+            dateFlow.repeatSettings,
+          categoryId:
+            selectedCategory.categoryId,
+          alarm:
+            alarmFlow.selectedAlarm,
+          similarTaskId,
+        });
+
+      try {
+        setSubmitting(true);
+
+        await onUpdate(
+          task.taskId,
+          request,
+        );
+      } finally {
+        setSubmitting(false);
+      }
+
       return;
     }
 

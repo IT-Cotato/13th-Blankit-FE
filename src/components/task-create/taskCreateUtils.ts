@@ -2,8 +2,10 @@ import { formatDateKey } from "./date/utils/calendar";
 import { getFirstRepeatDate } from "./date/utils/repeat";
 
 import type { AlarmOption } from "./alarm/alarmOptions";
-import type { DayOfMonth, RepeatDay, RepeatSettings } from "./date/repeatTypes";
-import type { ReminderOffsetMinutes, RepeatRuleRequest, TaskCreateRequest } from "@/types/taskApi";
+import type { DayOfMonth, MonthIndex, RepeatDay, RepeatSettings, Weekday } from "./date/repeatTypes";
+import { DAY_OF_MONTH_VALUES, MONTH_VALUES, WEEKDAY_VALUES } from "./date/repeatTypes";
+
+import type { ReminderOffsetMinutes, RepeatRuleRequest, RepeatRuleResponse, TaskCreateRequest, TaskUpdateRequest } from "@/types/taskApi";
 
 interface ResolveTaskDeadlineOptions {
   selectedDate: Date | null;
@@ -63,6 +65,119 @@ interface CreateTaskRequestParams {
   categoryId: number;
   alarm: AlarmOption;
   similarTaskId: number | null;
+}
+
+function isWeekday(
+  value: number,
+): value is Weekday {
+  return WEEKDAY_VALUES.includes(
+    value as Weekday,
+  );
+}
+
+function isValidDayOfMonth(
+  value: number,
+): value is DayOfMonth {
+  return DAY_OF_MONTH_VALUES.includes(
+    value as DayOfMonth,
+  );
+}
+
+function isMonthIndex(
+  value: number,
+): value is MonthIndex {
+  return MONTH_VALUES.includes(
+    value as MonthIndex,
+  );
+}
+
+function parseDateKey(
+  value: string,
+): Date {
+  return new Date(
+    `${value}T00:00:00`,
+  );
+}
+
+export function repeatRuleResponseToSettings(
+  repeatRule: RepeatRuleResponse,
+): RepeatSettings {
+  const startDate = parseDateKey(
+    repeatRule.startDate,
+  );
+
+  const endDate = repeatRule.endDate
+    ? parseDateKey(repeatRule.endDate)
+    : null;
+
+  switch (repeatRule.frequency) {
+    case "WEEKLY":
+      return {
+        startDate,
+        endDate,
+        pattern: {
+          type: "weekly",
+          weekdays:
+            repeatRule.daysOfWeek.filter(
+              isWeekday,
+            ),
+        },
+      };
+
+    case "MONTHLY": {
+      const days: RepeatDay[] =
+        repeatRule.daysOfMonth.filter(
+          isValidDayOfMonth,
+        );
+
+      if (
+        repeatRule.lastDayOfMonth
+      ) {
+        days.push("last");
+      }
+
+      return {
+        startDate,
+        endDate,
+        pattern: {
+          type: "monthly",
+          days,
+        },
+      };
+    }
+
+    case "YEARLY": {
+      const monthIndex =
+        repeatRule.monthOfYear === null
+          ? null
+          : repeatRule.monthOfYear - 1;
+
+      const days: RepeatDay[] =
+        repeatRule.daysOfMonth.filter(
+          isValidDayOfMonth,
+        );
+
+      if (
+        repeatRule.lastDayOfMonth
+      ) {
+        days.push("last");
+      }
+
+      return {
+        startDate,
+        endDate,
+        pattern: {
+          type: "yearly",
+          month:
+            monthIndex !== null &&
+            isMonthIndex(monthIndex)
+              ? monthIndex
+              : null,
+          days,
+        },
+      };
+    }
+  }
 }
 
 export function createRepeatRuleRequest(
@@ -154,6 +269,66 @@ export function createTaskRequest({
         }
       : {
           deadline: formatDateKey(selectedDate as Date),
+        }),
+  };
+}
+
+interface CreateTaskUpdateRequestParams {
+  title: string;
+  selectedDate: Date | null;
+  repeatSettings: RepeatSettings | null;
+  categoryId: number;
+  alarm: AlarmOption;
+  similarTaskId: number | null;
+}
+
+export function createTaskUpdateRequest({
+  title,
+  selectedDate,
+  repeatSettings,
+  categoryId,
+  alarm,
+  similarTaskId,
+}: CreateTaskUpdateRequestParams): TaskUpdateRequest {
+  const notifyBefore =
+    ALARM_MINUTES_MAP[alarm];
+
+  if (notifyBefore === undefined) {
+    throw new Error(
+      `${alarm} 알림은 현재 서버에서 지원하지 않습니다.`,
+    );
+  }
+
+  if (
+    !selectedDate &&
+    !repeatSettings
+  ) {
+    throw new Error(
+      "과업 날짜 또는 반복 설정이 필요합니다.",
+    );
+  }
+
+  return {
+    title: title.trim(),
+    categoryId,
+    notifyBefore,
+    notificationEnabled: true,
+    similarTaskId,
+    clearSimilarTask:
+      similarTaskId === null,
+    ...(repeatSettings
+      ? {
+          repeatRule:
+            createRepeatRuleRequest(
+              repeatSettings,
+            ),
+          clearRepeatRule: false,
+        }
+      : {
+          deadline: formatDateKey(
+            selectedDate as Date,
+          ),
+          clearRepeatRule: true,
         }),
   };
 }

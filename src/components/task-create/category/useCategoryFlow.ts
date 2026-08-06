@@ -27,16 +27,19 @@ export type CategoryFlowView =
 interface UseCategoryFlowOptions {
   onReturnToComposer?: () => void;
   initialCategory?: Category | null;
+  initialCategories?: Category[];
 }
 
 export function useCategoryFlow({
   onReturnToComposer,
   initialCategory = null,
+  initialCategories = [],
 }: UseCategoryFlowOptions = {}) {
   const errorToast = useToast();
 
   const [view, setView] = useState<CategoryFlowView>("composer");
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = 
+    useState<Category[]>(initialCategories);
   const [selectedCategory, setSelectedCategory] =
     useState<Category | null>(initialCategory);
   const [editingCategory, setEditingCategory] =

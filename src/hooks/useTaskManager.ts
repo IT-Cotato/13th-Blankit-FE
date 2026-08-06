@@ -2,14 +2,14 @@ import axios from "axios";
 import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
-import { createTask, deleteTask, getTask, getTaskFormOptions } from "@/api/tasks";
+import { createTask, deleteTask, getTask, getTaskFormOptions, updateTask as updateTaskApi } from "@/api/tasks";
 
 import type { TaskComposerFlowHandle } from "@/components/task-create/TaskComposerFlow";
 
 import { mockTasks } from "@/mocks/tasks";
 
 import type { Task } from "@/types/task";
-import type { TaskCreateRequest, TaskDetailResponse, TaskFormOptionsResponse } from "@/types/taskApi";
+import type { TaskCreateRequest, TaskDetailResponse, TaskFormOptionsResponse, TaskUpdateRequest } from "@/types/taskApi";
 
 interface UseTaskManagerOptions {
   showToast: (message: string) => void;
@@ -151,30 +151,40 @@ export function useTaskManager({
     }
   }
 
-  function updateTask(
-    updatedTask: Pick<
-      Task,
-      | "taskId"
-      | "title"
-      | "category"
-      | "deadline"
-    >,
+  async function updateTask(
+    taskId: number,
+    request: TaskUpdateRequest,
   ) {
-    setTasks((current) =>
-      current.map((task) =>
-        task.taskId === updatedTask.taskId
-          ? {
-              ...task,
-              ...updatedTask,
-            }
-          : task,
-      ),
-    );
+    try {
+      await updateTaskApi(
+        taskId,
+        request,
+      );
 
-    closeComposer();
-    showToast(
-      "수정이 완료되었습니다.",
-    );
+      closeComposer();
+
+      setTaskDataVersion(
+        (current) => current + 1,
+      );
+
+      showToast(
+        "수정이 완료되었습니다.",
+      );
+    } catch (error) {
+      console.error(error);
+
+      const serverMessage =
+        axios.isAxiosError<{
+          message?: string;
+        }>(error)
+          ? error.response?.data?.message
+          : undefined;
+
+      showToast(
+        serverMessage ??
+          "과업 수정에 실패했습니다.",
+      );
+    }
   }
 
   function requestDelete() {

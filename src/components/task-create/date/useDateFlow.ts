@@ -5,17 +5,19 @@ import type { RepeatSettings } from "./repeatTypes";
 interface UseDateFlowOptions {
   onReturnToComposer?: () => void;
   initialDate?: Date | null;
+  initialRepeat?: RepeatSettings | null;
 }
 
 export function useDateFlow({
   onReturnToComposer,
   initialDate = null,
+  initialRepeat = null
 }: UseDateFlowOptions = {}) {
   const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] =
     useState<Date | null>(initialDate);
   const [repeatSettings, setRepeatSettings] =
-    useState<RepeatSettings | null>(null);
+    useState<RepeatSettings | null>(initialRepeat);
 
   function openDateSheet() {
     setOpen(true);

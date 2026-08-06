@@ -6,6 +6,7 @@ import {
 import { getTaskHistory } from "@/api/tasks";
 
 import backIcon from "@/assets/icons/back-button-black-600.svg";
+import clearIcon from "@/assets/icons/x-black-700.svg";
 
 import type { Category } from "@/types/category";
 import type { TaskHistoryItemResponse } from "@/types/taskApi";
@@ -160,8 +161,26 @@ export function SimilarTaskSheet({
               setQuery(event.target.value);
               setSelectedTaskId(null);
             }}
-            className="min-w-0 flex-1 bg-transparent text-[16px] text-black-100 outline-none placeholder:text-black-600"
+            className="min-w-0 flex-1 bg-transparent text-[16px] text-black-100 outline-none placeholder:text-black-600 [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
           />
+
+          {query.length > 0 && (
+            <button
+              type="button"
+              aria-label="검색어 지우기"
+              onClick={() => {
+                setQuery("");
+                setSelectedTaskId(null);
+              }}
+              className="flex h-6 w-6 shrink-0 items-center justify-center gap-2.5 px-[3px] py-0.5"
+            >
+              <img
+                src={clearIcon}
+                alt=""
+                className="h-3 w-3"
+              />
+            </button>
+          )}
         </label>
 
         {categories.length > 0 && (

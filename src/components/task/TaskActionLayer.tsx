@@ -9,8 +9,7 @@ import { TaskComposerFlow } from "@/components/task-create/TaskComposerFlow";
 import type { TaskComposerFlowHandle } from "@/components/task-create/TaskComposerFlow";
 import { TaskActionSheet } from "@/components/task/TaskActionSheet";
 
-import type { Task } from "@/types/task";
-import type { TaskCreateRequest, TaskDetailResponse, TaskFormOptionsResponse } from "@/types/taskApi";
+import type { TaskCreateRequest, TaskDetailResponse, TaskFormOptionsResponse, TaskUpdateRequest } from "@/types/taskApi";
 
 interface TaskActionLayerProps {
   taskFormOptions:
@@ -30,14 +29,9 @@ interface TaskActionLayerProps {
     request: TaskCreateRequest,
   ) => void | Promise<void>;
   onUpdateTask: (
-    task: Pick<
-      Task,
-      | "taskId"
-      | "title"
-      | "category"
-      | "deadline"
-    >,
-  ) => void;
+    taskId: number,
+    request: TaskUpdateRequest,
+  ) => void | Promise<void>;
   actionSheetOpen: boolean;
   onCloseActionSheet: () => void;
   onEditTask: () => void;

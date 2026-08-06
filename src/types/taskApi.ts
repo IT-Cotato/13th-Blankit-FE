@@ -50,7 +50,7 @@ export interface TaskUpdateRequest {
 }
 
 export interface NotificationSettingResponse {
-  notifyBefore: number;
+  notifyBefore: ReminderOffsetMinutes;
   enabled: boolean;
 }
 
