@@ -10,14 +10,14 @@ import type { TaskComposerFlowHandle } from "@/components/task-create/TaskCompos
 import { TaskActionSheet } from "@/components/task/TaskActionSheet";
 
 import type { Task } from "@/types/task";
-import type { TaskCreateRequest, TaskFormOptionsResponse } from "@/types/taskApi";
+import type { TaskCreateRequest, TaskDetailResponse, TaskFormOptionsResponse } from "@/types/taskApi";
 
 interface TaskActionLayerProps {
   taskFormOptions:
     TaskFormOptionsResponse | null;
   aboveBottomNavigation: boolean;
   isComposerOpen: boolean;
-  editingTask: Task | null;
+  editingTask: TaskDetailResponse | null;
   taskTitle: string;
   composerRef: RefObject<
     TaskComposerFlowHandle | null
@@ -29,14 +29,23 @@ interface TaskActionLayerProps {
   onCompleteCreate: (
     request: TaskCreateRequest,
   ) => void | Promise<void>;
-  onUpdateTask: (task: Task) => void;
+  onUpdateTask: (
+    task: Pick<
+      Task,
+      | "taskId"
+      | "title"
+      | "category"
+      | "deadline"
+    >,
+  ) => void;
   actionSheetOpen: boolean;
   onCloseActionSheet: () => void;
   onEditTask: () => void;
   onRequestDelete: () => void;
   deleteModalOpen: boolean;
   onCancelDelete: () => void;
-  onConfirmDelete: () => void;
+  onConfirmDelete: () => void | Promise<void>;
+  deletingTask: boolean;
 }
 
 export function TaskActionLayer({
@@ -55,6 +64,7 @@ export function TaskActionLayer({
   onEditTask,
   onRequestDelete,
   deleteModalOpen,
+  deletingTask,
   onCancelDelete,
   onConfirmDelete,
 }: TaskActionLayerProps) {
@@ -89,6 +99,8 @@ export function TaskActionLayer({
       <ConfirmModal
         open={deleteModalOpen}
         title="과업을 진짜 삭제하시겠습니까?"
+        confirmLabel="삭제"
+        submitting={deletingTask}
         onCancel={onCancelDelete}
         onConfirm={onConfirmDelete}
       />

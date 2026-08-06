@@ -2,14 +2,14 @@ import axios from "axios";
 import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
-import { createTask, getTaskFormOptions } from "@/api/tasks";
+import { createTask, deleteTask, getTask, getTaskFormOptions } from "@/api/tasks";
 
 import type { TaskComposerFlowHandle } from "@/components/task-create/TaskComposerFlow";
 
 import { mockTasks } from "@/mocks/tasks";
 
 import type { Task } from "@/types/task";
-import type { TaskCreateRequest, TaskFormOptionsResponse } from "@/types/taskApi";
+import type { TaskCreateRequest, TaskDetailResponse, TaskFormOptionsResponse } from "@/types/taskApi";
 
 interface UseTaskManagerOptions {
   showToast: (message: string) => void;
@@ -25,9 +25,15 @@ export function useTaskManager({
   const [selectedTaskId, setSelectedTaskId] =
     useState<number | null>(null);
   const [editingTask, setEditingTask] =
-    useState<Task | null>(null);
-  const [taskPendingDelete, setTaskPendingDelete] =
-    useState<Task | null>(null);
+    useState<TaskDetailResponse | null>(null);
+  const [loadingTaskDetail, setLoadingTaskDetail] = 
+    useState(false);
+  const [taskPendingDelete, setTaskPendingDelete] = 
+    useState<number | null>(null);
+  const [deletingTask,setDeletingTask] = 
+    useState(false);  
+  const [taskDataVersion, setTaskDataVersion] = 
+    useState(0);
   const [taskTitle, setTaskTitle] = useState("");
   const [isComposerOpen, setIsComposerOpen] =
     useState(false);
@@ -100,65 +106,154 @@ export function useTaskManager({
     }
   }
 
-  function editSelectedTask() {
-    const selectedTask = tasks.find(
-      (task) => task.taskId === selectedTaskId,
-    );
-
-    if (!selectedTask) {
+  async function editSelectedTask() {
+    if (
+      selectedTaskId === null ||
+      loadingTaskDetail
+    ) {
       return;
     }
 
-    flushSync(() => {
-      setSelectedTaskId(null);
-      setEditingTask(selectedTask);
-      setTaskTitle(selectedTask.title);
-      setIsComposerOpen(true);
-    });
+    try {
+      setLoadingTaskDetail(true);
 
-    composerRef.current?.focus();
+      const [taskDetail, formOptions] =
+        await Promise.all([
+          getTask(selectedTaskId),
+          getTaskFormOptions(),
+        ]);
+
+      flushSync(() => {
+        setSelectedTaskId(null);
+        setEditingTask(taskDetail);
+        setTaskFormOptions(formOptions);
+        setTaskTitle(taskDetail.title);
+        setIsComposerOpen(true);
+      });
+
+      composerRef.current?.focus();
+    } catch (error) {
+      console.error(error);
+
+      const serverMessage =
+        axios.isAxiosError<{
+          message?: string;
+        }>(error)
+          ? error.response?.data?.message
+          : undefined;
+
+      showToast(
+        serverMessage ??
+          "과업 정보를 불러오지 못했습니다.",
+      );
+    } finally {
+      setLoadingTaskDetail(false);
+    }
   }
 
-  function updateTask(updatedTask: Task) {
+  function updateTask(
+    updatedTask: Pick<
+      Task,
+      | "taskId"
+      | "title"
+      | "category"
+      | "deadline"
+    >,
+  ) {
     setTasks((current) =>
       current.map((task) =>
-        task.taskId === updatedTask.taskId ? updatedTask : task,
+        task.taskId === updatedTask.taskId
+          ? {
+              ...task,
+              ...updatedTask,
+            }
+          : task,
       ),
     );
+
     closeComposer();
-    showToast("수정이 완료되었습니다.");
+    showToast(
+      "수정이 완료되었습니다.",
+    );
   }
 
   function requestDelete() {
-    const selectedTask = tasks.find(
-      (task) => task.taskId === selectedTaskId,
-    );
-
-    setSelectedTaskId(null);
-
-    if (selectedTask) {
-      setTaskPendingDelete(selectedTask);
-    }
-  }
-
-  function confirmDelete() {
-    if (!taskPendingDelete) {
+    if (selectedTaskId === null) {
       return;
     }
 
-    setTasks((current) =>
-      current.filter(
-        (task) => task.taskId !== taskPendingDelete.taskId,
-      ),
+    setTaskPendingDelete(
+      selectedTaskId,
     );
-    setTaskPendingDelete(null);
-    showToast("삭제가 완료되었습니다.");
+
+    setSelectedTaskId(null);
   }
+
+  async function confirmDelete() {
+    if (
+      taskPendingDelete === null ||
+      deletingTask
+    ) {
+      return;
+    }
+
+    const taskId = taskPendingDelete;
+
+    try {
+      setDeletingTask(true);
+
+      await deleteTask(taskId);
+
+      setTasks((current) =>
+        current.filter(
+          (task) =>
+            task.taskId !== taskId,
+        ),
+      );
+
+      setTaskPendingDelete(null);
+
+      setTaskDataVersion(
+        (current) => current + 1,
+      );
+
+      showToast(
+        "삭제가 완료되었습니다.",
+      );
+    } catch (error) {
+      console.error(error);
+
+      const serverMessage =
+        axios.isAxiosError<{
+          message?: string;
+        }>(error)
+          ? error.response?.data?.message
+          : undefined;
+
+      showToast(
+        serverMessage ??
+          "과업 삭제에 실패했습니다.",
+      );
+    } finally {
+      setDeletingTask(false);
+    }
+  }
+
+  function cancelDelete() {
+  if (deletingTask) {
+    return;
+  }
+
+  setTaskPendingDelete(null);
+}
 
   return {
     tasks,
     taskFormOptions,
     openingComposer,
+    loadingTaskDetail,
+    deletingTask,
+    taskDataVersion,
     selectedTaskId,
     editingTask,
     taskPendingDelete,
@@ -175,9 +270,8 @@ export function useTaskManager({
     closeActionSheet: () =>
       setSelectedTaskId(null),
     requestDelete,
-    cancelDelete: () =>
-      setTaskPendingDelete(null),
-    confirmDelete,
+    cancelDelete,
+    confirmDelete
   };
 }
 

@@ -41,12 +41,14 @@ const PRIORITY_TABS: {
 ];
 
 interface TaskRecommendationsPageProps {
+  refreshKey: number;
   onTaskClick: (
     taskId: number,
   ) => void;
 }
 
 export function TaskRecommendationsPage({
+  refreshKey,
   onTaskClick,
 }: TaskRecommendationsPageProps) {
   const navigate = useNavigate();
@@ -112,7 +114,7 @@ export function TaskRecommendationsPage({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshKey]);
 
   const filteredTasks = tasks.filter(
     (task) =>

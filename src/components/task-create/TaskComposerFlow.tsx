@@ -22,7 +22,7 @@ import { SimilarTaskSheet } from "@/components/task-create/similar-task/SimilarT
 import { createTaskRequest, reminderOffsetToAlarmOption, resolveTaskDeadline } from "@/components/task-create/taskCreateUtils";
 
 import type { Task } from "@/types/task";
-import type { TaskCreateRequest, TaskFormOptionsResponse } from "@/types/taskApi";
+import type { TaskCreateRequest, TaskDetailResponse, TaskFormOptionsResponse } from "@/types/taskApi";
 
 export interface TaskComposerFlowHandle {
   focus: () => void;
@@ -32,13 +32,21 @@ interface TaskComposerFlowProps {
   formOptions:
     TaskFormOptionsResponse | null;
   title: string;
-  task: Task | null;
+  task: TaskDetailResponse | null;
   onTitleChange: (title: string) => void;
   onClose: () => void;
   onComplete: (
     request: TaskCreateRequest,
   ) => void | Promise<void>;
-  onUpdate?: (task: Task) => void;
+  onUpdate?: (
+    task: Pick<
+      Task,
+      | "taskId"
+      | "title"
+      | "category"
+      | "deadline"
+    >,
+  ) => void;
 }
 
 export const TaskComposerFlow = forwardRef<
@@ -149,7 +157,7 @@ export const TaskComposerFlow = forwardRef<
 
     if (task && onUpdate) {
       onUpdate({
-        ...task,
+        taskId: task.taskId,
         title: title.trim(),
         category:
           categoryFlow.selectedCategory ??
@@ -159,7 +167,8 @@ export const TaskComposerFlow = forwardRef<
             dateFlow.selectedDate,
           repeatSettings:
             dateFlow.repeatSettings,
-          fallbackDeadline: task.deadline,
+          fallbackDeadline:
+            task.deadline,
         }),
       });
 

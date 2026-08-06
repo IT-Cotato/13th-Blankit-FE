@@ -145,6 +145,7 @@ function App() {
               path="/task-recommendations"
               element={
                 <TaskRecommendationsPage
+                  refreshKey={taskManager.taskDataVersion}
                   onTaskClick={taskManager.selectTask}
                 />
               }
@@ -214,6 +215,9 @@ function App() {
         }
         deleteModalOpen={
           taskManager.taskPendingDelete !== null
+        }
+        deletingTask={
+          taskManager.deletingTask
         }
         onCancelDelete={
           taskManager.cancelDelete
