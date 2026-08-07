@@ -19,7 +19,9 @@ import { formatDeadline } from "@/components/task-create/date/utils/calendar";
 import { getFirstRepeatDate } from "@/components/task-create/date/utils/repeat";
 import { useDateFlow } from "@/components/task-create/date/useDateFlow";
 import { SimilarTaskSheet } from "@/components/task-create/similar-task/SimilarTaskSheet";
-import { createTaskRequest, createTaskUpdateRequest, reminderOffsetToAlarmOption, repeatRuleResponseToSettings } from "@/components/task-create/taskCreateUtils";
+import { useTaskSubmission } from "@/components/task-create/hooks/useTaskSubmission";
+import { reminderOffsetToAlarmOption } from "@/components/task-create/utils/reminderMappers";
+import { repeatRuleResponseToSettings } from "@/components/task-create/utils/repeatRuleMappers";
 
 import type { TaskCreateRequest, TaskDetailResponse, TaskFormOptionsResponse, TaskUpdateRequest } from "@/types/taskApi";
 
@@ -61,9 +63,6 @@ export const TaskComposerFlow = forwardRef<
   const [step, setStep] = useState<
     "composer" | "similar"
   >("composer");
-
-  const [submitting, setSubmitting] =
-  useState(false);
 
   const inputRef =
     useRef<HTMLInputElement>(null);
@@ -160,72 +159,19 @@ export const TaskComposerFlow = forwardRef<
       ? "반복 설정"
       : "날짜 선택";
 
-  async function handleComplete(
-    similarTaskId: number | null,
-  ) {
-    if (submitting) {
-      return;
-    }
-
-    const selectedCategory =
-      categoryFlow.selectedCategory;
-
-    if (
-      !selectedCategory ||
-      (!dateFlow.selectedDate &&
-        !dateFlow.repeatSettings)
-    ) {
-      return;
-    }
-
-    if (task && onUpdate) {
-      const request =
-        createTaskUpdateRequest({
-          title,
-          selectedDate:
-            dateFlow.selectedDate,
-          repeatSettings:
-            dateFlow.repeatSettings,
-          categoryId:
-            selectedCategory.categoryId,
-          alarm:
-            alarmFlow.selectedAlarm,
-          similarTaskId,
-        });
-
-      try {
-        setSubmitting(true);
-
-        await onUpdate(
-          task.taskId,
-          request,
-        );
-      } finally {
-        setSubmitting(false);
-      }
-
-      return;
-    }
-
-    const request = createTaskRequest({
+  const { submitting, submitTask } =
+    useTaskSubmission({
       title,
-      selectedDate:
-        dateFlow.selectedDate,
-      repeatSettings:
-        dateFlow.repeatSettings,
-      categoryId:
-        selectedCategory.categoryId,
-      alarm: alarmFlow.selectedAlarm,
-      similarTaskId,
+      task,
+      selectedDate: dateFlow.selectedDate,
+      repeatSettings: dateFlow.repeatSettings,
+      selectedCategory:
+        categoryFlow.selectedCategory,
+      selectedAlarm:
+        alarmFlow.selectedAlarm,
+      onCreate: onComplete,
+      onUpdate,
     });
-
-    try {
-      setSubmitting(true);
-      await onComplete(request);
-    } finally {
-      setSubmitting(false);
-    }
-  }
 
   useImperativeHandle(ref, () => ({
     focus() {
@@ -276,7 +222,7 @@ export const TaskComposerFlow = forwardRef<
             setStep("composer");
             focusTaskInput();
           }}
-          onComplete={handleComplete}
+          onComplete={submitTask}
         />
       )}
 

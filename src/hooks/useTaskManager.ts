@@ -85,6 +85,10 @@ export function useTaskManager({
     try {
       await createTask(request);
 
+      setTaskDataVersion(
+        (current) => current + 1,
+      );
+      
       closeComposer();
       showToast(
         "과업 추가가 완료되었습니다.",
