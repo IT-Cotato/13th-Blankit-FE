@@ -69,6 +69,7 @@ export interface TaskDetailResponse {
   title: string;
   category: Category;
   priority: TaskPriority | null;
+  progressRate: number;
   starred: boolean;
   estimatedTime: number | null;
   status: TaskStatus;
@@ -89,6 +90,7 @@ export interface TaskListResponse {
   title: string;
   category: Category;
   priority: TaskPriority | null;
+  progressRate: number;
   starred: boolean;
   estimatedTime: number | null;
   recommendedMinutes: number | null;

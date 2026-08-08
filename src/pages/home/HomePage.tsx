@@ -1,8 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import sadBunnyIcon from "@/assets/icons/sad-bunny.svg";
@@ -11,18 +7,19 @@ import { DockedTaskTimeBar } from "@/components/home/DockedTaskTimeBar";
 import { HomeTopBar } from "@/components/home/HomeTopBar";
 import { RecommendedTaskTimeCard } from "@/components/home/RecommendedTaskTimeCard";
 import { WeeklyCalendar } from "@/components/home/WeeklyCalendar";
-
 import { TodayRecommendedTasks } from "@/components/task/TodayRecommendedTasks";
 import { TaskCombinationSection } from "@/components/task-combination/TaskCombinationSection";
-import { usePlaylistStore } from "@/store/usePlaylistStore";
-import { shouldShowDockedTaskTimeBar } from "@/utils/homeDockedTaskTimeBar";
 
-import type { Task } from "@/types/task";
+import { useTodayRecommendations } from "@/hooks/useTodayRecommendations";
+
+import { usePlaylistStore } from "@/store/usePlaylistStore";
+
+import { shouldShowDockedTaskTimeBar } from "@/utils/homeDockedTaskTimeBar";
 
 const HOME_TOP_BAR_HEIGHT = 50;
 
 interface HomePageProps {
-  tasks: Task[];
+  refreshKey: number;
   onAddTask: () => void;
   onTaskClick: (taskId: number) => void;
 }
@@ -61,7 +58,8 @@ function HomeEmptyState() {
         >
           과업을 등록하면 지금 가장
           <br />
-          중요한 일과 오늘의 권장 시간을 추천해드려요.
+          중요한 일과 오늘의 권장 시간을
+          추천해드려요.
         </p>
       </div>
     </div>
@@ -69,67 +67,110 @@ function HomeEmptyState() {
 }
 
 export function HomePage({
-  tasks,
+  refreshKey,
   onAddTask,
   onTaskClick,
 }: HomePageProps) {
   const navigate = useNavigate();
-  const taskCardRef = useRef<HTMLDivElement>(null);
+
+  const taskCardRef =
+    useRef<HTMLDivElement>(null);
+
   const [showDockedBar, setShowDockedBar] =
     useState(false);
-  const currentPlaylistTask = usePlaylistStore(
-    (state) => state.playlist[0],
+
+  const currentPlaylistTask =
+    usePlaylistStore(
+      (state) => state.playlist[0],
+    );
+
+  const {
+    recommendedTasks,
+    loadingRecommendations,
+    recommendationError,
+  } = useTodayRecommendations(
+    refreshKey,
   );
 
-  const hasTasks = tasks.length > 0;
+  const hasTasks =
+    recommendedTasks.length > 0;
 
   useEffect(() => {
-    if (!hasTasks || currentPlaylistTask) {
+    if (
+      !hasTasks ||
+      currentPlaylistTask
+    ) {
       return;
     }
 
-    const taskCard = taskCardRef.current;
+    const taskCard =
+      taskCardRef.current;
 
     if (!taskCard) {
       return;
     }
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setShowDockedBar(
-          shouldShowDockedTaskTimeBar({
-            hasCurrentPlaylistTask: false,
-            isCardVisible: entry.isIntersecting,
-            hasPassedTopBar:
-              entry.boundingClientRect.bottom <=
-              HOME_TOP_BAR_HEIGHT,
-          }),
-        );
-      },
-      {
-        threshold: 0,
-        rootMargin: `-${HOME_TOP_BAR_HEIGHT}px 0px 0px 0px`,
-      },
-    );
+    const observer =
+      new IntersectionObserver(
+        ([entry]) => {
+          setShowDockedBar(
+            shouldShowDockedTaskTimeBar({
+              hasCurrentPlaylistTask:
+                false,
+              isCardVisible:
+                entry.isIntersecting,
+              hasPassedTopBar:
+                entry.boundingClientRect
+                  .bottom <=
+                HOME_TOP_BAR_HEIGHT,
+            }),
+          );
+        },
+        {
+          threshold: 0,
+          rootMargin: `-${HOME_TOP_BAR_HEIGHT}px 0px 0px 0px`,
+        },
+      );
 
     observer.observe(taskCard);
 
     return () => {
       observer.disconnect();
     };
-  }, [currentPlaylistTask, hasTasks]);
+  }, [
+    currentPlaylistTask,
+    hasTasks,
+  ]);
 
   const shouldRenderDockedBar =
-    !currentPlaylistTask && showDockedBar;
+    !currentPlaylistTask &&
+    showDockedBar;
 
   return (
     <>
       <HomeTopBar
-        showRegistrationHint={!hasTasks}
+        showRegistrationHint={
+          !loadingRecommendations &&
+          recommendationError === null &&
+          !hasTasks
+        }
         onAddTask={onAddTask}
       />
 
-      {hasTasks ? (
+      {loadingRecommendations ? (
+        <div className="flex min-h-60 items-center justify-center px-5">
+          <p className="text-[14px] font-medium text-black-500">
+            오늘 추천 과업을 불러오는
+            중입니다.
+          </p>
+        </div>
+      ) : recommendationError ? (
+        <div className="flex min-h-60 items-center justify-center px-5">
+          <p className="text-center text-[14px] font-medium text-red-400">
+            {recommendationError}
+          </p>
+        </div>
+      ) : hasTasks ? (
         <>
           <div
             className={`flex flex-col gap-5 px-5 pt-5 ${
@@ -145,11 +186,15 @@ export function HomePage({
             </div>
 
             <TodayRecommendedTasks
-              tasks={tasks}
+              tasks={recommendedTasks}
               onViewAll={() => {
-                navigate("/task-recommendations");
+                navigate(
+                  "/task-recommendations",
+                );
               }}
-              onTaskClick={onTaskClick}
+              onTaskClick={
+                onTaskClick
+              }
             />
 
             <TaskCombinationSection />

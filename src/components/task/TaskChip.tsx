@@ -17,7 +17,7 @@ import type {
 interface TaskChipBaseProps {
   title: string;
   priority: TaskPriority;
-  progressRate?: number;
+  progressRate: number;
   status?: TaskStatus;
   onClick?: () => void;
 }
@@ -96,12 +96,9 @@ export function TaskChip(
             ],
         };
 
-  const hasProgressRate =
-    progressRate !== undefined;
-
   const clampedProgressRate = Math.min(
     100,
-    Math.max(0, progressRate ?? 0),
+    Math.max(0, progressRate),
   );
 
   const progressLevel = Math.floor(
@@ -118,10 +115,8 @@ export function TaskChip(
   const isDone = status === "DONE";
 
   const ariaLabel = isDone
-    ? `${title}, 완료`
-    : hasProgressRate
-      ? `${title}, 진행도 ${progressLevel}`
-      : `${title}, 우선순위 ${priority}`;
+  ? `${title}, 완료`
+  : `${title}, 진행도 ${progressLevel}`;
 
   const content = (
     <>
@@ -167,7 +162,7 @@ export function TaskChip(
             />
           </svg>
         </div>
-      ) : hasProgressRate ? (
+      ) : (
         <div
           aria-hidden="true"
           className="
@@ -228,7 +223,7 @@ export function TaskChip(
             {progressLevel}
           </span>
         </div>
-      ) : null}
+      )}
     </>
   );
 
