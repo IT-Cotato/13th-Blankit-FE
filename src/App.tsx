@@ -145,7 +145,7 @@ function App() {
               path="/task-recommendations"
               element={
                 <TaskRecommendationsPage
-                  tasks={taskManager.tasks}
+                  refreshKey={taskManager.taskDataVersion}
                   onTaskClick={taskManager.selectTask}
                 />
               }
@@ -181,6 +181,9 @@ function App() {
         )}
 
       <TaskActionLayer
+        taskFormOptions={
+          taskManager.taskFormOptions
+        }
         aboveBottomNavigation={
           pageHasBottomNavigation
         }
@@ -189,7 +192,7 @@ function App() {
         }
         editingTask={taskManager.editingTask}
         taskTitle={taskManager.taskTitle}
-        composerRef={taskManager.composerRef}
+        taskFormRef={taskManager.taskFormRef}
         onTitleChange={taskManager.setTaskTitle}
         onCloseComposer={
           taskManager.closeComposer
@@ -212,6 +215,9 @@ function App() {
         }
         deleteModalOpen={
           taskManager.taskPendingDelete !== null
+        }
+        deletingTask={
+          taskManager.deletingTask
         }
         onCancelDelete={
           taskManager.cancelDelete

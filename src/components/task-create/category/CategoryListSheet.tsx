@@ -4,7 +4,7 @@ import { CategoryChip } from "./CategoryChip";
 
 import type { Category } from "@/types/category";
 
-interface CategoryManagerSheetProps {
+interface CategoryListSheetProps {
   categories: Category[];
   selectedCategoryId: number | null;
   editable: boolean;
@@ -17,7 +17,7 @@ interface CategoryManagerSheetProps {
   onRequestDelete: (category: Category) => void;
 }
 
-export function CategoryManagerSheet({
+export function CategoryListSheet({
   categories,
   selectedCategoryId,
   editable,
@@ -28,7 +28,7 @@ export function CategoryManagerSheet({
   onSelect,
   onStartUpdate,
   onRequestDelete,
-}: CategoryManagerSheetProps) {
+}: CategoryListSheetProps) {
   return (
     <section
       role="dialog"
@@ -53,16 +53,18 @@ export function CategoryManagerSheet({
         <button
           type="button"
           aria-label="카테고리 추가하기"
+          disabled={loading}
           onClick={onStartCreate}
-          className="h-11 min-w-0 flex-1 rounded-[8px] bg-black-800 px-4 text-left text-[16px] text-black-500"
+          className="h-11 min-w-0 flex-1 rounded-[8px] bg-black-800 px-4 text-left text-[16px] text-black-500 disabled:cursor-not-allowed disabled:opacity-50"
         >
           카테고리 추가하기
         </button>
 
         <button
           type="button"
+          disabled={loading}
           onClick={onToggleEdit}
-          className="shrink-0 text-[14px] font-medium text-black-400"
+          className="shrink-0 text-[14px] font-medium text-black-400 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {editable ? "완료" : "편집"}
         </button>

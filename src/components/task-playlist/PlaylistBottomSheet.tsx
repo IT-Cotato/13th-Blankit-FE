@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 
 import checkButtonGreenIcon from "@/assets/icons/task-combination/check-button-green.svg";
-import { ConfirmationDialog } from "@/components/task-combination/ConfirmationDialog";
+import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { taskCombinations } from "@/mocks/taskCombinations";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
 
@@ -402,7 +402,7 @@ export function PlaylistBottomSheet({
         )}
       </section>
 
-      <ConfirmationDialog
+      <ConfirmModal
         open={showDeleteSelectedDialog}
         title="과업을 진짜 삭제하시겠습니까?"
         confirmLabel="확인"

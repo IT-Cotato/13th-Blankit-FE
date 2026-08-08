@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import checkButtonGreenIcon from "@/assets/icons/task-combination/check-button-green.svg";
@@ -6,7 +6,7 @@ import pauseButtonCircleIcon from "@/assets/icons/task-combination/pause-button-
 import playButtonCircleIcon from "@/assets/icons/task-combination/play-button-circle.svg";
 import vShapeButtonIcon from "@/assets/icons/task-combination/v-shape-button.svg";
 import xButtonRedIcon from "@/assets/icons/task-combination/x-button-red.svg";
-import { Toast } from "@/components/task-combination/Toast";
+import { Toast } from "@/components/common/Toast";
 import { TaskFeedbackSheet } from "@/components/task-feedback/TaskFeedbackSheet";
 import { EmptyPlaylistPlayer } from "@/components/task-playlist/EmptyPlaylistPlayer";
 import { PlaylistBottomSheet } from "@/components/task-playlist/PlaylistBottomSheet";
@@ -15,6 +15,7 @@ import { TaskCompletionTooltip } from "@/components/task-playlist/TaskCompletion
 import { TaskMosaicProgress } from "@/components/task-playlist/TaskMosaicProgress";
 import { TaskPlayerHeader } from "@/components/task-playlist/TaskPlayerHeader";
 import { useCurrentTaskTimer } from "@/hooks/useCurrentTaskTimer";
+import { useToast } from "@/hooks/useToast";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
 import { formatTimer } from "@/utils/taskTimer";
 import { getTaskPlayerControls } from "@/utils/taskPlayerControls";
@@ -48,12 +49,7 @@ export function TaskPlaylistPage() {
   const [isFeedbackOpen, setIsFeedbackOpen] =
     useState(false);
 
-  const [showFeedbackToast, setShowFeedbackToast] =
-    useState(false);
-
-  const feedbackToastTimerRef = useRef<ReturnType<
-    typeof setTimeout
-  > | null>(null);
+  const feedbackToast = useToast();
 
   const {
     displayedElapsedSeconds,
@@ -70,15 +66,6 @@ export function TaskPlaylistPage() {
   useEffect(() => {
     pauseCurrentTask(Date.now());
   }, [pauseCurrentTask]);
-
-  useEffect(
-    () => () => {
-      if (feedbackToastTimerRef.current) {
-        clearTimeout(feedbackToastTimerRef.current);
-      }
-    },
-    [],
-  );
 
   if (!task) {
     return <EmptyPlaylistPlayer />;
@@ -97,16 +84,7 @@ export function TaskPlaylistPage() {
     }
 
     setIsFeedbackOpen(false);
-    setShowFeedbackToast(true);
-
-    if (feedbackToastTimerRef.current) {
-      clearTimeout(feedbackToastTimerRef.current);
-    }
-
-    feedbackToastTimerRef.current = setTimeout(() => {
-      setShowFeedbackToast(false);
-      feedbackToastTimerRef.current = null;
-    }, 3000);
+    feedbackToast.showToast("피드백을 완료했어요.");
   };
 
   return (
@@ -218,9 +196,10 @@ export function TaskPlaylistPage() {
         onComplete={handleCompleteFeedback}
       />
 
-      {showFeedbackToast && (
-        <Toast message="피드백을 완료했어요." />
-      )}
+      <Toast
+        message={feedbackToast.message}
+        variant="taskCombination"
+      />
     </div>
   );
 }

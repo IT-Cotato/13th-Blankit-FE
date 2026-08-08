@@ -1,17 +1,16 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import arrowDownIcon from "@/assets/icons/task-combination/arrow-down.svg";
 import checkIcon from "@/assets/icons/task-combination/check.svg";
 import backIcon from "@/assets/icons/header/back.svg";
-import { ConfirmationDialog } from "@/components/task-combination/ConfirmationDialog";
-import { Toast } from "@/components/task-combination/Toast";
+import { ConfirmModal } from "@/components/common/ConfirmModal";
+import { Toast } from "@/components/common/Toast";
 import { TaskChip } from "@/components/task/TaskChip";
+import { useToast } from "@/hooks/useToast";
 import { getTaskCombination } from "@/mocks/taskCombinations";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
 import { getCombinationAccentClassName } from "@/utils/taskCombinationCategories";
-
-const QUEUED_TOAST_DURATION_MS = 3000;
 
 export function TaskCombinationDetailPage() {
   const navigate = useNavigate();
@@ -46,23 +45,9 @@ export function TaskCombinationDetailPage() {
 
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const [showQueuedToast, setShowQueuedToast] =
-    useState(false);
+  const queuedToast = useToast();
 
   const deleteLockRef = useRef(false);
-
-  const toastTimerRef = useRef<ReturnType<
-    typeof setTimeout
-  > | null>(null);
-
-  useEffect(
-    () => () => {
-      if (toastTimerRef.current) {
-        clearTimeout(toastTimerRef.current);
-      }
-    },
-    [],
-  );
 
   if (!combination) {
     return (
@@ -98,16 +83,7 @@ export function TaskCombinationDetailPage() {
       return;
     }
 
-    if (toastTimerRef.current) {
-      clearTimeout(toastTimerRef.current);
-    }
-
-    setShowQueuedToast(true);
-
-    toastTimerRef.current = setTimeout(() => {
-      setShowQueuedToast(false);
-      toastTimerRef.current = null;
-    }, QUEUED_TOAST_DURATION_MS);
+    queuedToast.showToast("할 일이 다음에 재생됩니다.");
   };
 
   const handleDeleteCancel = () => {
@@ -129,7 +105,7 @@ export function TaskCombinationDetailPage() {
     removeCombination(combination.id);
 
     setIsDeleteDialogOpen(false);
-    setShowQueuedToast(false);
+    queuedToast.hideToast();
   };
 
   return (
@@ -192,7 +168,6 @@ export function TaskCombinationDetailPage() {
             <li key={task.id}>
               <TaskChip
                 title={task.title}
-                lastMemo={task.lastMemo}
                 progressRate={task.progressRate}
                 priority={task.priority}
                 status={task.status}
@@ -203,16 +178,17 @@ export function TaskCombinationDetailPage() {
         </ul>
       </div>
 
-      {showQueuedToast && (
-        <Toast message="할 일이 다음에 재생됩니다." />
-      )}
+      <Toast
+        message={queuedToast.message}
+        variant="taskCombination"
+      />
 
-      <ConfirmationDialog
+      <ConfirmModal
         open={isDeleteDialogOpen}
-        title="리스트에 추가된 모든 과업을 삭제하시겠습니까?"
+        title={"리스트에서 모든 과업을\n삭제하시겠습니까?"}
         onCancel={handleDeleteCancel}
         onConfirm={handleDelete}
-        isSubmitting={isDeleting}
+        submitting={isDeleting}
       />
     </>
   );
