@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import type {
   SearchTaskData,
@@ -13,11 +13,11 @@ type SearchTasksParams = {
 };
 
 type UseTaskSearchResult = {
-  searchText: string;
-  setSearchText: (searchText: string) => void;
   searchResult: SearchTaskData | null;
   isLoading: boolean;
   errorMessage: string | null;
+  search: (keyword: string) => Promise<void>;
+  resetSearch: () => void;
 };
 
 async function searchTasks({
@@ -74,66 +74,50 @@ async function searchTasks({
 export function useTaskSearch(
   tasks: Task[],
 ): UseTaskSearchResult {
-  const [searchText, setSearchText] = useState("");
   const [searchResult, setSearchResult] =
     useState<SearchTaskData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] =
     useState<string | null>(null);
 
-  const handleSearchTextChange = (
-    nextSearchText: string,
-  ) => {
-    setSearchText(nextSearchText);
-    setSearchResult(null);
-    setErrorMessage(null);
-    setIsLoading(nextSearchText.trim().length > 0);
-  };
-
-  useEffect(() => {
-    const trimmedKeyword = searchText.trim();
+  const search = async (keyword: string) => {
+    const trimmedKeyword = keyword.trim();
 
     if (!trimmedKeyword) {
       return;
     }
 
-    let isCancelled = false;
+    setIsLoading(true);
+    setErrorMessage(null);
 
-    const debounceTimer = window.setTimeout(async () => {
-      try {
-        const response = await searchTasks({
-          keyword: trimmedKeyword,
-          tasks,
-        });
+    try {
+      const response = await searchTasks({
+        keyword: trimmedKeyword,
+        tasks,
+      });
 
-        if (!isCancelled) {
-          setSearchResult(response.data);
-        }
-      } catch {
-        if (!isCancelled) {
-          setSearchResult(null);
-          setErrorMessage(
-            "검색 중 문제가 발생했습니다.",
-          );
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsLoading(false);
-        }
-      }
-    }, 300);
+      setSearchResult(response.data);
+    } catch {
+      setSearchResult(null);
+      setErrorMessage(
+        "검색 중 문제가 발생했습니다.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    return () => {
-      isCancelled = true;
-      window.clearTimeout(debounceTimer);
-    };
-  }, [searchText, tasks]);
+  const resetSearch = () => {
+    setSearchResult(null);
+    setErrorMessage(null);
+    setIsLoading(false);
+  };
 
   return {
-    searchText,
-    setSearchText: handleSearchTextChange,
     searchResult,
     isLoading,
     errorMessage,
+    search,
+    resetSearch,
   };
 }

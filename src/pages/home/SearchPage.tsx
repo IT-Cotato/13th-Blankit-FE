@@ -22,21 +22,24 @@ export function SearchPage({
     useState<SearchHistory[]>(
       mockSearchHistorySuccess.data,
     );
+  const [searchText, setSearchText] = useState("");
 
   const {
-    searchText,
-    setSearchText,
     searchResult,
     isLoading,
     errorMessage,
+    search,
+    resetSearch,
   } = useTaskSearch(tasks);
 
-  const handleSearch = (keyword: string) => {
+  const handleSearch = async (keyword: string) => {
     const trimmedKeyword = keyword.trim();
 
     if (!trimmedKeyword) {
       return;
     }
+
+    await search(trimmedKeyword);
 
     const newSearchHistory: SearchHistory = {
       searchHistoryId: Date.now(),
@@ -54,6 +57,13 @@ export function SearchPage({
     ]);
   };
 
+  const handleSearchTextChange = (
+    nextSearchText: string,
+  ) => {
+    setSearchText(nextSearchText);
+    resetSearch();
+  };
+
   const handleRemoveSearch = (
     searchHistoryId: number,
   ) => {
@@ -69,7 +79,7 @@ export function SearchPage({
     setRecentSearches([]);
   };
 
-  const hasSearchText = searchText.trim().length > 0;
+  const hasSearched = searchResult !== null;
 
   return (
     <div
@@ -82,16 +92,18 @@ export function SearchPage({
       <SearchBar
         searchText={searchText}
         onSearch={handleSearch}
-        onSearchTextChange={setSearchText}
+        onSearchTextChange={handleSearchTextChange}
       />
 
-      {!hasSearchText ? (
+      {!isLoading && !errorMessage && !hasSearched && (
         <RecentSearch
           searches={recentSearches}
           onRemove={handleRemoveSearch}
           onClear={handleClearSearches}
         />
-      ) : (
+      )}
+
+      {(isLoading || errorMessage || hasSearched) && (
         <SearchResult
           searchResult={searchResult}
           isLoading={isLoading}
