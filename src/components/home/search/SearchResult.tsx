@@ -63,7 +63,8 @@ export function SearchResult({
               progressRate={task.progressRate}
               priority={task.priority}
               status={task.status}
-              category={task.category}
+              categoryColor={task.categoryColor}
+              categoryIconKey={task.categoryIconKey}
               onClick={() => onTaskClick(task.taskId)}
             />
           </li>

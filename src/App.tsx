@@ -120,7 +120,6 @@ function App() {
               path="/home/search"
               element={
                 <SearchPage
-                  tasks={taskManager.tasks}
                   onTaskClick={taskManager.selectTask}
                 />
               }

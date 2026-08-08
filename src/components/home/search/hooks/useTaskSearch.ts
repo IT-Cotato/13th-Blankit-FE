@@ -1,113 +1,80 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
-import type {
-  SearchTaskData,
-  SearchTaskResponse,
-} from "@/types/search";
-import type { Task } from "@/types/task";
+import { searchTasks } from "@/api/search";
 
-type SearchTasksParams = {
-  keyword: string;
-  page?: number;
-  size?: number;
-};
+import type { SearchTaskData } from "@/types/search";
 
 type UseTaskSearchResult = {
   searchResult: SearchTaskData | null;
   isLoading: boolean;
   errorMessage: string | null;
-  search: (keyword: string) => Promise<void>;
+  search: (
+    keyword: string,
+  ) => Promise<SearchTaskData | null>;
   resetSearch: () => void;
 };
 
-async function searchTasks({
-  keyword,
-  tasks,
-  page = 0,
-  size = 20,
-}: SearchTasksParams & {
-  tasks: Task[];
-}): Promise<SearchTaskResponse> {
-  const normalizedKeyword = keyword
-    .trim()
-    .toLocaleLowerCase("ko-KR");
-
-  const filteredTasks = tasks.filter((task) =>
-    task.title
-      .toLocaleLowerCase("ko-KR")
-      .includes(normalizedKeyword),
-  );
-
-  const startIndex = page * size;
-  const searchedTasks = filteredTasks
-    .slice(startIndex, startIndex + size)
-    .map(
-      ({
-        taskId,
-        title,
-        category,
-        priority,
-        deadline,
-        status,
-        progressRate,
-      }) => ({
-        taskId,
-        title,
-        category,
-        priority,
-        deadline,
-        status,
-        progressRate,
-      }),
-    );
-
-  return {
-    code: "SEARCH200",
-    message: "검색에 성공했습니다.",
-    data: {
-      totalCount: filteredTasks.length,
-      tasks: searchedTasks,
-    },
-  };
-}
-
-export function useTaskSearch(
-  tasks: Task[],
-): UseTaskSearchResult {
+export function useTaskSearch():
+UseTaskSearchResult {
   const [searchResult, setSearchResult] =
     useState<SearchTaskData | null>(null);
+
   const [isLoading, setIsLoading] = useState(false);
+
   const [errorMessage, setErrorMessage] =
     useState<string | null>(null);
 
-  const search = async (keyword: string) => {
+  const requestIdRef = useRef(0);
+
+  const search = async (
+    keyword: string,
+  ): Promise<SearchTaskData | null> => {
     const trimmedKeyword = keyword.trim();
 
     if (!trimmedKeyword) {
-      return;
+      return null;
     }
+
+    const requestId = ++requestIdRef.current;
 
     setIsLoading(true);
     setErrorMessage(null);
 
     try {
-      const response = await searchTasks({
+      const result = await searchTasks({
         keyword: trimmedKeyword,
-        tasks,
+        page: 0,
+        size: 20,
       });
 
-      setSearchResult(response.data);
+      if (requestId !== requestIdRef.current) {
+        return null;
+      }
+
+      setSearchResult(result);
+
+      return result;
     } catch {
+      if (requestId !== requestIdRef.current) {
+        return null;
+      }
+
       setSearchResult(null);
       setErrorMessage(
         "검색 중 문제가 발생했습니다.",
       );
+
+      return null;
     } finally {
-      setIsLoading(false);
+      if (requestId === requestIdRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
   const resetSearch = () => {
+    requestIdRef.current += 1;
+
     setSearchResult(null);
     setErrorMessage(null);
     setIsLoading(false);
