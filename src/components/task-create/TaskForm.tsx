@@ -36,7 +36,7 @@ interface TaskFormProps {
   onComplete: (
     request: TaskCreateRequest,
   ) => void | Promise<void>;
-  onUpdate?: (
+  onUpdate: (
     taskId: number,
     request: TaskUpdateRequest,
   ) => void | Promise<void>;
@@ -178,12 +178,17 @@ export const TaskForm = forwardRef<
 
   return (
     <>
-      <button
-        type="button"
-        aria-label="과업 입력 닫기"
-        onClick={onClose}
-        className="fixed inset-0 z-[60] cursor-default bg-black/80"
-      />
+      <div
+        inert={
+          categoryFlow.view !== "composer"
+        }
+      >
+        <button
+          type="button"
+          aria-label="과업 입력 닫기"
+          onClick={onClose}
+          className="fixed inset-0 z-[60] cursor-default bg-black/80"
+        />
 
       <TaskInputPanel
         visible={isComposerVisible}
@@ -223,10 +228,6 @@ export const TaskForm = forwardRef<
         />
       )}
 
-      <TaskCategoryPicker
-        categoryFlow={categoryFlow}
-      />
-
       {alarmFlow.view ===
         "alarm-list" && (
         <AlarmSelectionSheet
@@ -262,6 +263,11 @@ export const TaskForm = forwardRef<
           }
         />
       )}
+      </div>
+
+      <TaskCategoryPicker
+        categoryFlow={categoryFlow}
+      />
 
     </>
   );

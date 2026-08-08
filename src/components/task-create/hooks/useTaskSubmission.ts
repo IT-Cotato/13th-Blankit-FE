@@ -24,7 +24,7 @@ interface UseTaskSubmissionOptions {
   onCreate: (
     request: TaskCreateRequest,
   ) => void | Promise<void>;
-  onUpdate?: (
+  onUpdate: (
     taskId: number,
     request: TaskUpdateRequest,
   ) => void | Promise<void>;
@@ -54,7 +54,7 @@ export function useTaskSubmission({
       return;
     }
 
-    if (task && onUpdate) {
+    if (task) {
       const request = createTaskUpdateRequest({
         title,
         selectedDate,

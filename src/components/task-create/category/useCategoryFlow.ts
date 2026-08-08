@@ -88,6 +88,10 @@ export function useCategoryFlow({
   }
 
   async function startCreate() {
+    if (loading) {
+      return;
+    }
+
     try {
       setLoading(true);
       const colors = await getAvailableCategoryColors();
@@ -223,6 +227,10 @@ export function useCategoryFlow({
   }
 
   function toggleEditable() {
+    if (loading) {
+      return;
+    }
+
     setEditable((current) => !current);
   }
 

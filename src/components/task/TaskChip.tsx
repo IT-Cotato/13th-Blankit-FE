@@ -123,18 +123,8 @@ export function TaskChip(
       ? `${title}, 진행도 ${progressLevel}`
       : `${title}, 우선순위 ${priority}`;
 
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={ariaLabel}
-      className="
-        flex w-full items-center gap-4
-        rounded-[12px] bg-black-850
-        px-5 py-[18px] text-left
-        transition-colors active:bg-black-800
-      "
-    >
+  const content = (
+    <>
       <CategoryIconBadge
         icon={categoryPresentation.icon}
         color={categoryPresentation.color}
@@ -239,6 +229,36 @@ export function TaskChip(
           </span>
         </div>
       ) : null}
+    </>
+  );
+
+  const className = `
+    flex w-full items-center gap-4
+    rounded-[12px] bg-black-850
+    px-5 py-[18px] text-left
+    ${onClick ? "transition-colors active:bg-black-800" : ""}
+  `;
+
+  if (!onClick) {
+    return (
+      <div
+        role="group"
+        aria-label={ariaLabel}
+        className={className}
+      >
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className={className}
+    >
+      {content}
     </button>
   );
 }

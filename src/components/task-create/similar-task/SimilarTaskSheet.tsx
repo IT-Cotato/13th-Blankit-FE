@@ -208,7 +208,9 @@ export function SimilarTaskSheet({
 
         <button
           type="button"
-          disabled={!hasSelection}
+          disabled={
+            !hasSelection || submitting
+          }
           onClick={() =>
             onComplete(selectedTaskId)
           }
