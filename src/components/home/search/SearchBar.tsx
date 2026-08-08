@@ -1,7 +1,4 @@
-import {
-  useRef,
-  useState,
-} from "react";
+import { useRef } from "react";
 
 import type {
   ChangeEvent,
@@ -15,15 +12,16 @@ import clearIcon from "@/assets/icons/x-black-700.svg";
 import { TopBarShell } from "@/components/layout/top-bar/TopBarShell";
 
 type SearchBarProps = {
+  searchText: string;
   onSearch: (keyword: string) => void;
   onSearchTextChange: (searchText: string) => void;
 };
 
 export function SearchBar({
+  searchText,
   onSearch,
   onSearchTextChange,
 }: SearchBarProps) {
-  const [searchText, setSearchText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
@@ -34,14 +32,10 @@ export function SearchBar({
   const handleSearchTextChange = (
     event: ChangeEvent<HTMLInputElement>,
   ) => {
-    const nextSearchText = event.target.value;
-
-    setSearchText(nextSearchText);
-    onSearchTextChange(nextSearchText);
+    onSearchTextChange(event.target.value);
   };
 
   const handleClear = () => {
-    setSearchText("");
     onSearchTextChange("");
     inputRef.current?.focus();
   };
@@ -59,6 +53,7 @@ export function SearchBar({
 
     onSearch(trimmedKeyword);
   };
+
 
   return (
     <TopBarShell>

@@ -1,78 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { RecentSearch } from "@/components/home/search/RecentSearch";
 import { SearchBar } from "@/components/home/search/SearchBar";
-import { TaskChip } from "@/components/task/TaskChip";
+import { SearchResult } from "@/components/home/search/SearchResult";
+import { useTaskSearch } from "@/components/home/search/hooks/useTaskSearch";
 import { mockSearchHistorySuccess } from "@/mocks/searchMockData";
 
-import type {
-  SearchHistory,
-  SearchTaskData,
-  SearchTaskResponse,
-} from "@/types/search";
+import type { SearchHistory } from "@/types/search";
 import type { Task } from "@/types/task";
-
-type SearchTasksParams = {
-  keyword: string;
-  page?: number;
-  size?: number;
-};
-
-/**
- * 현재는 mockTasks를 검색합니다.
- * 실제 API가 나오면 이 함수 내부만 fetch 호출로 교체합니다.
- */
-async function searchTasks({
-  keyword,
-  tasks,
-  page = 0,
-  size = 20,
-}: SearchTasksParams & {
-  tasks: Task[];
-}): Promise<SearchTaskResponse> {
-  const normalizedKeyword = keyword
-    .trim()
-    .toLowerCase();
-
-  const filteredTasks = tasks.filter((task) =>
-    task.title
-      .toLowerCase()
-      .includes(normalizedKeyword),
-  );
-
-  const startIndex = page * size;
-
-  const searchedTasks = filteredTasks
-    .slice(startIndex, startIndex + size)
-    .map(
-      ({
-        taskId,
-        title,
-        category,
-        priority,
-        deadline,
-        status,
-        progressRate,
-      }) => ({
-        taskId,
-        title,
-        category,
-        priority,
-        deadline,
-        status,
-        progressRate,
-      }),
-    );
-
-  return {
-    code: "SEARCH200",
-    message: "검색에 성공했습니다.",
-    data: {
-      totalCount: filteredTasks.length,
-      tasks: searchedTasks,
-    },
-  };
-}
 
 interface SearchPageProps {
   tasks: Task[];
@@ -88,17 +23,15 @@ export function SearchPage({
       mockSearchHistorySuccess.data,
     );
 
-  const [searchResult, setSearchResult] =
-    useState<SearchTaskData | null>(null);
-  const [activeKeyword, setActiveKeyword] =
-    useState("");
+  const {
+    searchText,
+    setSearchText,
+    searchResult,
+    isLoading,
+    errorMessage,
+  } = useTaskSearch(tasks);
 
-  const [isLoading, setIsLoading] = useState(false);
-
-  const [errorMessage, setErrorMessage] =
-    useState<string | null>(null);
-
-  const handleSearch = async (keyword: string) => {
+  const handleSearch = (keyword: string) => {
     const trimmedKeyword = keyword.trim();
 
     if (!trimmedKeyword) {
@@ -111,43 +44,15 @@ export function SearchPage({
       searchedAt: new Date().toISOString(),
     };
 
-    // 같은 검색어가 있으면 기존 항목을 제거하고
-    // 새로운 검색 기록을 맨 앞으로 옮깁니다.
     setRecentSearches((previousSearches) => [
       newSearchHistory,
       ...previousSearches.filter(
         (search) =>
-          search.keyword.toLowerCase() !==
-          trimmedKeyword.toLowerCase(),
+          search.keyword.toLocaleLowerCase("ko-KR") !==
+          trimmedKeyword.toLocaleLowerCase("ko-KR"),
       ),
     ]);
-
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    try {
-      const response = await searchTasks({
-        keyword: trimmedKeyword,
-        tasks,
-      });
-
-      setActiveKeyword(trimmedKeyword);
-      setSearchResult(response.data);
-    } catch {
-      setSearchResult(null);
-      setErrorMessage(
-        "검색 중 문제가 발생했습니다.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
   };
-
-  const handleSearchTextChange = () => {
-    setActiveKeyword("");
-    setSearchResult(null);
-    setErrorMessage(null);
-  }
 
   const handleRemoveSearch = (
     searchHistoryId: number,
@@ -164,20 +69,7 @@ export function SearchPage({
     setRecentSearches([]);
   };
 
-  useEffect(() => {
-    if (!activeKeyword) {
-      return;
-    }
-
-    void searchTasks({
-      keyword: activeKeyword,
-      tasks,
-    }).then((response) => {
-      setSearchResult(response.data);
-    });
-  }, [activeKeyword, tasks]);
-
-  const hasSearched = searchResult !== null;
+  const hasSearchText = searchText.trim().length > 0;
 
   return (
     <div
@@ -188,74 +80,25 @@ export function SearchPage({
       "
     >
       <SearchBar
+        searchText={searchText}
         onSearch={handleSearch}
-        onSearchTextChange={handleSearchTextChange}
+        onSearchTextChange={setSearchText}
       />
 
-      {isLoading && (
-        <div className="flex flex-1 items-center justify-center">
-          <p className="text-[16px] font-medium text-black-100">
-            검색 중입니다.
-          </p>
-        </div>
+      {!hasSearchText ? (
+        <RecentSearch
+          searches={recentSearches}
+          onRemove={handleRemoveSearch}
+          onClear={handleClearSearches}
+        />
+      ) : (
+        <SearchResult
+          searchResult={searchResult}
+          isLoading={isLoading}
+          errorMessage={errorMessage}
+          onTaskClick={onTaskClick}
+        />
       )}
-
-      {!isLoading && errorMessage && (
-        <div className="flex flex-1 items-center justify-center">
-          <p className="text-[16px] font-medium text-red-400">
-            {errorMessage}
-          </p>
-        </div>
-      )}
-
-      {!isLoading &&
-        !errorMessage &&
-        !hasSearched && (
-          <RecentSearch
-            searches={recentSearches}
-            onRemove={handleRemoveSearch}
-            onClear={handleClearSearches}
-          />
-        )}
-
-      {!isLoading &&
-        !errorMessage &&
-        hasSearched &&
-        searchResult.totalCount === 0 && (
-          <div className="flex flex-1 items-center justify-center">
-            <p className="text-[16px] font-medium text-black-100">
-              검색 결과가 없습니다.
-            </p>
-          </div>
-        )}
-
-      {!isLoading &&
-        !errorMessage &&
-        hasSearched &&
-        searchResult.totalCount > 0 && (
-          <section className="px-5 pt-5">
-            <h2 className="mb-4 text-[14px] font-semibold text-black-200">
-              검색 결과 ({searchResult.totalCount})
-            </h2>
-
-            <ul className="flex flex-col gap-3">
-              {searchResult.tasks.map((task) => (
-                <li key={task.taskId}>
-                  <TaskChip
-                    title={task.title}
-                    progressRate={task.progressRate}
-                    priority={task.priority}
-                    status={task.status}
-                    category={task.category}
-                    onClick={() =>
-                      onTaskClick(task.taskId)
-                    }
-                  />
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
     </div>
   );
 }
