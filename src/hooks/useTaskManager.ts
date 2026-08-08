@@ -1,9 +1,15 @@
+import axios from "axios";
 import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
-import type { TaskComposerFlowHandle } from "@/components/task-create/TaskComposerFlow";
+import { createTask, deleteTask, getTask, getTaskFormOptions, updateTask as updateTaskApi } from "@/api/tasks";
+
+import type { TaskFormHandle } from "@/components/task-create/TaskForm";
+
 import { mockTasks } from "@/mocks/tasks";
+
 import type { Task } from "@/types/task";
+import type { TaskCreateRequest, TaskDetailResponse, TaskFormOptionsResponse, TaskUpdateRequest } from "@/types/taskApi";
 
 interface UseTaskManagerOptions {
   showToast: (message: string) => void;
@@ -12,29 +18,59 @@ interface UseTaskManagerOptions {
 export function useTaskManager({
   showToast,
 }: UseTaskManagerOptions) {
-  const composerRef =
-    useRef<TaskComposerFlowHandle>(null);
+  const taskFormRef =
+    useRef<TaskFormHandle>(null);
 
   const [tasks, setTasks] = useState<Task[]>(() => [...mockTasks]);
   const [selectedTaskId, setSelectedTaskId] =
     useState<number | null>(null);
   const [editingTask, setEditingTask] =
-    useState<Task | null>(null);
-  const [taskPendingDelete, setTaskPendingDelete] =
-    useState<Task | null>(null);
+    useState<TaskDetailResponse | null>(null);
+  const [loadingTaskDetail, setLoadingTaskDetail] = 
+    useState(false);
+  const [taskPendingDelete, setTaskPendingDelete] = 
+    useState<number | null>(null);
+  const [deletingTask,setDeletingTask] = 
+    useState(false);  
+  const [taskDataVersion, setTaskDataVersion] = 
+    useState(0);
   const [taskTitle, setTaskTitle] = useState("");
   const [isComposerOpen, setIsComposerOpen] =
     useState(false);
+  const [taskFormOptions, setTaskFormOptions] = 
+    useState<TaskFormOptionsResponse | null>(null);
+  const [ openingComposer, setOpeningComposer] = 
+    useState(false);
 
-  function openComposer() {
-    flushSync(() => {
-      setEditingTask(null);
-      setSelectedTaskId(null);
-      setTaskTitle("");
-      setIsComposerOpen(true);
-    });
 
-    composerRef.current?.focus();
+  async function openComposer() {
+    if (openingComposer) {
+      return;
+    }
+
+    try {
+      setOpeningComposer(true);
+
+      const formOptions =
+        await getTaskFormOptions();
+
+      flushSync(() => {
+        setTaskFormOptions(formOptions);
+        setEditingTask(null);
+        setSelectedTaskId(null);
+        setTaskTitle("");
+        setIsComposerOpen(true);
+      });
+
+      taskFormRef.current?.focus();
+    } catch (error) {
+      console.error(error);
+      showToast(
+        "과업 등록 정보를 불러오지 못했습니다.",
+      );
+    } finally {
+      setOpeningComposer(false);
+    }
   }
 
   function closeComposer() {
@@ -43,74 +79,201 @@ export function useTaskManager({
     setTaskTitle("");
   }
 
-  function completeCreate() {
-    closeComposer();
-    showToast("과업 추가가 완료되었습니다.");
+  async function completeCreate(
+    request: TaskCreateRequest,
+  ) {
+    try {
+      await createTask(request);
+
+      setTaskDataVersion(
+        (current) => current + 1,
+      );
+      
+      closeComposer();
+      showToast(
+        "과업 추가가 완료되었습니다.",
+      );
+    } catch (error) {
+      console.error(error);
+
+      const serverMessage =
+        axios.isAxiosError<{
+          message?: string;
+        }>(error)
+          ? error.response?.data?.message
+          : undefined;
+
+      showToast(
+        serverMessage ??
+          "과업 추가에 실패했습니다.",
+      );
+    }
   }
 
-  function editSelectedTask() {
-    const selectedTask = tasks.find(
-      (task) => task.taskId === selectedTaskId,
-    );
-
-    if (!selectedTask) {
+  async function editSelectedTask() {
+    if (
+      selectedTaskId === null ||
+      loadingTaskDetail
+    ) {
       return;
     }
 
-    flushSync(() => {
-      setSelectedTaskId(null);
-      setEditingTask(selectedTask);
-      setTaskTitle(selectedTask.title);
-      setIsComposerOpen(true);
-    });
+    try {
+      setLoadingTaskDetail(true);
 
-    composerRef.current?.focus();
+      const [taskDetail, formOptions] =
+        await Promise.all([
+          getTask(selectedTaskId),
+          getTaskFormOptions(),
+        ]);
+
+      flushSync(() => {
+        setSelectedTaskId(null);
+        setEditingTask(taskDetail);
+        setTaskFormOptions(formOptions);
+        setTaskTitle(taskDetail.title);
+        setIsComposerOpen(true);
+      });
+
+      taskFormRef.current?.focus();
+    } catch (error) {
+      console.error(error);
+
+      const serverMessage =
+        axios.isAxiosError<{
+          message?: string;
+        }>(error)
+          ? error.response?.data?.message
+          : undefined;
+
+      showToast(
+        serverMessage ??
+          "과업 정보를 불러오지 못했습니다.",
+      );
+    } finally {
+      setLoadingTaskDetail(false);
+    }
   }
 
-  function updateTask(updatedTask: Task) {
-    setTasks((current) =>
-      current.map((task) =>
-        task.taskId === updatedTask.taskId ? updatedTask : task,
-      ),
-    );
-    closeComposer();
-    showToast("수정이 완료되었습니다.");
+  async function updateTask(
+    taskId: number,
+    request: TaskUpdateRequest,
+  ) {
+    try {
+      await updateTaskApi(
+        taskId,
+        request,
+      );
+
+      closeComposer();
+
+      setTaskDataVersion(
+        (current) => current + 1,
+      );
+
+      showToast(
+        "수정이 완료되었습니다.",
+      );
+    } catch (error) {
+      console.error(error);
+
+      const serverMessage =
+        axios.isAxiosError<{
+          message?: string;
+        }>(error)
+          ? error.response?.data?.message
+          : undefined;
+
+      showToast(
+        serverMessage ??
+          "과업 수정에 실패했습니다.",
+      );
+    }
   }
 
   function requestDelete() {
-    const selectedTask = tasks.find(
-      (task) => task.taskId === selectedTaskId,
-    );
-
-    setSelectedTaskId(null);
-
-    if (selectedTask) {
-      setTaskPendingDelete(selectedTask);
-    }
-  }
-
-  function confirmDelete() {
-    if (!taskPendingDelete) {
+    if (selectedTaskId === null) {
       return;
     }
 
-    setTasks((current) =>
-      current.filter(
-        (task) => task.taskId !== taskPendingDelete.taskId,
-      ),
+    setTaskPendingDelete(
+      selectedTaskId,
     );
-    setTaskPendingDelete(null);
-    showToast("삭제가 완료되었습니다.");
+
+    setSelectedTaskId(null);
   }
+
+  async function confirmDelete() {
+    if (
+      taskPendingDelete === null ||
+      deletingTask
+    ) {
+      return;
+    }
+
+    const taskId = taskPendingDelete;
+
+    try {
+      setDeletingTask(true);
+
+      await deleteTask(taskId);
+
+      setTasks((current) =>
+        current.filter(
+          (task) =>
+            task.taskId !== taskId,
+        ),
+      );
+
+      setTaskPendingDelete(null);
+
+      setTaskDataVersion(
+        (current) => current + 1,
+      );
+
+      showToast(
+        "삭제가 완료되었습니다.",
+      );
+    } catch (error) {
+      console.error(error);
+
+      const serverMessage =
+        axios.isAxiosError<{
+          message?: string;
+        }>(error)
+          ? error.response?.data?.message
+          : undefined;
+
+      showToast(
+        serverMessage ??
+          "과업 삭제에 실패했습니다.",
+      );
+    } finally {
+      setDeletingTask(false);
+    }
+  }
+
+  function cancelDelete() {
+  if (deletingTask) {
+    return;
+  }
+
+  setTaskPendingDelete(null);
+}
 
   return {
     tasks,
+    taskFormOptions,
+    openingComposer,
+    loadingTaskDetail,
+    deletingTask,
+    taskDataVersion,
     selectedTaskId,
     editingTask,
     taskPendingDelete,
     taskTitle,
     isComposerOpen,
-    composerRef,
+    taskFormRef,
     selectTask: setSelectedTaskId,
     setTaskTitle,
     openComposer,
@@ -118,10 +281,11 @@ export function useTaskManager({
     completeCreate,
     editSelectedTask,
     updateTask,
-    closeActionSheet: () => setSelectedTaskId(null),
+    closeActionSheet: () =>
+      setSelectedTaskId(null),
     requestDelete,
-    cancelDelete: () => setTaskPendingDelete(null),
-    confirmDelete,
+    cancelDelete,
+    confirmDelete
   };
 }
 

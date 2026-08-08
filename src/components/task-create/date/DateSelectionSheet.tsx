@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 
 import backIcon from "@/assets/icons/back-button-black-600.svg";
 
-import { CalendarPanel } from "./CalendarPanel";
-import { CalendarPickerSheet } from "./CalendarPickerSheet";
+import { DateCalendar } from "./DateCalendar";
+import { RepeatDatePickerSheet } from "./RepeatDatePickerSheet";
 import { RepeatSettingsForm } from "./RepeatSettingsForm";
 import { startOfDay } from "./utils/calendar";
 import {
@@ -48,7 +48,7 @@ export function DateSelectionSheet({
     const selectingEndDate = repeatDateTarget === "end";
 
     return (
-      <CalendarPickerSheet
+      <RepeatDatePickerSheet
         initialDate={
           selectingEndDate
             ? repeatSettings.endDate
@@ -136,7 +136,7 @@ export function DateSelectionSheet({
         </div>
 
         {activeTab === "general" ? (
-          <CalendarPanel
+          <DateCalendar
             selectedDate={selectedDate}
             minSelectableDate={today}
             onSelect={setSelectedDate}

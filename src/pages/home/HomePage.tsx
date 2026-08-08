@@ -13,6 +13,9 @@ import { RecommendedTaskTimeCard } from "@/components/home/RecommendedTaskTimeCa
 import { WeeklyCalendar } from "@/components/home/WeeklyCalendar";
 
 import { TodayRecommendedTasks } from "@/components/task/TodayRecommendedTasks";
+import { TaskCombinationSection } from "@/components/task-combination/TaskCombinationSection";
+import { usePlaylistStore } from "@/store/usePlaylistStore";
+import { shouldShowDockedTaskTimeBar } from "@/utils/homeDockedTaskTimeBar";
 
 import type { Task } from "@/types/task";
 
@@ -71,17 +74,17 @@ export function HomePage({
   onTaskClick,
 }: HomePageProps) {
   const navigate = useNavigate();
-
-  const taskCardRef =
-    useRef<HTMLDivElement>(null);
-
+  const taskCardRef = useRef<HTMLDivElement>(null);
   const [showDockedBar, setShowDockedBar] =
     useState(false);
+  const currentPlaylistTask = usePlaylistStore(
+    (state) => state.playlist[0],
+  );
 
   const hasTasks = tasks.length > 0;
 
   useEffect(() => {
-    if (!hasTasks) {
+    if (!hasTasks || currentPlaylistTask) {
       return;
     }
 
@@ -93,16 +96,14 @@ export function HomePage({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        const isOutsideVisibleArea =
-          !entry.isIntersecting;
-
-        const hasPassedTopBar =
-          entry.boundingClientRect.bottom <=
-          HOME_TOP_BAR_HEIGHT;
-
         setShowDockedBar(
-          isOutsideVisibleArea &&
-            hasPassedTopBar,
+          shouldShowDockedTaskTimeBar({
+            hasCurrentPlaylistTask: false,
+            isCardVisible: entry.isIntersecting,
+            hasPassedTopBar:
+              entry.boundingClientRect.bottom <=
+              HOME_TOP_BAR_HEIGHT,
+          }),
         );
       },
       {
@@ -116,7 +117,10 @@ export function HomePage({
     return () => {
       observer.disconnect();
     };
-  }, [hasTasks]);
+  }, [currentPlaylistTask, hasTasks]);
+
+  const shouldRenderDockedBar =
+    !currentPlaylistTask && showDockedBar;
 
   return (
     <>
@@ -127,7 +131,13 @@ export function HomePage({
 
       {hasTasks ? (
         <>
-          <div className="flex flex-col gap-5 px-5 pt-5">
+          <div
+            className={`flex flex-col gap-5 px-5 pt-5 ${
+              shouldRenderDockedBar
+                ? "pb-[90px]"
+                : ""
+            }`}
+          >
             <WeeklyCalendar />
 
             <div ref={taskCardRef}>
@@ -137,22 +147,21 @@ export function HomePage({
             <TodayRecommendedTasks
               tasks={tasks}
               onViewAll={() => {
-                navigate(
-                  "/task-recommendations",
-                );
+                navigate("/task-recommendations");
               }}
               onTaskClick={onTaskClick}
             />
+
+            <TaskCombinationSection />
           </div>
 
-          {showDockedBar && (
+          {shouldRenderDockedBar && (
             <DockedTaskTimeBar />
           )}
         </>
       ) : (
         <HomeEmptyState />
       )}
-
     </>
   );
 }

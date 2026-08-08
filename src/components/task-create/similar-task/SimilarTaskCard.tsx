@@ -1,6 +1,6 @@
 import { CategoryIconBadge } from "@/components/category/CategoryIconBadge";
 import { getCategoryPresentation } from "@/constants/category";
-import type { Task } from "@/types/task";
+import type { TaskHistoryItemResponse } from "@/types/taskApi";
 
 import {
   formatElapsedMinutes,
@@ -8,7 +8,7 @@ import {
 } from "./similarTaskUtils";
 
 interface SimilarTaskCardProps {
-  task: Task;
+  task: TaskHistoryItemResponse;
   selected: boolean;
   onClick: () => void;
 }
@@ -18,7 +18,12 @@ export function SimilarTaskCard({
   selected,
   onClick,
 }: SimilarTaskCardProps) {
-  const category = getCategoryPresentation(task.category);
+  const category = getCategoryPresentation({
+    categoryId: task.categoryId,
+    categoryName: task.categoryName,
+    color: task.categoryColor,
+    iconKey: task.categoryIconKey,
+  });
 
   return (
     <button
@@ -49,7 +54,7 @@ export function SimilarTaskCard({
 
       <span className="shrink-0 text-[12px] font-medium text-black-500">
         {formatElapsedMinutes(
-          task.actualElapsedMinutes ?? task.estimatedTime,
+          task.totalElapsedTime,
         )}
       </span>
     </button>
