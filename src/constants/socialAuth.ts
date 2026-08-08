@@ -14,3 +14,7 @@ export const GOOGLE_USER_INFO_ENDPOINT =
 export const KAKAO_AUTH_ENDPOINT = "https://kauth.kakao.com/oauth/authorize";
 export const KAKAO_TOKEN_ENDPOINT = "https://kauth.kakao.com/oauth/token";
 export const KAKAO_USER_INFO_ENDPOINT = "https://kapi.kakao.com/v2/user/me";
+
+console.log("[DEBUG] KAKAO_REST_API_KEY:", KAKAO_REST_API_KEY);
+console.log("[DEBUG] GOOGLE_CLIENT_ID:", GOOGLE_CLIENT_ID);
+console.log("[DEBUG] all env:", import.meta.env);
