@@ -6,14 +6,14 @@ import alarmIcon from "@/assets/icons/task/alarm-icon.svg";
 import categoryIcon from "@/assets/icons/task/category_icon.svg";
 
 import { CategoryIconBadge } from "@/components/category/CategoryIconBadge";
-import { TaskPropertyChip } from "@/components/task-create/TaskPropertyChip";
+import { TaskOptionButton } from "@/components/task-create/TaskOptionButton";
 import { useDragScroll } from "@/components/task-create/hooks/useDragScroll";
 import { getCategoryPresentation } from "@/constants/category";
 
 import type { AlarmOption } from "@/components/task-create/alarm/alarmOptions";
 import type { Category } from "@/types/category";
 
-interface TaskComposerPanelProps {
+interface TaskInputPanelProps {
   visible: boolean;
   editing: boolean;
   title: string;
@@ -29,7 +29,7 @@ interface TaskComposerPanelProps {
   onOpenAlarm: () => void;
 }
 
-export function TaskComposerPanel({
+export function TaskInputPanel({
   visible,
   editing,
   title,
@@ -43,7 +43,7 @@ export function TaskComposerPanel({
   onOpenDate,
   onOpenCategory,
   onOpenAlarm,
-}: TaskComposerPanelProps) {
+}: TaskInputPanelProps) {
   const { scrollerRef, dragHandlers } = useDragScroll();
   const categoryPresentation = category
     ? getCategoryPresentation(category)
@@ -92,7 +92,7 @@ export function TaskComposerPanel({
         className="mt-5 w-full max-w-full cursor-grab touch-pan-y overflow-x-scroll overflow-y-hidden overscroll-x-contain pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] active:cursor-grabbing [&::-webkit-scrollbar]:hidden"
       >
         <div className="flex w-max min-w-full gap-3">
-          <TaskPropertyChip
+          <TaskOptionButton
             icon={
               <img
                 src={calendarIcon}
@@ -103,9 +103,9 @@ export function TaskComposerPanel({
             onClick={onOpenDate}
           >
             <span>{dateLabel}</span>
-          </TaskPropertyChip>
+          </TaskOptionButton>
 
-          <TaskPropertyChip
+          <TaskOptionButton
             icon={
               categoryPresentation ? (
                 <CategoryIconBadge
@@ -128,16 +128,16 @@ export function TaskComposerPanel({
             <span className="min-w-0 truncate">
               {category?.categoryName ?? "카테고리"}
             </span>
-          </TaskPropertyChip>
+          </TaskOptionButton>
 
-          <TaskPropertyChip
+          <TaskOptionButton
             icon={
               <img src={alarmIcon} alt="" className="h-4 w-4 shrink-0" />
             }
             onClick={onOpenAlarm}
           >
             <span>{alarm} 알림</span>
-          </TaskPropertyChip>
+          </TaskOptionButton>
         </div>
       </div>
     </section>

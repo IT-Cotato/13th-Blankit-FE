@@ -44,7 +44,6 @@ export function TodayRecommendedTasks({
           <li key={task.taskId}>
             <TaskChip
               title={task.title}
-              lastMemo={task.lastMemo}
               progressRate={task.progressRate}
               priority={task.priority}
               status={task.status}

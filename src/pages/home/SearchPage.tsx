@@ -243,7 +243,6 @@ export function SearchPage({
                 <li key={task.taskId}>
                   <TaskChip
                     title={task.title}
-                    lastMemo={null}
                     progressRate={task.progressRate}
                     priority={task.priority}
                     status={task.status}

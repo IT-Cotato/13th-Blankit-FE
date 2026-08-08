@@ -37,7 +37,7 @@ export function CompletedTask() {
     <div className="flex min-h-dvh flex-col bg-black-900 pb-[max(24px,env(safe-area-inset-bottom))] text-black-100">
       <MyPageDetailTopBar
         title="내 완료한 과업 보기"
-        onBack={() => navigate(-1)}
+        onBack={() => navigate("/mypage")}
       />
 
       <main className="flex min-h-0 flex-1 flex-col px-5">
