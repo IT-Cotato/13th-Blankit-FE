@@ -26,7 +26,7 @@ export function SearchBar({
   const navigate = useNavigate();
 
   const handleGoBack = () => {
-    navigate(-1);
+    navigate("/");
   };
 
   const handleSearchTextChange = (

@@ -14,9 +14,13 @@ import { HomePage } from "./pages/home/HomePage";
 import { SearchPage } from "./pages/home/SearchPage";
 import { TaskRecommendationsPage } from "./pages/home/TaskRecommendationsPage";
 import { CompletedTask } from "./pages/mypage/CompletedTask";
+import { EverytimeTimeTableLink } from "./pages/mypage/EverytimeTimeTableLink";
 import { MyPage } from "./pages/mypage/MyPage";
 import { NotificationSetting } from "./pages/mypage/NotificationSetting";
 import { PrioritySetting } from "./pages/mypage/PrioritySetting";
+import { TimeTable } from "./pages/mypage/TimeTable";
+import { TimeTableCreate } from "./pages/mypage/TimeTableCreate";
+import { TimeTableSetting } from "./pages/mypage/TimeTableSetting";
 import { TaskPlaylistPage } from "./pages/task-playlist/TaskPlaylistPage";
 
 import { TaskCombinationDetailPage } from "./pages/home/TaskCombinationDetailPage";
@@ -29,12 +33,16 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { useAuthStore } from "@/store/authStore";
 
 const PAGES_WITHOUT_BOTTOM_NAVIGATION = [
-    "/mypage/completed-tasks",
-    "/mypage/priority-setting",
-    "/mypage/notification-setting",
-    "/task-recommendations",
-    "/onboarding",
-    "/login",
+  "/mypage/completed-tasks",
+  "/mypage/priority-setting",
+  "/mypage/notification-setting",
+  "/mypage/timetable",
+  "/mypage/timetable/new",
+  "/mypage/timetable/settings",
+  "/mypage/timetable/everytime-link",
+  "/task-recommendations",
+  "/onboarding",
+  "/login",
 ];
 
 function App() {
@@ -62,7 +70,7 @@ function App() {
   if (!isAppReady) {
     return <SplashScreen onFinish={handleSplashFinish} />;
   }
-  
+
   const hasCurrentTaskMiniPlayer =
     Boolean(currentPlaylistTask) &&
     shouldShowCurrentTaskMiniPlayer(location.pathname) &&
@@ -138,6 +146,20 @@ function App() {
             <Route
               path="/mypage/notification-setting"
               element={<NotificationSetting />}
+            />
+
+            <Route path="/mypage/timetable" element={<TimeTable />} />
+            <Route
+              path="/mypage/timetable/new"
+              element={<TimeTableCreate />}
+            />
+            <Route
+              path="/mypage/timetable/settings"
+              element={<TimeTableSetting />}
+            />
+            <Route
+              path="/mypage/timetable/everytime-link"
+              element={<EverytimeTimeTableLink />}
             />
 
             <Route

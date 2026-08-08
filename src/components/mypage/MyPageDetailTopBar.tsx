@@ -4,6 +4,7 @@ type MyPageDetailTopBarProps = {
   title: string;
   onBack: () => void;
   titleClassName?: string;
+  actions?: React.ReactNode;
 };
 
 function BackIcon() {
@@ -24,6 +25,7 @@ export function MyPageDetailTopBar({
   title,
   onBack,
   titleClassName = "",
+  actions,
 }: MyPageDetailTopBarProps) {
   return (
     <TopBarShell>
@@ -42,6 +44,12 @@ export function MyPageDetailTopBar({
         >
           {title}
         </h1>
+
+        {actions && (
+          <div className="absolute right-0 flex items-center gap-3">
+            {actions}
+          </div>
+        )}
       </div>
     </TopBarShell>
   );

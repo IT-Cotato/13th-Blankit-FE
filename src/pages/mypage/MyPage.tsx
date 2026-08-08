@@ -16,6 +16,7 @@ const menuItems = [
     label: "내 시간표 설정",
     icon: "/mypage/timetable.svg",
     iconClassName: "h-[19.998px] w-5 shrink-0",
+    path: "/mypage/timetable",
   },
   {
     label: "내 우선순위 설정",
