@@ -5,8 +5,8 @@ import { MyPageDetailTopBar } from "@/components/mypage/MyPageDetailTopBar";
 import {
   PriorityLevelTabs,
   type PriorityFilter,
-} from "@/components/mypage/PriorityLevelTabs";
-import { PriorityTaskCard } from "@/components/mypage/PriorityTaskCard";
+} from "@/components/mypage/priority/PriorityLevelTabs";
+import { PriorityTaskCard } from "@/components/mypage/priority/PriorityTaskCard";
 import { mockPriorityTasks } from "@/mocks/priorityTasks";
 
 const priorityOrder = {
