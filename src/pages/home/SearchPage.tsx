@@ -39,6 +39,14 @@ export function SearchPage({
     }
   };
 
+  const handleSelectRecentSearch = async (
+    keyword: string,
+  ) => {
+    setSearchText(keyword);
+
+    await handleSearch(keyword);
+  };
+
   const handleSearchTextChange = (
     nextSearchText: string,
   ) => {
@@ -67,6 +75,7 @@ export function SearchPage({
         !hasSearched && (
           <RecentSearch
             searches={recentSearches}
+            onSelect={handleSelectRecentSearch}
             onRemove={removeSearchHistory}
             onClear={clearSearchHistories}
           />
