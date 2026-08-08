@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 
 import { MyPageDetailTopBar } from "@/components/mypage/MyPageDetailTopBar";
-import { TimeTableDataSetting } from "@/components/mypage/TimeTableDataSetting";
-import { TimeTableTimeSetting } from "@/components/mypage/TimeTableTimeSetting";
+import { TimeTableDataSetting } from "@/components/mypage/timetable/TimeTableDataSetting";
+import { TimeTableTimeSetting } from "@/components/mypage/timetable/TimeTableTimeSetting";
 import { useTimeTableStore } from "@/store/useTimeTableStore";
 
 export function TimeTableSetting() {

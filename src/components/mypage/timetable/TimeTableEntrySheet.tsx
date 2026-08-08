@@ -1,8 +1,8 @@
 import { useState } from "react";
 
-import { TimeTableColorPicker } from "@/components/mypage/TimeTableColorPicker";
-import { TimeTableOverlapModal } from "@/components/mypage/TimeTableOverlapModal";
-import { TimeTableTimeWheel } from "@/components/mypage/TimeTableTimeWheel";
+import { TimeTableColorPicker } from "@/components/mypage/timetable/TimeTableColorPicker";
+import { TimeTableOverlapModal } from "@/components/mypage/timetable/TimeTableOverlapModal";
+import { TimeTableTimeWheel } from "@/components/mypage/timetable/TimeTableTimeWheel";
 import {
   useTimeTableStore,
   type TimeTableEntry,
@@ -17,6 +17,7 @@ type WheelRequest = {
 
 type TimeTableEntrySheetProps = {
   entries: DraftEntry[];
+  conflictEntries?: DraftEntry[];
   onEntriesChange: (entries: DraftEntry[]) => void;
   onClose: () => void;
   onComplete: (details: {
@@ -32,6 +33,14 @@ type TimeTableEntrySheetProps = {
 };
 
 const DAY_LABELS = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
+function entriesOverlap(first: DraftEntry, second: DraftEntry) {
+  return (
+    first.dayIndex === second.dayIndex &&
+    first.startSlot <= second.endSlot &&
+    first.endSlot >= second.startSlot
+  );
+}
+
 function formatSlot(slot: number, startHour: number) {
   const totalMinutes = startHour * 60 + slot * 5;
   const hour = Math.floor(totalMinutes / 60);
@@ -41,6 +50,7 @@ function formatSlot(slot: number, startHour: number) {
 
 export function TimeTableEntrySheet({
   entries,
+  conflictEntries = [],
   onEntriesChange,
   onClose,
   onComplete,
@@ -53,10 +63,17 @@ export function TimeTableEntrySheet({
     initialDetails?.color ?? "#5BE478",
   );
   const [wheelRequest, setWheelRequest] = useState<WheelRequest | null>(null);
-  const [isOverlapModalOpen, setIsOverlapModalOpen] = useState(false);
+  const [overlapOrigin, setOverlapOrigin] = useState<"entries" | "wheel" | null>(
+    null,
+  );
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60">
+    <div
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60"
+      onPointerDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
       {!wheelRequest && (
         <section
         aria-label="시간표 등록"
@@ -186,9 +203,24 @@ export function TimeTableEntrySheet({
           <button
             type="button"
             disabled={!title.trim() || entries.length === 0}
-            onClick={() =>
-              onComplete({ title: title.trim(), place: place.trim(), color: selectedColor })
-            }
+            onClick={() => {
+              const hasOverlap = entries.some((entry) =>
+                conflictEntries.some((existingEntry) =>
+                  entriesOverlap(existingEntry, entry),
+                ),
+              );
+
+              if (hasOverlap) {
+                setOverlapOrigin("entries");
+                return;
+              }
+
+              onComplete({
+                title: title.trim(),
+                place: place.trim(),
+                color: selectedColor,
+              });
+            }}
             className="mt-auto flex h-12 w-full shrink-0 items-center justify-center rounded-lg bg-black-800 text-sm font-semibold tracking-[-0.21px] text-black-600 enabled:bg-green-500 enabled:text-black-900"
           >
             완료
@@ -203,17 +235,16 @@ export function TimeTableEntrySheet({
           initialEntry={wheelRequest.entry}
           onCancel={() => setWheelRequest(null)}
           onComplete={(entry) => {
-            const hasOverlap = entries.some((existingEntry, index) => {
+            const hasDraftOverlap = entries.some((existingEntry, index) => {
               if (index === wheelRequest.index) return false;
-              return (
-                existingEntry.dayIndex === entry.dayIndex &&
-                entry.startSlot <= existingEntry.endSlot &&
-                entry.endSlot >= existingEntry.startSlot
-              );
+              return entriesOverlap(existingEntry, entry);
             });
+            const hasSavedOverlap = conflictEntries.some((existingEntry) =>
+              entriesOverlap(existingEntry, entry),
+            );
 
-            if (hasOverlap) {
-              setIsOverlapModalOpen(true);
+            if (hasDraftOverlap || hasSavedOverlap) {
+              setOverlapOrigin("wheel");
               return;
             }
 
@@ -231,9 +262,23 @@ export function TimeTableEntrySheet({
         />
       )}
 
-      {isOverlapModalOpen && (
+      {overlapOrigin && (
         <TimeTableOverlapModal
-          onConfirm={() => setIsOverlapModalOpen(false)}
+          onConfirm={() => {
+            if (overlapOrigin === "entries") {
+              onEntriesChange(
+                entries.filter(
+                  (entry) =>
+                    !conflictEntries.some((existingEntry) =>
+                      entriesOverlap(existingEntry, entry),
+                    ),
+                ),
+              );
+            } else {
+              setWheelRequest(null);
+            }
+            setOverlapOrigin(null);
+          }}
         />
       )}
     </div>

@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { TimeTableCreateTopBar } from "@/components/mypage/TimeTableCreateTopBar";
-import { TimeTableEntrySheet } from "@/components/mypage/TimeTableEntrySheet";
-import { WeeklyTimeTable } from "@/components/mypage/WeeklyTimeTable";
+import { TimeTableCreateTopBar } from "@/components/mypage/timetable/TimeTableCreateTopBar";
+import { TimeTableEntrySheet } from "@/components/mypage/timetable/TimeTableEntrySheet";
+import { WeeklyTimeTable } from "@/components/mypage/timetable/WeeklyTimeTable";
 import {
   useTimeTableStore,
   type TimeTableEntry,
@@ -55,6 +55,7 @@ export function TimeTableCreate() {
       {isEntrySheetOpen && (
         <TimeTableEntrySheet
           entries={draftEntries}
+          conflictEntries={savedEntries}
           onEntriesChange={setDraftEntries}
           onClose={() => setIsEntrySheetOpen(false)}
           onComplete={handleComplete}

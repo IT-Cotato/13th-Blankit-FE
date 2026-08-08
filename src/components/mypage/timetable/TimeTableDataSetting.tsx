@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { TimeTableResetModal } from "@/components/mypage/TimeTableResetModal";
+import { TimeTableResetModal } from "@/components/mypage/timetable/TimeTableResetModal";
 
 type TimeTableDataSettingProps = {
   onReset: () => void;

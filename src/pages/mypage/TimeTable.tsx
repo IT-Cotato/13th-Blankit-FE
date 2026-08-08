@@ -3,10 +3,10 @@ import { useNavigate } from "react-router-dom";
 
 import { TopBarIconButton } from "@/components/layout/top-bar/TopBarIconButton";
 import { MyPageDetailTopBar } from "@/components/mypage/MyPageDetailTopBar";
-import { TimeTableDeleteModal } from "@/components/mypage/TimeTableDeleteModal";
-import { TimeTableDetailSheet } from "@/components/mypage/TimeTableDetailSheet";
-import { TimeTableEntrySheet } from "@/components/mypage/TimeTableEntrySheet";
-import { WeeklyTimeTable } from "@/components/mypage/WeeklyTimeTable";
+import { TimeTableDeleteModal } from "@/components/mypage/timetable/TimeTableDeleteModal";
+import { TimeTableDetailSheet } from "@/components/mypage/timetable/TimeTableDetailSheet";
+import { TimeTableEntrySheet } from "@/components/mypage/timetable/TimeTableEntrySheet";
+import { WeeklyTimeTable } from "@/components/mypage/timetable/WeeklyTimeTable";
 import { useTimeTableStore, type TimeTableEntry } from "@/store/useTimeTableStore";
 
 type ActionIconProps = {
@@ -112,6 +112,9 @@ export function TimeTable() {
       {isEditSheetOpen && selectedEntry && selectedScheduleId && (
         <TimeTableEntrySheet
           entries={editEntries}
+          conflictEntries={entries.filter(
+            (entry) => (entry.scheduleId ?? entry.id) !== selectedScheduleId,
+          )}
           onEntriesChange={setEditEntries}
           initialDetails={{
             title: selectedEntry.title ?? "",

@@ -150,6 +150,8 @@ export function TimeTableTimeWheel({
   const [endMinuteIndex, setEndMinuteIndex] = useState(
     Math.floor((initialEndMinutes % 60) / 5),
   );
+  const selectedEndHour = hours[endHourIndex];
+  const endMinuteOptions = selectedEndHour === 24 ? ["00"] : MINUTES;
 
   const handleComplete = () => {
     if (step === "day") {
@@ -162,7 +164,9 @@ export function TimeTableTimeWheel({
     }
 
     const startMinutes = hours[startHourIndex] * 60 + Number(MINUTES[startMinuteIndex]);
-    const endMinutes = hours[endHourIndex] * 60 + Number(MINUTES[endMinuteIndex]);
+    const endMinutes =
+      selectedEndHour * 60 +
+      (selectedEndHour === 24 ? 0 : Number(MINUTES[endMinuteIndex]));
     const safeEndMinutes = Math.max(startMinutes + 30, endMinutes);
 
     onComplete({
@@ -232,15 +236,19 @@ export function TimeTableTimeWheel({
                 <WheelColumn
                   options={hours.map((hour) => String(hour).padStart(2, "0"))}
                   value={endHourIndex}
-                  onChange={setEndHourIndex}
+                  onChange={(index) => {
+                    setEndHourIndex(index);
+                    if (hours[index] === 24) setEndMinuteIndex(0);
+                  }}
                   className="relative z-10 w-1/2"
                 />
                 <WheelColumn
-                  options={MINUTES}
-                  value={endMinuteIndex}
+                  key={selectedEndHour === 24 ? "end-minute-midnight" : "end-minute"}
+                  options={endMinuteOptions}
+                  value={selectedEndHour === 24 ? 0 : endMinuteIndex}
                   onChange={setEndMinuteIndex}
                   className="relative z-10 w-1/2"
-                  circular
+                  circular={selectedEndHour !== 24}
                 />
               </div>
             </div>
