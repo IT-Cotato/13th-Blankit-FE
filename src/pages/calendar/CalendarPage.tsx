@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
 
 import { mockTasks } from "@/mocks/tasks";
+import { mockDailyStatsByDate } from "@/mocks/calendarStats";
 
 import {
     CalendarGrid,
     type CalendarDayCell,
+    type CalendarViewMode,
 } from "@/components/calendar/CalendarGrid";
 import { CalendarTopBar } from "@/components/calendar/CalendarTopBar";
 import { CalendarTaskSheet } from "./CalendarTaskSheet";
@@ -24,6 +26,22 @@ const MONTH_LABELS = [
     "Dec",
 ];
 
+const getDateStatus = (cellDate: Date, todayDate: Date): CalendarDateStatus => {
+    const cellDay = new Date(
+        cellDate.getFullYear(),
+        cellDate.getMonth(),
+        cellDate.getDate(),
+    );
+    const today = new Date(
+        todayDate.getFullYear(),
+        todayDate.getMonth(),
+        todayDate.getDate(),
+    );
+
+    if (cellDay.getTime() === today.getTime()) return "today";
+    return cellDay < today ? "past" : "future";
+};
+
 const getDaysInMonth = (date: Date): CalendarDayCell[] => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -32,6 +50,7 @@ const getDaysInMonth = (date: Date): CalendarDayCell[] => {
     const daysInMonth = lastDay.getDate();
     const leadingBlankCount = firstDay.getDay();
     const totalCells = Math.ceil((leadingBlankCount + daysInMonth) / 7) * 7;
+    const today = new Date();
 
     return Array.from({ length: totalCells }, (_, index) => {
         const dayOffset = index - leadingBlankCount + 1;
@@ -43,13 +62,17 @@ const getDaysInMonth = (date: Date): CalendarDayCell[] => {
         const tasksForDay = mockTasks.filter(
             (task) => task.deadline === dateKey,
         );
+        const dailyStat = mockDailyStatsByDate[dateKey];
 
         return {
             key: dateKey,
             day: cellDate.getDate(),
             isCurrentMonth: cellDate.getMonth() === month,
-            isToday: cellDate.toDateString() === new Date().toDateString(),
+            isToday: cellDate.toDateString() === today.toDateString(),
+            dateStatus: getDateStatus(cellDate, today),
             tasks: tasksForDay,
+            actualMinutes: dailyStat?.actualMinutes ?? 0,
+            recommendedMinutes: dailyStat?.recommendedMinutes ?? 0,
         };
     });
 };
@@ -64,6 +87,7 @@ export const CalendarPage = () => {
     const [selectedDate, setSelectedDate] = useState<string | null>(
         defaultDateKey,
     );
+    const [viewMode, setViewMode] = useState<CalendarViewMode>("default");
     const monthDays = useMemo(() => getDaysInMonth(new Date()), []);
 
     const selectedTasks = useMemo(() => {
@@ -78,23 +102,29 @@ export const CalendarPage = () => {
         setSelectedDate(dateKey);
     };
 
+    const handleToggleViewMode = () => {
+        setViewMode((prev) => (prev === "default" ? "stats" : "default"));
+    };
+
     return (
-        <div className="h-dvh bg-black-900 text-black-100">
+        <div className="h-dvh bg-black-900 px-5 pt-5 text-black-100">
             <CalendarTopBar
                 monthLabel={MONTH_LABELS[today.getMonth()]}
                 year={today.getFullYear()}
+                onStatsClick={handleToggleViewMode}
             />
-            <div className="px-5 pt-5">
-                <CalendarGrid
-                    monthDays={monthDays}
-                    selectedDate={selectedDate}
-                    onSelectDate={handleSelectDate}
-                />
-            </div>
+
+            <CalendarGrid
+                monthDays={monthDays}
+                selectedDate={selectedDate}
+                viewMode={viewMode}
+                onSelectDate={handleSelectDate}
+            />
 
             <CalendarTaskSheet
                 selectedDate={selectedDate}
                 tasks={selectedTasks}
+                viewMode={viewMode}
                 onClose={() => setSelectedDate(null)}
             />
         </div>

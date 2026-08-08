@@ -1,12 +1,19 @@
 import type { Task } from "@/types/task";
 import { CalendarDayButton } from "@/components/calendar/CalendarDayButton";
+import { CalendarStatsFillCell } from "./CalendarStatsFillCell";
+
+export type CalendarViewMode = "default" | "stats";
+export type CalendarDateStatus = "past" | "today" | "future";
 
 export interface CalendarDayCell {
     key: string;
     day: number;
     isCurrentMonth: boolean;
     isToday: boolean;
+    dateStatus: CalendarDateStatus;
     tasks: Task[];
+    actualMinutes: number;
+    recommendedMinutes: number;
 }
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -14,12 +21,14 @@ const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 interface CalendarGridProps {
     monthDays: CalendarDayCell[];
     selectedDate: string | null;
+    viewMode: CalendarViewMode;
     onSelectDate: (dateKey: string) => void;
 }
 
 export const CalendarGrid = ({
     monthDays,
     selectedDate,
+    viewMode,
     onSelectDate,
 }: CalendarGridProps) => {
     return (
@@ -63,11 +72,26 @@ export const CalendarGrid = ({
                         );
                     }
 
+                    if (viewMode === "stats") {
+                        return (
+                            <CalendarStatsFillCell
+                                key={day.key}
+                                day={day.day}
+                                dateStatus={day.dateStatus}
+                                actualMinutes={day.actualMinutes}
+                                recommendedMinutes={day.recommendedMinutes}
+                                isSelected={day.key === selectedDate}
+                                onSelect={() => onSelectDate(day.key)}
+                            />
+                        );
+                    }
+
                     return (
                         <CalendarDayButton
                             key={day.key}
                             day={day}
                             isSelected={day.key === selectedDate}
+                            viewMode={viewMode}
                             onSelect={onSelectDate}
                         />
                     );
