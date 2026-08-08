@@ -120,7 +120,7 @@ export function PriorityTaskCard({
             progressRate={progressRate}
           />
 
-          <span className="min-w-0 flex-1">
+          <span className="min-w-0">
             <span className="block truncate text-sm font-medium leading-[21px] tracking-[-0.21px] text-black-100">
               {title}
             </span>
