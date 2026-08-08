@@ -10,7 +10,7 @@ import {
   startOfMonth,
 } from "./utils/calendar";
 
-interface CalendarPanelProps {
+interface DateCalendarProps {
   selectedDate: Date | null;
   minSelectableDate?: Date | null;
   onSelect: (date: Date) => void;
@@ -18,11 +18,11 @@ interface CalendarPanelProps {
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-export function CalendarPanel({
+export function DateCalendar({
   selectedDate,
   minSelectableDate = null,
   onSelect,
-}: CalendarPanelProps) {
+}: DateCalendarProps) {
   const today = useMemo(() => startOfDay(new Date()), []);
   const normalizedMinSelectableDate = useMemo(
     () =>

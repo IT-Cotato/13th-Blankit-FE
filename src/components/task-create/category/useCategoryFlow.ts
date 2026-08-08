@@ -251,3 +251,7 @@ export function useCategoryFlow({
     cancelDelete: () => setPendingDeleteCategory(null),
   };
 }
+
+export type CategoryFlow = ReturnType<
+  typeof useCategoryFlow
+>;

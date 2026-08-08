@@ -4,7 +4,7 @@ import { flushSync } from "react-dom";
 
 import { createTask, deleteTask, getTask, getTaskFormOptions, updateTask as updateTaskApi } from "@/api/tasks";
 
-import type { TaskComposerFlowHandle } from "@/components/task-create/TaskComposerFlow";
+import type { TaskFormHandle } from "@/components/task-create/TaskForm";
 
 import { mockTasks } from "@/mocks/tasks";
 
@@ -18,8 +18,8 @@ interface UseTaskManagerOptions {
 export function useTaskManager({
   showToast,
 }: UseTaskManagerOptions) {
-  const composerRef =
-    useRef<TaskComposerFlowHandle>(null);
+  const taskFormRef =
+    useRef<TaskFormHandle>(null);
 
   const [tasks, setTasks] = useState<Task[]>(() => [...mockTasks]);
   const [selectedTaskId, setSelectedTaskId] =
@@ -62,7 +62,7 @@ export function useTaskManager({
         setIsComposerOpen(true);
       });
 
-      composerRef.current?.focus();
+      taskFormRef.current?.focus();
     } catch (error) {
       console.error(error);
       showToast(
@@ -135,7 +135,7 @@ export function useTaskManager({
         setIsComposerOpen(true);
       });
 
-      composerRef.current?.focus();
+      taskFormRef.current?.focus();
     } catch (error) {
       console.error(error);
 
@@ -273,7 +273,7 @@ export function useTaskManager({
     taskPendingDelete,
     taskTitle,
     isComposerOpen,
-    composerRef,
+    taskFormRef,
     selectTask: setSelectedTaskId,
     setTaskTitle,
     openComposer,

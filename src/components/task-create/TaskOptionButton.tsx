@@ -1,18 +1,18 @@
 import type { ReactNode } from "react";
 
-interface TaskPropertyChipProps {
+interface TaskOptionButtonProps {
   children: ReactNode;
   icon: ReactNode;
   onClick: () => void;
   className?: string;
 }
 
-export function TaskPropertyChip({
+export function TaskOptionButton({
   children,
   icon,
   onClick,
   className = "",
-}: TaskPropertyChipProps) {
+}: TaskOptionButtonProps) {
   return (
     <button
       type="button"

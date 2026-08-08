@@ -2,22 +2,22 @@ import { useState } from "react";
 
 import backIcon from "@/assets/icons/back-button-black-600.svg";
 
-import { CalendarPanel } from "./CalendarPanel";
+import { DateCalendar } from "./DateCalendar";
 import { startOfDay } from "./utils/calendar";
 
-interface CalendarPickerSheetProps {
+interface RepeatDatePickerSheetProps {
   initialDate: Date | null;
   minDate?: Date | null;
   onBack: () => void;
   onConfirm: (date: Date) => void;
 }
 
-export function CalendarPickerSheet({
+export function RepeatDatePickerSheet({
   initialDate,
   minDate = null,
   onBack,
   onConfirm,
-}: CalendarPickerSheetProps) {
+}: RepeatDatePickerSheetProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(initialDate);
   const normalizedMinDate = minDate ? startOfDay(minDate) : null;
   const canConfirm =
@@ -47,7 +47,7 @@ export function CalendarPickerSheet({
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <CalendarPanel
+        <DateCalendar
           selectedDate={selectedDate}
           minSelectableDate={minDate}
           onSelect={setSelectedDate}

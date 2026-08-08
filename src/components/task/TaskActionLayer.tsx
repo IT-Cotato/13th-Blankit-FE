@@ -5,8 +5,8 @@ import type {
 } from "react";
 
 import { ConfirmModal } from "@/components/common/ConfirmModal";
-import { TaskComposerFlow } from "@/components/task-create/TaskComposerFlow";
-import type { TaskComposerFlowHandle } from "@/components/task-create/TaskComposerFlow";
+import { TaskForm } from "@/components/task-create/TaskForm";
+import type { TaskFormHandle } from "@/components/task-create/TaskForm";
 import { TaskActionSheet } from "@/components/task/TaskActionSheet";
 
 import type { TaskCreateRequest, TaskDetailResponse, TaskFormOptionsResponse, TaskUpdateRequest } from "@/types/taskApi";
@@ -18,8 +18,8 @@ interface TaskActionLayerProps {
   isComposerOpen: boolean;
   editingTask: TaskDetailResponse | null;
   taskTitle: string;
-  composerRef: RefObject<
-    TaskComposerFlowHandle | null
+  taskFormRef: RefObject<
+    TaskFormHandle | null
   >;
   onTitleChange: Dispatch<
     SetStateAction<string>
@@ -48,7 +48,7 @@ export function TaskActionLayer({
   isComposerOpen,
   editingTask,
   taskTitle,
-  composerRef,
+  taskFormRef,
   onTitleChange,
   onCloseComposer,
   onCompleteCreate,
@@ -65,12 +65,12 @@ export function TaskActionLayer({
   return (
     <>
       {isComposerOpen && (
-        <TaskComposerFlow
+        <TaskForm
           formOptions={taskFormOptions}
           key={
             editingTask?.taskId ?? "create"
           }
-          ref={composerRef}
+          ref={taskFormRef}
           title={taskTitle}
           task={editingTask}
           onTitleChange={onTitleChange}

@@ -4,7 +4,7 @@ import { CategoryChip } from "./CategoryChip";
 
 import type { Category } from "@/types/category";
 
-interface CategoryManagerSheetProps {
+interface CategoryListSheetProps {
   categories: Category[];
   selectedCategoryId: number | null;
   editable: boolean;
@@ -17,7 +17,7 @@ interface CategoryManagerSheetProps {
   onRequestDelete: (category: Category) => void;
 }
 
-export function CategoryManagerSheet({
+export function CategoryListSheet({
   categories,
   selectedCategoryId,
   editable,
@@ -28,7 +28,7 @@ export function CategoryManagerSheet({
   onSelect,
   onStartUpdate,
   onRequestDelete,
-}: CategoryManagerSheetProps) {
+}: CategoryListSheetProps) {
   return (
     <section
       role="dialog"

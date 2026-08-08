@@ -1,8 +1,8 @@
 import type { AlarmOption } from "@/components/task-create/alarm/alarmOptions";
 import type { ReminderOffsetMinutes } from "@/types/taskApi";
 
-export const ALARM_MINUTES_MAP: Partial<
-  Record<AlarmOption, ReminderOffsetMinutes>
+export const ALARM_MINUTES_MAP: Record<
+  AlarmOption, ReminderOffsetMinutes
 > = {
   "1일 전": 1440,
   "3일 전": 4320,

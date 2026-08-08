@@ -5,14 +5,11 @@ import {
   useState,
 } from "react";
 
-import { ConfirmModal } from "@/components/common/ConfirmModal";
-import { Toast } from "@/components/common/Toast";
-import { TaskComposerPanel } from "@/components/task-create/TaskComposerPanel";
+import { TaskInputPanel } from "@/components/task-create/TaskInputPanel";
 import { AlarmSelectionSheet } from "@/components/task-create/alarm/AlarmSelectionSheet";
 import type { AlarmOption } from "@/components/task-create/alarm/alarmOptions";
 import { useAlarmFlow } from "@/components/task-create/alarm/useAlarmFlow";
-import { CategoryFormSheet } from "@/components/task-create/category/CategoryFormSheet";
-import { CategoryManagerSheet } from "@/components/task-create/category/CategoryManagerSheet";
+import { TaskCategoryPicker } from "@/components/task-create/category/TaskCategoryPicker";
 import { useCategoryFlow } from "@/components/task-create/category/useCategoryFlow";
 import { DateSelectionSheet } from "@/components/task-create/date/DateSelectionSheet";
 import { formatDeadline } from "@/components/task-create/date/utils/calendar";
@@ -25,11 +22,11 @@ import { repeatRuleResponseToSettings } from "@/components/task-create/utils/rep
 
 import type { TaskCreateRequest, TaskDetailResponse, TaskFormOptionsResponse, TaskUpdateRequest } from "@/types/taskApi";
 
-export interface TaskComposerFlowHandle {
+export interface TaskFormHandle {
   focus: () => void;
 }
 
-interface TaskComposerFlowProps {
+interface TaskFormProps {
   formOptions:
     TaskFormOptionsResponse | null;
   title: string;
@@ -45,10 +42,10 @@ interface TaskComposerFlowProps {
   ) => void | Promise<void>;
 }
 
-export const TaskComposerFlow = forwardRef<
-  TaskComposerFlowHandle,
-  TaskComposerFlowProps
->(function TaskComposerFlow(
+export const TaskForm = forwardRef<
+  TaskFormHandle,
+  TaskFormProps
+>(function TaskForm(
   {
     formOptions,
     title,
@@ -188,7 +185,7 @@ export const TaskComposerFlow = forwardRef<
         className="fixed inset-0 z-[60] cursor-default bg-black/80"
       />
 
-      <TaskComposerPanel
+      <TaskInputPanel
         visible={isComposerVisible}
         editing={task !== null}
         title={title}
@@ -226,73 +223,9 @@ export const TaskComposerFlow = forwardRef<
         />
       )}
 
-      {categoryFlow.view ===
-        "category-list" && (
-        <CategoryManagerSheet
-          categories={
-            categoryFlow.categories
-          }
-          selectedCategoryId={
-            categoryFlow.selectedCategory
-              ?.categoryId ?? null
-          }
-          editable={categoryFlow.editable}
-          loading={categoryFlow.loading}
-          onBack={
-            categoryFlow.backToComposer
-          }
-          onStartCreate={
-            categoryFlow.startCreate
-          }
-          onToggleEdit={
-            categoryFlow.toggleEditable
-          }
-          onSelect={
-            categoryFlow.selectCategory
-          }
-          onStartUpdate={
-            categoryFlow.startUpdate
-          }
-          onRequestDelete={
-            categoryFlow.requestDelete
-          }
-        />
-      )}
-
-      {categoryFlow.view ===
-        "category-form" && (
-        <CategoryFormSheet
-          key={`${categoryFlow.formMode}-${
-            categoryFlow.editingCategory
-              ?.categoryId ?? "new"
-          }`}
-          mode={categoryFlow.formMode}
-          initialName={
-            categoryFlow.editingCategory
-              ?.categoryName
-          }
-          initialColor={
-            categoryFlow.editingCategory
-              ?.color
-          }
-          initialIconKey={
-            categoryFlow.editingCategory
-              ?.iconKey
-          }
-          colors={
-            categoryFlow.availableColors
-          }
-          submitting={
-            categoryFlow.submitting
-          }
-          onBack={
-            categoryFlow.backToList
-          }
-          onSubmit={
-            categoryFlow.submitCategory
-          }
-        />
-      )}
+      <TaskCategoryPicker
+        categoryFlow={categoryFlow}
+      />
 
       {alarmFlow.view ===
         "alarm-list" && (
@@ -330,29 +263,6 @@ export const TaskComposerFlow = forwardRef<
         />
       )}
 
-      <ConfirmModal
-        open={
-          categoryFlow
-            .pendingDeleteCategory !== null
-        }
-        title="카테고리를 삭제하시겠습니까?"
-        confirmLabel="삭제"
-        submitting={
-          categoryFlow.submitting
-        }
-        onCancel={
-          categoryFlow.cancelDelete
-        }
-        onConfirm={
-          categoryFlow.confirmDelete
-        }
-      />
-
-      <Toast
-        message={
-          categoryFlow.errorMessage
-        }
-      />
     </>
   );
 });
