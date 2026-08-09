@@ -1,12 +1,40 @@
-import { useMemo, useRef, useState } from "react";
+import {
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  DndContext,
+  MouseSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import {
+  CSS,
+} from "@dnd-kit/utilities";
 
-import { deletePlaylistItem } from "@/api/playlist";
+import {
+  deletePlaylistItem,
+  updatePlaylistOrder,
+} from "@/api/playlist";
 import checkButtonGreenIcon from "@/assets/icons/task-combination/check-button-green.svg";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { usePlaylistSync } from "@/hooks/usePlaylistSync";
 import { taskCombinations } from "@/mocks/taskCombinations";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
+import { createPlaylistOrderRequest } from "@/utils/playlistOrder";
 
+import type { DragEndEvent } from "@dnd-kit/core";
+import type {
+  CSSProperties,
+} from "react";
 import type {
   CombinationModeId,
   PlaylistTask,
@@ -45,6 +73,7 @@ const ACTIVE_FILTER_CLASS_NAMES: Record<
 interface PlaylistTaskRowProps {
   task: PlaylistTask;
   selected: boolean;
+  draggingDisabled: boolean;
   onSelectTask: () => void;
   onToggle: () => void;
 }
@@ -52,13 +81,44 @@ interface PlaylistTaskRowProps {
 function PlaylistTaskRow({
   task,
   selected,
+  draggingDisabled,
   onSelectTask,
   onToggle,
 }: PlaylistTaskRowProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: task.id,
+    disabled: draggingDisabled,
+  });
+
+  const style: CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+  };
+
   return (
     <li
+      ref={setNodeRef}
+      style={style}
       data-playlist-task-id={task.id}
-      className="flex items-center gap-3 rounded-[10px] bg-black-800 px-3 py-3"
+      className={`flex items-center gap-3 rounded-[10px] bg-black-800 px-3 py-3 ${
+        isDragging
+          ? "scale-[1.02] opacity-60 shadow-lg"
+          : ""
+      } ${
+        draggingDisabled
+          ? ""
+          : "cursor-grab select-none active:cursor-grabbing"
+      }`}
+      {...attributes}
+      {...listeners}
     >
       <button
         type="button"
@@ -86,6 +146,9 @@ function PlaylistTaskRow({
 
       <button
         type="button"
+        onPointerDown={(event) => {
+          event.stopPropagation();
+        }}
         onClick={onToggle}
         aria-label={
           selected
@@ -121,6 +184,14 @@ export function PlaylistBottomSheet({
     (state) => state.selectTask,
   );
 
+  const reorderTask = usePlaylistStore(
+    (state) => state.reorderTask,
+  );
+
+  const replacePlaylist = usePlaylistStore(
+    (state) => state.replacePlaylist,
+  );
+
   const { refreshPlaylist } = usePlaylistSync();
 
   const [filter, setFilter] =
@@ -138,8 +209,27 @@ export function PlaylistBottomSheet({
   const [deletingSelectedTasks, setDeletingSelectedTasks] =
     useState(false);
 
+  const [savingOrder, setSavingOrder] =
+    useState(false);
+
   const sheetDragStartYRef = useRef<number | null>(null);
   const ignoreNextClickRef = useRef(false);
+  const ignoreTaskClickRef = useRef(false);
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 8,
+      },
+    }),
+  );
 
   const filteredTasks = useMemo(
     () =>
@@ -162,6 +252,11 @@ export function PlaylistBottomSheet({
       ),
     );
   }, [playlist, selectedTaskIds]);
+
+  const draggingDisabled =
+    filter !== "all" ||
+    deletingSelectedTasks ||
+    savingOrder;
 
   const handleToggleTask = (taskId: string) => {
     setSelectedTaskIds((current) => {
@@ -256,9 +351,87 @@ export function PlaylistBottomSheet({
   };
 
   const handleSelectTask = (taskId: string) => {
+    if (ignoreTaskClickRef.current) {
+      ignoreTaskClickRef.current = false;
+      return;
+    }
+
     selectTask(taskId);
     setSelectedTaskIds(new Set());
     onOpenChange(false);
+  };
+
+  const handleDragStart = () => {
+    if (draggingDisabled) {
+      return;
+    }
+
+    ignoreTaskClickRef.current = true;
+  };
+
+  const handleDragCancel = () => {
+
+    window.setTimeout(() => {
+      ignoreTaskClickRef.current = false;
+    }, 0);
+  };
+
+  const handleDragEnd = async (
+    event: DragEndEvent,
+  ) => {
+
+    const { active, over } = event;
+
+    if (
+      draggingDisabled ||
+      !over ||
+      active.id === over.id
+    ) {
+      window.setTimeout(() => {
+        ignoreTaskClickRef.current = false;
+      }, 0);
+
+      return;
+    }
+
+    const previousPlaylist = [...playlist];
+
+    reorderTask(
+      String(active.id),
+      String(over.id),
+    );
+
+    const nextPlaylist =
+      usePlaylistStore.getState().playlist;
+
+    setSavingOrder(true);
+
+    try {
+      const payload =
+        createPlaylistOrderRequest(nextPlaylist);
+
+      await updatePlaylistOrder(payload);
+
+      onShowToast(
+        "재생 목록 순서가 변경되었습니다.",
+      );
+    } catch {
+      try {
+        await refreshPlaylist();
+      } catch {
+        replacePlaylist(previousPlaylist);
+      }
+
+      onShowToast(
+        "재생 목록 순서 변경에 실패했습니다.",
+      );
+    } finally {
+      setSavingOrder(false);
+
+      window.setTimeout(() => {
+        ignoreTaskClickRef.current = false;
+      }, 0);
+    }
   };
 
   const handleSheetClick = (
@@ -427,23 +600,43 @@ export function PlaylistBottomSheet({
 
             <div className="min-h-0 flex-1 overflow-y-auto pt-2">
               {filteredTasks.length > 0 ? (
-                <ul className="flex flex-col gap-3">
-                  {filteredTasks.map((task) => (
-                    <PlaylistTaskRow
-                      key={task.id}
-                      task={task}
-                      selected={validSelectedTaskIds.has(
-                        task.id,
-                      )}
-                      onSelectTask={() =>
-                        handleSelectTask(task.id)
-                      }
-                      onToggle={() =>
-                        handleToggleTask(task.id)
-                      }
-                    />
-                  ))}
-                </ul>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={handleDragStart}
+                  onDragCancel={handleDragCancel}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={filteredTasks.map(
+                      (task) => task.id,
+                    )}
+                    strategy={
+                      verticalListSortingStrategy
+                    }
+                  >
+                    <ul className="flex flex-col gap-3">
+                      {filteredTasks.map((task) => (
+                        <PlaylistTaskRow
+                          key={task.id}
+                          task={task}
+                          selected={validSelectedTaskIds.has(
+                            task.id,
+                          )}
+                          draggingDisabled={
+                            draggingDisabled
+                          }
+                          onSelectTask={() =>
+                            handleSelectTask(task.id)
+                          }
+                          onToggle={() =>
+                            handleToggleTask(task.id)
+                          }
+                        />
+                      ))}
+                    </ul>
+                  </SortableContext>
+                </DndContext>
               ) : (
                 <div className="flex h-full items-center justify-center px-5 text-center">
                   <p className="text-[14px] font-semibold text-black-100">

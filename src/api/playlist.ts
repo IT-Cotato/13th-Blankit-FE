@@ -1,10 +1,7 @@
 import { apiClient } from "@/api/client";
 
 import type { ApiEnvelope } from "@/types/auth";
-import type {
-  AddPlaylistItemsRequest,
-  PlaylistResponse,
-} from "@/types/playlistApi";
+import type { AddPlaylistItemsRequest, PlaylistResponse, UpdatePlaylistOrderRequest } from "@/types/playlistApi";
 
 export async function getPlaylist():
 Promise<PlaylistResponse> {
@@ -30,5 +27,14 @@ export async function deletePlaylistItem(
 ): Promise<void> {
   await apiClient.delete(
     `/api/playlist/items/${playlistItemId}`,
+  );
+}
+
+export async function updatePlaylistOrder(
+  payload: UpdatePlaylistOrderRequest,
+): Promise<void> {
+  await apiClient.patch(
+    "/api/playlist/items/order",
+    payload,
   );
 }

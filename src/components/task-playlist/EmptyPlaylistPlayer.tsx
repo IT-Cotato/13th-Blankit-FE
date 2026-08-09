@@ -79,6 +79,7 @@ export function EmptyPlaylistPlayer() {
       <PlaylistBottomSheet
         open={isBottomSheetOpen}
         onOpenChange={setIsBottomSheetOpen}
+        onShowToast={() => undefined}
       />
     </div>
   );

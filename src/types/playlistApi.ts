@@ -15,6 +15,15 @@ export interface AddPlaylistItemsRequest {
   sourceMode: PlaylistSourceMode;
 }
 
+export interface PlaylistOrderItemRequest {
+  playlistItemId: number;
+  sortOrder: number;
+}
+
+export interface UpdatePlaylistOrderRequest {
+  items: PlaylistOrderItemRequest[];
+}
+
 export interface PlaylistItemResponse {
   playlistItemId: number;
   taskId: number;
