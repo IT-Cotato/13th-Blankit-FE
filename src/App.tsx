@@ -72,18 +72,31 @@ function App() {
         state.isAuthenticated,
     );
 
+  const authenticatedUserId =
+    useAuthStore(
+      (state) =>
+        state.user?.userId ?? null,
+    );
+
   const currentPlaylistTask =
     usePlaylistStore(
       (state) =>
         state.playlist[0],
     );
 
-  const toast = useToast();
+  const clearPlaylist =
+    usePlaylistStore(
+      (state) => state.clearPlaylist,
+    );
+
+  const {
+    message: toastMessage,
+    showToast,
+  } = useToast();
 
   const taskManager =
     useTaskManager({
-      showToast:
-        toast.showToast,
+      showToast,
     });
 
   const {
@@ -112,9 +125,16 @@ function App() {
 
   useEffect(() => {
     if (
-      !isAppReady ||
-      !isAuthenticated
+      !isAppReady
     ) {
+      return;
+    }
+
+    if (
+      !isAuthenticated ||
+      authenticatedUserId === null
+    ) {
+      clearPlaylist();
       return;
     }
 
@@ -122,7 +142,7 @@ function App() {
       (error) => {
         console.error(error);
 
-        toast.showToast(
+        showToast(
           "과업 플레이리스트 조회에 실패했습니다.",
         );
       },
@@ -130,8 +150,10 @@ function App() {
   }, [
     isAppReady,
     isAuthenticated,
+    authenticatedUserId,
+    clearPlaylist,
     refreshPlaylist,
-    toast.showToast,
+    showToast,
   ]);
 
   const handleSplashFinish =
@@ -389,7 +411,7 @@ function App() {
 
       <Toast
         message={
-          toast.message
+          toastMessage
         }
         aboveBottomNavigation={
           pageHasBottomNavigation

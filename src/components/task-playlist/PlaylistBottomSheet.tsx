@@ -74,6 +74,7 @@ interface PlaylistTaskRowProps {
   task: PlaylistTask;
   selected: boolean;
   draggingDisabled: boolean;
+  interactionDisabled: boolean;
   onSelectTask: () => void;
   onToggle: () => void;
 }
@@ -82,6 +83,7 @@ function PlaylistTaskRow({
   task,
   selected,
   draggingDisabled,
+  interactionDisabled,
   onSelectTask,
   onToggle,
 }: PlaylistTaskRowProps) {
@@ -122,6 +124,7 @@ function PlaylistTaskRow({
     >
       <button
         type="button"
+        disabled={interactionDisabled}
         onClick={onSelectTask}
         aria-label={`${task.title} 과업 시작`}
         className="flex h-9 w-9 items-center justify-center rounded-full bg-black-850"
@@ -135,6 +138,7 @@ function PlaylistTaskRow({
 
       <button
         type="button"
+        disabled={interactionDisabled}
         onClick={onSelectTask}
         aria-label={`${task.title} 과업 시작`}
         className="min-w-0 flex-1 text-left"
@@ -146,6 +150,7 @@ function PlaylistTaskRow({
 
       <button
         type="button"
+        disabled={interactionDisabled}
         onPointerDown={(event) => {
           event.stopPropagation();
         }}
@@ -256,9 +261,17 @@ export function PlaylistBottomSheet({
   const draggingDisabled =
     filter !== "all" ||
     deletingSelectedTasks ||
-    savingOrder;
+    savingOrder ||
+    showDeleteSelectedDialog;
+
+  const playlistMutationInProgress =
+    deletingSelectedTasks || savingOrder;
 
   const handleToggleTask = (taskId: string) => {
+    if (playlistMutationInProgress) {
+      return;
+    }
+
     setSelectedTaskIds((current) => {
       const next = new Set(current);
 
@@ -273,7 +286,7 @@ export function PlaylistBottomSheet({
   };
 
   const handleDeleteSelected = async () => {
-    if (deletingSelectedTasks) {
+    if (playlistMutationInProgress) {
       return;
     }
 
@@ -337,6 +350,10 @@ export function PlaylistBottomSheet({
   };
 
   const handleSelectAll = () => {
+    if (playlistMutationInProgress) {
+      return;
+    }
+
     setSelectedTaskIds(
       new Set(filteredTasks.map((task) => task.id)),
     );
@@ -351,7 +368,10 @@ export function PlaylistBottomSheet({
   };
 
   const handleSelectTask = (taskId: string) => {
-    if (ignoreTaskClickRef.current) {
+    if (
+      playlistMutationInProgress ||
+      ignoreTaskClickRef.current
+    ) {
       ignoreTaskClickRef.current = false;
       return;
     }
@@ -550,6 +570,7 @@ export function PlaylistBottomSheet({
                   <button
                     key={item.id}
                     type="button"
+                    disabled={playlistMutationInProgress}
                     aria-pressed={active}
                     onClick={() =>
                       handleFilterChange(item.id)
@@ -576,7 +597,7 @@ export function PlaylistBottomSheet({
               {validSelectedTaskIds.size > 0 ? (
                 <button
                   type="button"
-                  disabled={deletingSelectedTasks}
+                  disabled={playlistMutationInProgress}
                   onClick={() =>
                     setShowDeleteSelectedDialog(true)
                   }
@@ -590,7 +611,10 @@ export function PlaylistBottomSheet({
                 <button
                   type="button"
                   onClick={handleSelectAll}
-                  disabled={filteredTasks.length === 0}
+                  disabled={
+                    filteredTasks.length === 0 ||
+                    playlistMutationInProgress
+                  }
                   className="rounded-[6px] bg-black-800 px-2.5 py-1.5 text-[14px] font-medium text-black-900 disabled:opacity-40"
                 >
                   전체 선택
@@ -625,6 +649,9 @@ export function PlaylistBottomSheet({
                           )}
                           draggingDisabled={
                             draggingDisabled
+                          }
+                          interactionDisabled={
+                            playlistMutationInProgress
                           }
                           onSelectTask={() =>
                             handleSelectTask(task.id)

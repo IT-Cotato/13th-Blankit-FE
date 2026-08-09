@@ -20,9 +20,7 @@ import type {
   TaskFormHandle,
 } from "@/components/task-create/TaskForm";
 
-import {
-  usePlaylistStore,
-} from "@/store/usePlaylistStore";
+import { usePlaylistRefresh } from "@/hooks/usePlaylistRefresh";
 
 import type {
   TaskCreateRequest,
@@ -30,10 +28,6 @@ import type {
   TaskFormOptionsResponse,
   TaskUpdateRequest,
 } from "@/types/taskApi";
-
-import {
-  hydratePlaylist,
-} from "@/utils/playlistMapper";
 
 interface UseTaskManagerOptions {
   showToast: (
@@ -51,11 +45,7 @@ export function useTaskManager({
   const taskFormRef =
     useRef<TaskFormHandle>(null);
 
-  const replacePlaylist =
-    usePlaylistStore(
-      (state) =>
-        state.replacePlaylist,
-    );
+  const { refreshPlaylist } = usePlaylistRefresh();
 
   const [
     selectedTaskId,
@@ -284,25 +274,26 @@ export function useTaskManager({
     try {
       setAddingToPlaylist(true);
 
-      const response =
-        await addPlaylistItems({
-          taskIds: [
-            selectedTaskId,
-          ],
+      await addPlaylistItems({
+        taskIds: [
+          selectedTaskId,
+        ],
 
-          sourceMode: null,
-        });
-
-      const playlist =
-        await hydratePlaylist(
-          response,
-        );
-
-      replacePlaylist(
-        playlist,
-      );
+        sourceMode: null,
+      });
 
       setSelectedTaskId(null);
+
+      try {
+        await refreshPlaylist();
+      } catch (refreshError) {
+        console.error(refreshError);
+
+        showToast(
+          "재생 목록에 추가되었지만 목록을 새로고침하지 못했습니다.",
+        );
+        return;
+      }
 
       showToast(
         "재생 목록에 추가되었습니다.",
