@@ -1,19 +1,27 @@
+import type { CategoryIconKey } from "@/types/category";
 import type {
   TaskPriority,
   TaskStatus,
 } from "@/types/task";
-import type { Category } from "@/types/category";
 
-export type ApiResponse<T> = {
-  code: string;
-  message: string;
-  data: T;
+export type SearchTaskParams = {
+  keyword: string;
+  page?: number;
+  size?: number;
+};
+
+export type SearchHistoryParams = {
+  page?: number;
+  size?: number;
 };
 
 export type SearchTask = {
   taskId: number;
   title: string;
-  category: Category;
+  categoryId: number;
+  categoryName: string;
+  categoryColor: string;
+  categoryIconKey: CategoryIconKey;
   priority: TaskPriority;
   deadline: string;
   status: TaskStatus;
@@ -30,12 +38,3 @@ export type SearchHistory = {
   keyword: string;
   searchedAt: string;
 };
-
-export type SearchTaskResponse =
-  ApiResponse<SearchTaskData>;
-
-export type SearchHistoryResponse =
-  ApiResponse<SearchHistory[]>;
-
-export type DeleteSearchHistoryResponse =
-  ApiResponse<string>;

@@ -95,7 +95,7 @@ function App() {
             element={
               isAuthenticated ? (
                 <HomePage
-                  tasks={taskManager.tasks}
+                  refreshKey={taskManager.taskDataVersion}
                   onAddTask={taskManager.openComposer}
                   onTaskClick={taskManager.selectTask}
                 />
@@ -128,7 +128,6 @@ function App() {
               path="/home/search"
               element={
                 <SearchPage
-                  tasks={taskManager.tasks}
                   onTaskClick={taskManager.selectTask}
                 />
               }

@@ -1,9 +1,9 @@
 import { TaskChip } from "@/components/task/TaskChip";
 
-import type { Task } from "@/types/task";
+import type { RecommendedTaskItem } from "@/types/recommendationApi";
 
 interface TodayRecommendedTasksProps {
-  tasks: Task[];
+  tasks: RecommendedTaskItem[];
   onViewAll?: () => void;
   onTaskClick?: (taskId: number) => void;
 }
@@ -13,7 +13,12 @@ export function TodayRecommendedTasks({
   onViewAll,
   onTaskClick,
 }: TodayRecommendedTasksProps) {
-  const recommendedTasks = tasks.slice(0, 3);
+  const recommendedTasks = [...tasks]
+    .sort(
+      (first, second) =>
+        first.rankOrder - second.rankOrder,
+    )
+    .slice(0, 3);
 
   if (recommendedTasks.length === 0) {
     return null;
@@ -46,8 +51,8 @@ export function TodayRecommendedTasks({
               title={task.title}
               progressRate={task.progressRate}
               priority={task.priority}
-              status={task.status}
-              category={task.category}
+              categoryColor={task.categoryColor}
+              categoryIconKey={task.categoryIconKey}
               onClick={() => onTaskClick?.(task.taskId)}
             />
           </li>

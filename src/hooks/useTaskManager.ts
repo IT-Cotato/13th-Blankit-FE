@@ -6,9 +6,6 @@ import { createTask, deleteTask, getTask, getTaskFormOptions, updateTask as upda
 
 import type { TaskFormHandle } from "@/components/task-create/TaskForm";
 
-import { mockTasks } from "@/mocks/tasks";
-
-import type { Task } from "@/types/task";
 import type { TaskCreateRequest, TaskDetailResponse, TaskFormOptionsResponse, TaskUpdateRequest } from "@/types/taskApi";
 
 interface UseTaskManagerOptions {
@@ -21,7 +18,6 @@ export function useTaskManager({
   const taskFormRef =
     useRef<TaskFormHandle>(null);
 
-  const [tasks, setTasks] = useState<Task[]>(() => [...mockTasks]);
   const [selectedTaskId, setSelectedTaskId] =
     useState<number | null>(null);
   const [editingTask, setEditingTask] =
@@ -218,13 +214,6 @@ export function useTaskManager({
 
       await deleteTask(taskId);
 
-      setTasks((current) =>
-        current.filter(
-          (task) =>
-            task.taskId !== taskId,
-        ),
-      );
-
       setTaskPendingDelete(null);
 
       setTaskDataVersion(
@@ -262,7 +251,6 @@ export function useTaskManager({
 }
 
   return {
-    tasks,
     taskFormOptions,
     openingComposer,
     loadingTaskDetail,
