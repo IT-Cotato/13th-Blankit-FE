@@ -44,6 +44,9 @@ import { usePlaylistStore } from "./store/usePlaylistStore";
 import {
   shouldShowCurrentTaskMiniPlayer,
 } from "./utils/currentTaskMiniPlayerRoutes";
+import {
+  invalidatePlaylistRefresh,
+} from "./utils/playlistRefreshGuard";
 
 const PAGES_WITHOUT_BOTTOM_NAVIGATION = [
   "/mypage/completed-tasks",
@@ -134,6 +137,7 @@ function App() {
       !isAuthenticated ||
       authenticatedUserId === null
     ) {
+      invalidatePlaylistRefresh();
       clearPlaylist();
       return;
     }

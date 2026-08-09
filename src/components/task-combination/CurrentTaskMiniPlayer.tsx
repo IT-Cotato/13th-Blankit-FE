@@ -18,7 +18,7 @@ export function CurrentTaskMiniPlayer({
 }: CurrentTaskMiniPlayerProps) {
   const navigate = useNavigate();
   const combination = getTaskCombination(
-    task.sourceModeId ?? "",
+    task.sourceMode ?? "",
   );
   const accentClassName = combination
     ? getCombinationAccentClassName(combination.accent)

@@ -64,10 +64,10 @@ const ACTIVE_FILTER_CLASS_NAMES: Record<
   string
 > = {
   all: "bg-green-500 text-black-900",
-  fire: "bg-red-500 text-black-900",
-  balance: "bg-green-600 text-black-900",
-  "quick-try": "bg-purple-500 text-black-900",
-  "get-it-done": "bg-[#FBF965] text-black-900",
+  FIRE: "bg-red-500 text-black-900",
+  BALANCE: "bg-green-600 text-black-900",
+  TASTE: "bg-purple-500 text-black-900",
+  CLEAR: "bg-[#FBF965] text-black-900",
 };
 
 interface PlaylistTaskRowProps {
@@ -88,7 +88,6 @@ function PlaylistTaskRow({
   onToggle,
 }: PlaylistTaskRowProps) {
   const {
-    attributes,
     listeners,
     setNodeRef,
     transform,
@@ -119,7 +118,6 @@ function PlaylistTaskRow({
           ? ""
           : "cursor-grab select-none active:cursor-grabbing"
       }`}
-      {...attributes}
       {...listeners}
     >
       <button
@@ -197,6 +195,10 @@ export function PlaylistBottomSheet({
     (state) => state.replacePlaylist,
   );
 
+  const removeTasks = usePlaylistStore(
+    (state) => state.removeTasks,
+  );
+
   const { refreshPlaylist } = usePlaylistRefresh();
 
   const [filter, setFilter] =
@@ -241,7 +243,7 @@ export function PlaylistBottomSheet({
       filter === "all"
         ? playlist
         : playlist.filter(
-            (task) => task.sourceModeId === filter,
+            (task) => task.sourceMode === filter,
           ),
     [filter, playlist],
   );
@@ -294,13 +296,18 @@ export function PlaylistBottomSheet({
       validSelectedTaskIds.has(task.id),
     );
 
-    const playlistItemIds = selectedTasks.flatMap((task) =>
+    const deletableTasks = selectedTasks.flatMap((task) =>
       typeof task.playlistItemId === "number"
-        ? [task.playlistItemId]
+        ? [
+            {
+              taskId: task.id,
+              playlistItemId: task.playlistItemId,
+            },
+          ]
         : [],
     );
 
-    if (playlistItemIds.length === 0) {
+    if (deletableTasks.length === 0) {
       setShowDeleteSelectedDialog(false);
       onShowToast(
         "삭제할 플레이리스트 과업을 찾지 못했습니다.",
@@ -312,22 +319,36 @@ export function PlaylistBottomSheet({
 
     try {
       const results = await Promise.allSettled(
-        playlistItemIds.map((playlistItemId) =>
+        deletableTasks.map(({ playlistItemId }) =>
           deletePlaylistItem(playlistItemId),
         ),
       );
 
-      await refreshPlaylist();
-
-      setSelectedTaskIds(new Set());
-      setShowDeleteSelectedDialog(false);
+      const successfullyDeletedTaskIds =
+        results.flatMap((result, index) =>
+          result.status === "fulfilled"
+            ? [deletableTasks[index].taskId]
+            : [],
+        );
 
       const failedCount = results.filter(
         (result) => result.status === "rejected",
       ).length;
 
       const missingPlaylistItemIdCount =
-        selectedTasks.length - playlistItemIds.length;
+        selectedTasks.length - deletableTasks.length;
+
+      let refreshFailed = false;
+
+      try {
+        await refreshPlaylist();
+      } catch {
+        refreshFailed = true;
+        removeTasks(successfullyDeletedTaskIds);
+      }
+
+      setSelectedTaskIds(new Set());
+      setShowDeleteSelectedDialog(false);
 
       if (
         failedCount > 0 ||
@@ -339,8 +360,18 @@ export function PlaylistBottomSheet({
         return;
       }
 
+      if (refreshFailed) {
+        onShowToast(
+          "과업은 삭제되었지만 목록을 새로 불러오지 못했습니다.",
+        );
+        return;
+      }
+
       onShowToast("재생 목록에서 삭제되었습니다.");
     } catch {
+      setSelectedTaskIds(new Set());
+      setShowDeleteSelectedDialog(false);
+
       onShowToast(
         "과업 플레이리스트 삭제에 실패했습니다.",
       );

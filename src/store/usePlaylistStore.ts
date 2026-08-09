@@ -161,7 +161,7 @@ export const usePlaylistStore =
         const isAlreadyAdded =
           get().playlist.some(
             (task) =>
-              task.sourceModeId ===
+              task.sourceMode ===
               combination.id,
           );
 
@@ -179,7 +179,7 @@ export const usePlaylistStore =
             ...combination.tasks.map(
               (task) => ({
                 ...task,
-                sourceModeId:
+                sourceMode:
                   combination.id,
               }),
             ),
@@ -198,7 +198,7 @@ export const usePlaylistStore =
           const playlist =
             state.playlist.filter(
               (task) =>
-                task.sourceModeId !==
+                task.sourceMode !==
                 modeId,
             );
 
@@ -347,7 +347,7 @@ export const usePlaylistStore =
       ) =>
         get().playlist.some(
           (task) =>
-            task.sourceModeId ===
+            task.sourceMode ===
             modeId,
         ),
 

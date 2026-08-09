@@ -45,7 +45,7 @@ const CREATE_CATEGORY = {
 
 export const taskCombinations = [
   {
-    id: "fire",
+    id: "FIRE",
     name: "불끄기 모드",
     description: "급한 과업부터 빠르게 처리해요.",
     icon: fireModeIcon,
@@ -78,7 +78,7 @@ export const taskCombinations = [
     ],
   },
   {
-    id: "balance",
+    id: "BALANCE",
     name: "밸런스 모드",
     description: "중요도와 소요 시간을 고르게 배치해요.",
     icon: balanceModeIcon,
@@ -111,7 +111,7 @@ export const taskCombinations = [
     ],
   },
   {
-    id: "quick-try",
+    id: "TASTE",
     name: "찍먹 모드",
     description: "짧게 끝낼 수 있는 과업부터 시작해요.",
     icon: quickTryModeIcon,
@@ -144,7 +144,7 @@ export const taskCombinations = [
     ],
   },
   {
-    id: "get-it-done",
+    id: "CLEAR",
     name: "해치우기 모드",
     description: "집중해서 큰 과업을 마무리해요.",
     icon: getItDoneModeIcon,

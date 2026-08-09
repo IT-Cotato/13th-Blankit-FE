@@ -1,5 +1,9 @@
 let latestPlaylistRefreshId = 0;
 
+export function invalidatePlaylistRefresh() {
+  latestPlaylistRefreshId += 1;
+}
+
 export function startPlaylistRefresh() {
   latestPlaylistRefreshId += 1;
 
