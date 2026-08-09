@@ -97,6 +97,7 @@ export function HomePage({
 
   useEffect(() => {
     if (
+      loadingRecommendations ||
       !hasTasks ||
       currentPlaylistTask
     ) {
@@ -140,6 +141,7 @@ export function HomePage({
   }, [
     currentPlaylistTask,
     hasTasks,
+    loadingRecommendations,
   ]);
 
   const shouldRenderDockedBar =
