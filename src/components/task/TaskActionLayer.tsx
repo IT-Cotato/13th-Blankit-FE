@@ -40,6 +40,8 @@ interface TaskActionLayerProps {
   onCancelDelete: () => void;
   onConfirmDelete: () => void | Promise<void>;
   deletingTask: boolean;
+  addingToPlaylist: boolean;
+  onAddToPlaylist: () => void;
 }
 
 export function TaskActionLayer({
@@ -59,8 +61,10 @@ export function TaskActionLayer({
   onRequestDelete,
   deleteModalOpen,
   deletingTask,
+  addingToPlaylist,
   onCancelDelete,
   onConfirmDelete,
+  onAddToPlaylist,
 }: TaskActionLayerProps) {
   return (
     <>
@@ -85,7 +89,13 @@ export function TaskActionLayer({
         aboveBottomNavigation={
           aboveBottomNavigation
         }
+        addingToPlaylist={
+          addingToPlaylist
+        }
         onClose={onCloseActionSheet}
+        onAddToPlaylist={
+          onAddToPlaylist
+        }
         onEdit={onEditTask}
         onDelete={onRequestDelete}
       />

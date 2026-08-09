@@ -1,18 +1,33 @@
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+import {
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
 
-import { BottomNavigation } from "./components/layout/BottomNavigation";
-import { CurrentTaskMiniPlayer } from "./components/task-combination/CurrentTaskMiniPlayer";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { SplashScreen } from "@/components/splash/SplashScreen";
+import { usePlaylistSync } from "@/hooks/usePlaylistSync";
+import { useAuthStore } from "@/store/authStore";
 
 import { Toast } from "./components/common/Toast";
+import { BottomNavigation } from "./components/layout/BottomNavigation";
+import { CurrentTaskMiniPlayer } from "./components/task-combination/CurrentTaskMiniPlayer";
 import { TaskActionLayer } from "./components/task/TaskActionLayer";
+
 import { useTaskManager } from "./hooks/useTaskManager";
 import { useToast } from "./hooks/useToast";
 
 import { CalendarPage } from "./pages/calendar/CalendarPage";
 import { HomePage } from "./pages/home/HomePage";
 import { SearchPage } from "./pages/home/SearchPage";
+import { TaskCombinationDetailPage } from "./pages/home/TaskCombinationDetailPage";
 import { TaskRecommendationsPage } from "./pages/home/TaskRecommendationsPage";
+import { LoginPage } from "./pages/login/LoginPage";
 import { CompletedTask } from "./pages/mypage/CompletedTask";
 import { EverytimeTimeTableLink } from "./pages/mypage/EverytimeTimeTableLink";
 import { MyPage } from "./pages/mypage/MyPage";
@@ -21,16 +36,14 @@ import { PrioritySetting } from "./pages/mypage/PrioritySetting";
 import { TimeTable } from "./pages/mypage/TimeTable";
 import { TimeTableCreate } from "./pages/mypage/TimeTableCreate";
 import { TimeTableSetting } from "./pages/mypage/TimeTableSetting";
+import { OnboardingPage } from "./pages/onboarding/OnboardingPage";
 import { TaskPlaylistPage } from "./pages/task-playlist/TaskPlaylistPage";
 
-import { TaskCombinationDetailPage } from "./pages/home/TaskCombinationDetailPage";
 import { usePlaylistStore } from "./store/usePlaylistStore";
-import { shouldShowCurrentTaskMiniPlayer } from "./utils/currentTaskMiniPlayerRoutes";
-import { SplashScreen } from "./components/splash/SplashScreen";
-import { OnboardingPage } from "./pages/onboarding/OnboardingPage";
-import { LoginPage } from "./pages/login/LoginPage";
-import { ProtectedRoute } from "./components/auth/ProtectedRoute";
-import { useAuthStore } from "@/store/authStore";
+
+import {
+  shouldShowCurrentTaskMiniPlayer,
+} from "./utils/currentTaskMiniPlayerRoutes";
 
 const PAGES_WITHOUT_BOTTOM_NAVIGATION = [
   "/mypage/completed-tasks",
@@ -46,39 +59,97 @@ const PAGES_WITHOUT_BOTTOM_NAVIGATION = [
 ];
 
 function App() {
-    const location = useLocation();
-    const [isAppReady, setIsAppReady] = useState(false);
-    const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-    const currentPlaylistTask = usePlaylistStore((state) => state.playlist[0]);
+  const location = useLocation();
 
-    const toast = useToast();
-    const taskManager = useTaskManager({
-        showToast: toast.showToast,
-    });
+  const [
+    isAppReady,
+    setIsAppReady,
+  ] = useState(false);
 
-    const pageHasBottomNavigation = !PAGES_WITHOUT_BOTTOM_NAVIGATION.includes(
-        location.pathname,
+  const isAuthenticated =
+    useAuthStore(
+      (state) =>
+        state.isAuthenticated,
     );
 
-    const hasBottomNavigation =
-        !taskManager.isComposerOpen && pageHasBottomNavigation;
+  const currentPlaylistTask =
+    usePlaylistStore(
+      (state) =>
+        state.playlist[0],
+    );
 
-    const handleSplashFinish = () => {
-        setIsAppReady(true);
-    };
+  const toast = useToast();
 
-  if (!isAppReady) {
-    return <SplashScreen onFinish={handleSplashFinish} />;
-  }
+  const taskManager =
+    useTaskManager({
+      showToast:
+        toast.showToast,
+    });
 
-  const hasCurrentTaskMiniPlayer =
-    Boolean(currentPlaylistTask) &&
-    shouldShowCurrentTaskMiniPlayer(location.pathname) &&
+  const {
+    refreshPlaylist,
+  } = usePlaylistSync();
+
+  const pageHasBottomNavigation =
     !PAGES_WITHOUT_BOTTOM_NAVIGATION.includes(
       location.pathname,
     );
 
+  const hasBottomNavigation =
+    !taskManager.isComposerOpen &&
+    pageHasBottomNavigation;
+
+  const hasCurrentTaskMiniPlayer =
+    Boolean(
+      currentPlaylistTask,
+    ) &&
+    shouldShowCurrentTaskMiniPlayer(
+      location.pathname,
+    ) &&
+    !PAGES_WITHOUT_BOTTOM_NAVIGATION.includes(
+      location.pathname,
+    );
+
+  useEffect(() => {
+    if (
+      !isAppReady ||
+      !isAuthenticated
+    ) {
+      return;
+    }
+
+    refreshPlaylist().catch(
+      (error) => {
+        console.error(error);
+
+        toast.showToast(
+          "과업 플레이리스트 조회에 실패했습니다.",
+        );
+      },
+    );
+  }, [
+    isAppReady,
+    isAuthenticated,
+    refreshPlaylist,
+    toast.showToast,
+  ]);
+
+  const handleSplashFinish =
+    () => {
+      setIsAppReady(true);
+    };
+
+  if (!isAppReady) {
     return (
+      <SplashScreen
+        onFinish={
+          handleSplashFinish
+        }
+      />
+    );
+  }
+
+  return (
     <>
       <main
         className={
@@ -95,9 +166,15 @@ function App() {
             element={
               isAuthenticated ? (
                 <HomePage
-                  refreshKey={taskManager.taskDataVersion}
-                  onAddTask={taskManager.openComposer}
-                  onTaskClick={taskManager.selectTask}
+                  refreshKey={
+                    taskManager.taskDataVersion
+                  }
+                  onAddTask={
+                    taskManager.openComposer
+                  }
+                  onTaskClick={
+                    taskManager.selectTask
+                  }
                 />
               ) : (
                 <Navigate
@@ -108,66 +185,102 @@ function App() {
             }
           />
 
-          <Route element={<ProtectedRoute />}>
+          <Route
+            element={
+              <ProtectedRoute />
+            }
+          >
             <Route
               path="/calendar"
-              element={<CalendarPage />}
+              element={
+                <CalendarPage />
+              }
             />
 
             <Route
               path="/mypage"
-              element={<MyPage />}
+              element={
+                <MyPage />
+              }
             />
 
             <Route
               path="/mypage/completed-tasks"
-              element={<CompletedTask />}
+              element={
+                <CompletedTask />
+              }
             />
 
             <Route
               path="/home/search"
               element={
                 <SearchPage
-                  onTaskClick={taskManager.selectTask}
+                  onTaskClick={
+                    taskManager.selectTask
+                  }
                 />
               }
             />
 
             <Route
               path="/task-playlist"
-              element={<TaskPlaylistPage />}
+              element={
+                <TaskPlaylistPage />
+              }
             />
 
             <Route
               path="/mypage/priority-setting"
-              element={<PrioritySetting />}
+              element={
+                <PrioritySetting />
+              }
             />
 
             <Route
               path="/mypage/notification-setting"
-              element={<NotificationSetting />}
+              element={
+                <NotificationSetting />
+              }
             />
 
-            <Route path="/mypage/timetable" element={<TimeTable />} />
+            <Route
+              path="/mypage/timetable"
+              element={
+                <TimeTable />
+              }
+            />
+
             <Route
               path="/mypage/timetable/new"
-              element={<TimeTableCreate />}
+              element={
+                <TimeTableCreate />
+              }
             />
+
             <Route
               path="/mypage/timetable/settings"
-              element={<TimeTableSetting />}
+              element={
+                <TimeTableSetting />
+              }
             />
+
             <Route
               path="/mypage/timetable/everytime-link"
-              element={<EverytimeTimeTableLink />}
+              element={
+                <EverytimeTimeTableLink />
+              }
             />
 
             <Route
               path="/task-recommendations"
               element={
                 <TaskRecommendationsPage
-                  refreshKey={taskManager.taskDataVersion}
-                  onTaskClick={taskManager.selectTask}
+                  refreshKey={
+                    taskManager.taskDataVersion
+                  }
+                  onTaskClick={
+                    taskManager.selectTask
+                  }
                 />
               }
             />
@@ -175,17 +288,23 @@ function App() {
 
           <Route
             path="/task-combinations/:modeId"
-            element={<TaskCombinationDetailPage />}
+            element={
+              <TaskCombinationDetailPage />
+            }
           />
 
           <Route
             path="/onboarding"
-            element={<OnboardingPage />}
+            element={
+              <OnboardingPage />
+            }
           />
 
           <Route
             path="/login"
-            element={<LoginPage />}
+            element={
+              <LoginPage />
+            }
           />
         </Routes>
       </main>
@@ -197,7 +316,9 @@ function App() {
       {hasCurrentTaskMiniPlayer &&
         currentPlaylistTask && (
           <CurrentTaskMiniPlayer
-            task={currentPlaylistTask}
+            task={
+              currentPlaylistTask
+            }
           />
         )}
 
@@ -211,19 +332,30 @@ function App() {
         isComposerOpen={
           taskManager.isComposerOpen
         }
-        editingTask={taskManager.editingTask}
-        taskTitle={taskManager.taskTitle}
-        taskFormRef={taskManager.taskFormRef}
-        onTitleChange={taskManager.setTaskTitle}
+        editingTask={
+          taskManager.editingTask
+        }
+        taskTitle={
+          taskManager.taskTitle
+        }
+        taskFormRef={
+          taskManager.taskFormRef
+        }
+        onTitleChange={
+          taskManager.setTaskTitle
+        }
         onCloseComposer={
           taskManager.closeComposer
         }
         onCompleteCreate={
           taskManager.completeCreate
         }
-        onUpdateTask={taskManager.updateTask}
+        onUpdateTask={
+          taskManager.updateTask
+        }
         actionSheetOpen={
-          taskManager.selectedTaskId !== null
+          taskManager.selectedTaskId !==
+          null
         }
         onCloseActionSheet={
           taskManager.closeActionSheet
@@ -235,7 +367,8 @@ function App() {
           taskManager.requestDelete
         }
         deleteModalOpen={
-          taskManager.taskPendingDelete !== null
+          taskManager.taskPendingDelete !==
+          null
         }
         deletingTask={
           taskManager.deletingTask
@@ -246,10 +379,18 @@ function App() {
         onConfirmDelete={
           taskManager.confirmDelete
         }
+        addingToPlaylist={
+          taskManager.addingToPlaylist
+        }
+        onAddToPlaylist={
+          taskManager.addSelectedTaskToPlaylist
+        }
       />
 
       <Toast
-        message={toast.message}
+        message={
+          toast.message
+        }
         aboveBottomNavigation={
           pageHasBottomNavigation
         }

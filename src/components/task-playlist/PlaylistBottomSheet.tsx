@@ -1,7 +1,9 @@
 import { useMemo, useRef, useState } from "react";
 
+import { deletePlaylistItem } from "@/api/playlist";
 import checkButtonGreenIcon from "@/assets/icons/task-combination/check-button-green.svg";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
+import { usePlaylistSync } from "@/hooks/usePlaylistSync";
 import { taskCombinations } from "@/mocks/taskCombinations";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
 
@@ -13,6 +15,7 @@ import type {
 interface PlaylistBottomSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onShowToast: (message: string) => void;
 }
 
 type PlaylistFilter = "all" | CombinationModeId;
@@ -79,12 +82,6 @@ function PlaylistTaskRow({
         <span className="block truncate text-[13px] font-semibold text-black-200">
           {task.title}
         </span>
-
-        {task.lastMemo && (
-          <span className="mt-1 block truncate text-[10px] font-medium text-black-600">
-            {task.lastMemo}
-          </span>
-        )}
       </button>
 
       <button
@@ -96,9 +93,7 @@ function PlaylistTaskRow({
             : `${task.title} 선택`
         }
         className={`flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full ${
-          selected
-            ? ""
-            : "border-3 border-black-700"
+          selected ? "" : "border-3 border-black-700"
         }`}
       >
         {selected && (
@@ -116,18 +111,17 @@ function PlaylistTaskRow({
 export function PlaylistBottomSheet({
   open,
   onOpenChange,
+  onShowToast,
 }: PlaylistBottomSheetProps) {
   const playlist = usePlaylistStore(
     (state) => state.playlist,
   );
 
-  const removeTasks = usePlaylistStore(
-    (state) => state.removeTasks,
-  );
-
   const selectTask = usePlaylistStore(
     (state) => state.selectTask,
   );
+
+  const { refreshPlaylist } = usePlaylistSync();
 
   const [filter, setFilter] =
     useState<PlaylistFilter>("all");
@@ -140,6 +134,9 @@ export function PlaylistBottomSheet({
     showDeleteSelectedDialog,
     setShowDeleteSelectedDialog,
   ] = useState(false);
+
+  const [deletingSelectedTasks, setDeletingSelectedTasks] =
+    useState(false);
 
   const sheetDragStartYRef = useRef<number | null>(null);
   const ignoreNextClickRef = useRef(false);
@@ -180,10 +177,68 @@ export function PlaylistBottomSheet({
     });
   };
 
-  const handleDeleteSelected = () => {
-    removeTasks([...validSelectedTaskIds]);
-    setSelectedTaskIds(new Set());
-    setShowDeleteSelectedDialog(false);
+  const handleDeleteSelected = async () => {
+    if (deletingSelectedTasks) {
+      return;
+    }
+
+    const selectedTasks = playlist.filter((task) =>
+      validSelectedTaskIds.has(task.id),
+    );
+
+    const playlistItemIds = selectedTasks.flatMap((task) =>
+      typeof task.playlistItemId === "number"
+        ? [task.playlistItemId]
+        : [],
+    );
+
+    if (playlistItemIds.length === 0) {
+      setShowDeleteSelectedDialog(false);
+      onShowToast(
+        "삭제할 플레이리스트 과업을 찾지 못했습니다.",
+      );
+      return;
+    }
+
+    setDeletingSelectedTasks(true);
+
+    try {
+      const results = await Promise.allSettled(
+        playlistItemIds.map((playlistItemId) =>
+          deletePlaylistItem(playlistItemId),
+        ),
+      );
+
+      await refreshPlaylist();
+
+      setSelectedTaskIds(new Set());
+      setShowDeleteSelectedDialog(false);
+
+      const failedCount = results.filter(
+        (result) => result.status === "rejected",
+      ).length;
+
+      const missingPlaylistItemIdCount =
+        selectedTasks.length - playlistItemIds.length;
+
+      if (
+        failedCount > 0 ||
+        missingPlaylistItemIdCount > 0
+      ) {
+        onShowToast(
+          "일부 과업을 삭제하지 못했습니다.",
+        );
+        return;
+      }
+
+      onShowToast("재생 목록에서 삭제되었습니다.");
+    } catch {
+      onShowToast(
+        "과업 플레이리스트 삭제에 실패했습니다.",
+      );
+    } finally {
+      setDeletingSelectedTasks(false);
+    }
   };
 
   const handleSelectAll = () => {
@@ -348,10 +403,11 @@ export function PlaylistBottomSheet({
               {validSelectedTaskIds.size > 0 ? (
                 <button
                   type="button"
+                  disabled={deletingSelectedTasks}
                   onClick={() =>
                     setShowDeleteSelectedDialog(true)
                   }
-                  className="rounded-[6px] bg-green-500 px-2.5 py-1.5 text-[14px] font-semibold text-black-900"
+                  className="rounded-[6px] bg-green-500 px-2.5 py-1.5 text-[14px] font-semibold text-black-900 disabled:opacity-50"
                 >
                   {allFilteredTasksSelected
                     ? "전체 삭제"
@@ -406,9 +462,12 @@ export function PlaylistBottomSheet({
         open={showDeleteSelectedDialog}
         title="과업을 진짜 삭제하시겠습니까?"
         confirmLabel="확인"
-        onCancel={() =>
-          setShowDeleteSelectedDialog(false)
-        }
+        submitting={deletingSelectedTasks}
+        onCancel={() => {
+          if (!deletingSelectedTasks) {
+            setShowDeleteSelectedDialog(false);
+          }
+        }}
         onConfirm={handleDeleteSelected}
       />
     </>

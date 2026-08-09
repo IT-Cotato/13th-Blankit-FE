@@ -1,5 +1,6 @@
 import type { Category } from "@/types/category";
 import type { TaskPriority, TaskStatus } from "@/types/task";
+import type { PlaylistSourceMode } from "@/types/playlistApi";
 
 export type CombinationModeId =
   | "fire"
@@ -16,7 +17,6 @@ export type CombinationAccent =
 export interface CombinationTask {
   id: string;
   title: string;
-  lastMemo: string | null;
   priority: TaskPriority;
   status: TaskStatus;
   progressRate: number;
@@ -37,5 +37,8 @@ export interface TaskCombination {
 }
 
 export interface PlaylistTask extends CombinationTask {
-  sourceModeId: CombinationModeId;
+  taskId?: number;
+  playlistItemId?: number;
+  sourceMode?: PlaylistSourceMode;
+  sourceModeId?: CombinationModeId;
 }

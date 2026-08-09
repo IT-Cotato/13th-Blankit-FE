@@ -187,6 +187,7 @@ export function TaskPlaylistPage() {
       <PlaylistBottomSheet
         open={isBottomSheetOpen}
         onOpenChange={setIsBottomSheetOpen}
+        onShowToast={feedbackToast.showToast}
       />
 
       <TaskFeedbackSheet
