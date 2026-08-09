@@ -26,7 +26,7 @@ import {
 } from "@/api/playlist";
 import checkButtonGreenIcon from "@/assets/icons/task-combination/check-button-green.svg";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
-import { usePlaylistSync } from "@/hooks/usePlaylistSync";
+import { usePlaylistRefresh } from "@/hooks/usePlaylistRefresh";
 import { taskCombinations } from "@/mocks/taskCombinations";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
 import { createPlaylistOrderRequest } from "@/utils/playlistOrder";
@@ -192,7 +192,7 @@ export function PlaylistBottomSheet({
     (state) => state.replacePlaylist,
   );
 
-  const { refreshPlaylist } = usePlaylistSync();
+  const { refreshPlaylist } = usePlaylistRefresh();
 
   const [filter, setFilter] =
     useState<PlaylistFilter>("all");

@@ -12,7 +12,7 @@ import {
   hydratePlaylist,
 } from "@/utils/playlistMapper";
 
-export function usePlaylistSync() {
+export function usePlaylistRefresh() {
   const replacePlaylist =
     usePlaylistStore(
       (state) =>

@@ -11,7 +11,7 @@ import {
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { SplashScreen } from "@/components/splash/SplashScreen";
-import { usePlaylistSync } from "@/hooks/usePlaylistSync";
+import { usePlaylistRefresh } from "@/hooks/usePlaylistRefresh";
 import { useAuthStore } from "@/store/authStore";
 
 import { Toast } from "./components/common/Toast";
@@ -88,7 +88,7 @@ function App() {
 
   const {
     refreshPlaylist,
-  } = usePlaylistSync();
+  } = usePlaylistRefresh();
 
   const pageHasBottomNavigation =
     !PAGES_WITHOUT_BOTTOM_NAVIGATION.includes(
