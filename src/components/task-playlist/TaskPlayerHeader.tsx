@@ -29,11 +29,6 @@ export function TaskPlayerHeader({
             {task.title}
           </h1>
 
-          {task.lastMemo && (
-            <p className="mt-1 truncate text-[12px] font-medium text-black-650">
-              {task.lastMemo}
-            </p>
-          )}
         </div>
       </div>
     </section>

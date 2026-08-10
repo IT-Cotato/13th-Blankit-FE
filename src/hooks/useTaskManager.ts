@@ -1,15 +1,42 @@
 import axios from "axios";
-import { useRef, useState } from "react";
+import {
+  useRef,
+  useState,
+} from "react";
 import { flushSync } from "react-dom";
 
-import { createTask, deleteTask, getTask, getTaskFormOptions, updateTask as updateTaskApi } from "@/api/tasks";
+import {
+  addPlaylistItems,
+} from "@/api/playlist";
+import {
+  createTask,
+  deleteTask,
+  getTask,
+  getTaskFormOptions,
+  updateTask as updateTaskApi,
+} from "@/api/tasks";
 
-import type { TaskFormHandle } from "@/components/task-create/TaskForm";
+import type {
+  TaskFormHandle,
+} from "@/components/task-create/TaskForm";
 
-import type { TaskCreateRequest, TaskDetailResponse, TaskFormOptionsResponse, TaskUpdateRequest } from "@/types/taskApi";
+import { usePlaylistRefresh } from "@/hooks/usePlaylistRefresh";
+
+import type {
+  TaskCreateRequest,
+  TaskDetailResponse,
+  TaskFormOptionsResponse,
+  TaskUpdateRequest,
+} from "@/types/taskApi";
 
 interface UseTaskManagerOptions {
-  showToast: (message: string) => void;
+  showToast: (
+    message: string,
+  ) => void;
+}
+
+interface ApiErrorResponse {
+  message?: string;
 }
 
 export function useTaskManager({
@@ -18,26 +45,83 @@ export function useTaskManager({
   const taskFormRef =
     useRef<TaskFormHandle>(null);
 
-  const [selectedTaskId, setSelectedTaskId] =
-    useState<number | null>(null);
-  const [editingTask, setEditingTask] =
-    useState<TaskDetailResponse | null>(null);
-  const [loadingTaskDetail, setLoadingTaskDetail] = 
-    useState(false);
-  const [taskPendingDelete, setTaskPendingDelete] = 
-    useState<number | null>(null);
-  const [deletingTask,setDeletingTask] = 
-    useState(false);  
-  const [taskDataVersion, setTaskDataVersion] = 
-    useState(0);
-  const [taskTitle, setTaskTitle] = useState("");
-  const [isComposerOpen, setIsComposerOpen] =
-    useState(false);
-  const [taskFormOptions, setTaskFormOptions] = 
-    useState<TaskFormOptionsResponse | null>(null);
-  const [ openingComposer, setOpeningComposer] = 
-    useState(false);
+  const { refreshPlaylist } = usePlaylistRefresh();
 
+  const [
+    selectedTaskId,
+    setSelectedTaskId,
+  ] = useState<number | null>(
+    null,
+  );
+
+  const [
+    editingTask,
+    setEditingTask,
+  ] =
+    useState<TaskDetailResponse | null>(
+      null,
+    );
+
+  const [
+    loadingTaskDetail,
+    setLoadingTaskDetail,
+  ] = useState(false);
+
+  const [
+    taskPendingDelete,
+    setTaskPendingDelete,
+  ] = useState<number | null>(
+    null,
+  );
+
+  const [
+    deletingTask,
+    setDeletingTask,
+  ] = useState(false);
+
+  const [
+    addingToPlaylist,
+    setAddingToPlaylist,
+  ] = useState(false);
+
+  const [
+    taskDataVersion,
+    setTaskDataVersion,
+  ] = useState(0);
+
+  const [
+    taskTitle,
+    setTaskTitle,
+  ] = useState("");
+
+  const [
+    isComposerOpen,
+    setIsComposerOpen,
+  ] = useState(false);
+
+  const [
+    taskFormOptions,
+    setTaskFormOptions,
+  ] =
+    useState<TaskFormOptionsResponse | null>(
+      null,
+    );
+
+  const [
+    openingComposer,
+    setOpeningComposer,
+  ] = useState(false);
+
+  function getServerMessage(
+    error: unknown,
+  ) {
+    return axios.isAxiosError<
+      ApiErrorResponse
+    >(error)
+      ? error.response?.data
+          ?.message
+      : undefined;
+  }
 
   async function openComposer() {
     if (openingComposer) {
@@ -51,7 +135,9 @@ export function useTaskManager({
         await getTaskFormOptions();
 
       flushSync(() => {
-        setTaskFormOptions(formOptions);
+        setTaskFormOptions(
+          formOptions,
+        );
         setEditingTask(null);
         setSelectedTaskId(null);
         setTaskTitle("");
@@ -61,8 +147,10 @@ export function useTaskManager({
       taskFormRef.current?.focus();
     } catch (error) {
       console.error(error);
+
       showToast(
-        "과업 등록 정보를 불러오지 못했습니다.",
+        getServerMessage(error) ??
+          "과업 등록 정보를 불러오지 못했습니다.",
       );
     } finally {
       setOpeningComposer(false);
@@ -82,25 +170,20 @@ export function useTaskManager({
       await createTask(request);
 
       setTaskDataVersion(
-        (current) => current + 1,
+        (current) =>
+          current + 1,
       );
-      
+
       closeComposer();
+
       showToast(
         "과업 추가가 완료되었습니다.",
       );
     } catch (error) {
       console.error(error);
 
-      const serverMessage =
-        axios.isAxiosError<{
-          message?: string;
-        }>(error)
-          ? error.response?.data?.message
-          : undefined;
-
       showToast(
-        serverMessage ??
+        getServerMessage(error) ??
           "과업 추가에 실패했습니다.",
       );
     }
@@ -117,17 +200,23 @@ export function useTaskManager({
     try {
       setLoadingTaskDetail(true);
 
-      const [taskDetail, formOptions] =
-        await Promise.all([
-          getTask(selectedTaskId),
-          getTaskFormOptions(),
-        ]);
+      const [
+        taskDetail,
+        formOptions,
+      ] = await Promise.all([
+        getTask(selectedTaskId),
+        getTaskFormOptions(),
+      ]);
 
       flushSync(() => {
         setSelectedTaskId(null);
         setEditingTask(taskDetail);
-        setTaskFormOptions(formOptions);
-        setTaskTitle(taskDetail.title);
+        setTaskFormOptions(
+          formOptions,
+        );
+        setTaskTitle(
+          taskDetail.title,
+        );
         setIsComposerOpen(true);
       });
 
@@ -135,15 +224,8 @@ export function useTaskManager({
     } catch (error) {
       console.error(error);
 
-      const serverMessage =
-        axios.isAxiosError<{
-          message?: string;
-        }>(error)
-          ? error.response?.data?.message
-          : undefined;
-
       showToast(
-        serverMessage ??
+        getServerMessage(error) ??
           "과업 정보를 불러오지 못했습니다.",
       );
     } finally {
@@ -164,7 +246,8 @@ export function useTaskManager({
       closeComposer();
 
       setTaskDataVersion(
-        (current) => current + 1,
+        (current) =>
+          current + 1,
       );
 
       showToast(
@@ -173,22 +256,66 @@ export function useTaskManager({
     } catch (error) {
       console.error(error);
 
-      const serverMessage =
-        axios.isAxiosError<{
-          message?: string;
-        }>(error)
-          ? error.response?.data?.message
-          : undefined;
-
       showToast(
-        serverMessage ??
+        getServerMessage(error) ??
           "과업 수정에 실패했습니다.",
       );
     }
   }
 
+  async function addSelectedTaskToPlaylist() {
+    if (
+      selectedTaskId === null ||
+      addingToPlaylist
+    ) {
+      return;
+    }
+
+    try {
+      setAddingToPlaylist(true);
+
+      await addPlaylistItems({
+        taskIds: [
+          selectedTaskId,
+        ],
+
+        sourceMode: null,
+      });
+
+      setSelectedTaskId(null);
+
+      try {
+        await refreshPlaylist();
+      } catch (refreshError) {
+        console.error(refreshError);
+
+        showToast(
+          "재생 목록에 추가되었지만 목록을 새로고침하지 못했습니다.",
+        );
+        return;
+      }
+
+      showToast(
+        "재생 목록에 추가되었습니다.",
+      );
+    } catch (error) {
+      console.error(error);
+
+      showToast(
+        getServerMessage(error) ??
+          "재생 목록에 추가하지 못했습니다.",
+      );
+    } finally {
+      setAddingToPlaylist(
+        false,
+      );
+    }
+  }
+
   function requestDelete() {
-    if (selectedTaskId === null) {
+    if (
+      selectedTaskId === null
+    ) {
       return;
     }
 
@@ -201,13 +328,15 @@ export function useTaskManager({
 
   async function confirmDelete() {
     if (
-      taskPendingDelete === null ||
+      taskPendingDelete ===
+        null ||
       deletingTask
     ) {
       return;
     }
 
-    const taskId = taskPendingDelete;
+    const taskId =
+      taskPendingDelete;
 
     try {
       setDeletingTask(true);
@@ -217,7 +346,8 @@ export function useTaskManager({
       setTaskPendingDelete(null);
 
       setTaskDataVersion(
-        (current) => current + 1,
+        (current) =>
+          current + 1,
       );
 
       showToast(
@@ -226,15 +356,8 @@ export function useTaskManager({
     } catch (error) {
       console.error(error);
 
-      const serverMessage =
-        axios.isAxiosError<{
-          message?: string;
-        }>(error)
-          ? error.response?.data?.message
-          : undefined;
-
       showToast(
-        serverMessage ??
+        getServerMessage(error) ??
           "과업 삭제에 실패했습니다.",
       );
     } finally {
@@ -243,18 +366,29 @@ export function useTaskManager({
   }
 
   function cancelDelete() {
-  if (deletingTask) {
-    return;
+    if (deletingTask) {
+      return;
+    }
+
+    setTaskPendingDelete(null);
   }
 
-  setTaskPendingDelete(null);
-}
+  function closeActionSheet() {
+    if (
+      addingToPlaylist
+    ) {
+      return;
+    }
+
+    setSelectedTaskId(null);
+  }
 
   return {
     taskFormOptions,
     openingComposer,
     loadingTaskDetail,
     deletingTask,
+    addingToPlaylist,
     taskDataVersion,
     selectedTaskId,
     editingTask,
@@ -262,19 +396,27 @@ export function useTaskManager({
     taskTitle,
     isComposerOpen,
     taskFormRef,
-    selectTask: setSelectedTaskId,
+
+    selectTask:
+      setSelectedTaskId,
     setTaskTitle,
+
     openComposer,
     closeComposer,
     completeCreate,
     editSelectedTask,
     updateTask,
-    closeActionSheet: () =>
-      setSelectedTaskId(null),
+
+    addSelectedTaskToPlaylist,
+
+    closeActionSheet,
     requestDelete,
     cancelDelete,
-    confirmDelete
+    confirmDelete,
   };
 }
 
-export type TaskManager = ReturnType<typeof useTaskManager>;
+export type TaskManager =
+  ReturnType<
+    typeof useTaskManager
+  >;

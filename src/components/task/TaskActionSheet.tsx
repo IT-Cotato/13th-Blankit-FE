@@ -5,7 +5,9 @@ import editIcon from "@/assets/icons/task-menu/edit.svg";
 interface TaskActionSheetProps {
   open: boolean;
   aboveBottomNavigation: boolean;
+  addingToPlaylist: boolean;
   onClose: () => void;
+  onAddToPlaylist: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }
@@ -13,7 +15,9 @@ interface TaskActionSheetProps {
 export function TaskActionSheet({
   open,
   aboveBottomNavigation,
+  addingToPlaylist,
   onClose,
+  onAddToPlaylist,
   onEdit,
   onDelete,
 }: TaskActionSheetProps) {
@@ -25,16 +29,20 @@ export function TaskActionSheet({
     {
       label: "리스트 추가",
       icon: addPlaylistIcon,
+      onClick: onAddToPlaylist,
+      disabled: addingToPlaylist,
     },
     {
       label: "수정",
       icon: editIcon,
       onClick: onEdit,
+      disabled: false,
     },
     {
       label: "삭제",
       icon: deleteIcon,
       onClick: onDelete,
+      disabled: false,
     },
   ];
   const bottomClassName = aboveBottomNavigation
@@ -61,6 +69,7 @@ export function TaskActionSheet({
             <button
               key={action.label}
               type="button"
+              disabled={action.disabled}
               onClick={action.onClick}
               className="
                 flex h-[67px] min-w-0 flex-1
@@ -68,6 +77,7 @@ export function TaskActionSheet({
                 p-2.5
                 text-[12px] font-medium text-black-900
                 active:bg-green-600
+                disabled:opacity-50
               "
             >
               <div className="flex h-[47px] w-full flex-col items-center justify-center gap-[5px]">
