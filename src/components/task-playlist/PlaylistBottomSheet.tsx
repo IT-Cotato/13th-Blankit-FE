@@ -1,177 +1,21 @@
-import {
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import {
-  DndContext,
-  MouseSensor,
-  TouchSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import {
-  CSS,
-} from "@dnd-kit/utilities";
+import { useMemo, useRef, useState } from "react";
+import { DndContext, closestCenter } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 
-import {
-  deletePlaylistItem,
-  updatePlaylistOrder,
-} from "@/api/playlist";
-import checkButtonGreenIcon from "@/assets/icons/task-combination/check-button-green.svg";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
-import { usePlaylistRefresh } from "@/hooks/usePlaylistRefresh";
+import { PlaylistTaskCard } from "@/components/task-playlist/PlaylistTaskCard";
+import { ACTIVE_FILTER_CLASS_NAMES, PLAYLIST_FILTERS } from "@/components/task-playlist/playlistBottomSheetModes";
+import { usePlaylistDelete } from "@/hooks/usePlaylistDelete";
+import { usePlaylistReorder } from "@/hooks/usePlaylistReorder";
 import { taskCombinations } from "@/mocks/taskCombinations";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
-import { createPlaylistOrderRequest } from "@/utils/playlistOrder";
 
-import type { DragEndEvent } from "@dnd-kit/core";
-import type {
-  CSSProperties,
-} from "react";
-import type {
-  CombinationModeId,
-  PlaylistTask,
-} from "@/types/taskCombination";
+import type { PlaylistFilter } from "@/components/task-playlist/playlistBottomSheetModes";
 
 interface PlaylistBottomSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onShowToast: (message: string) => void;
-}
-
-type PlaylistFilter = "all" | CombinationModeId;
-
-const FILTERS: Array<{
-  id: PlaylistFilter;
-  label: string;
-}> = [
-  { id: "all", label: "전체" },
-  ...taskCombinations.map((combination) => ({
-    id: combination.id,
-    label: combination.name.replace(" 모드", ""),
-  })),
-];
-
-const ACTIVE_FILTER_CLASS_NAMES: Record<
-  PlaylistFilter,
-  string
-> = {
-  all: "bg-green-500 text-black-900",
-  FIRE: "bg-red-500 text-black-900",
-  BALANCE: "bg-green-600 text-black-900",
-  TASTE: "bg-purple-500 text-black-900",
-  CLEAR: "bg-[#FBF965] text-black-900",
-};
-
-interface PlaylistTaskRowProps {
-  task: PlaylistTask;
-  selected: boolean;
-  draggingDisabled: boolean;
-  interactionDisabled: boolean;
-  onSelectTask: () => void;
-  onToggle: () => void;
-}
-
-function PlaylistTaskRow({
-  task,
-  selected,
-  draggingDisabled,
-  interactionDisabled,
-  onSelectTask,
-  onToggle,
-}: PlaylistTaskRowProps) {
-  const {
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: task.id,
-    disabled: draggingDisabled,
-  });
-
-  const style: CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 50 : undefined,
-  };
-
-  return (
-    <li
-      ref={setNodeRef}
-      style={style}
-      data-playlist-task-id={task.id}
-      className={`flex items-center gap-3 rounded-[10px] bg-black-800 px-3 py-3 ${
-        isDragging
-          ? "scale-[1.02] opacity-60 shadow-lg"
-          : ""
-      } ${
-        draggingDisabled
-          ? ""
-          : "cursor-grab select-none active:cursor-grabbing"
-      }`}
-      {...listeners}
-    >
-      <button
-        type="button"
-        disabled={interactionDisabled}
-        onClick={onSelectTask}
-        aria-label={`${task.title} 과업 시작`}
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-black-850"
-      >
-        <img
-          src={task.categoryIcon}
-          alt=""
-          className="h-5 w-5"
-        />
-      </button>
-
-      <button
-        type="button"
-        disabled={interactionDisabled}
-        onClick={onSelectTask}
-        aria-label={`${task.title} 과업 시작`}
-        className="min-w-0 flex-1 text-left"
-      >
-        <span className="block truncate text-[13px] font-semibold text-black-200">
-          {task.title}
-        </span>
-      </button>
-
-      <button
-        type="button"
-        disabled={interactionDisabled}
-        onPointerDown={(event) => {
-          event.stopPropagation();
-        }}
-        onClick={onToggle}
-        aria-label={
-          selected
-            ? `${task.title} 선택 해제`
-            : `${task.title} 선택`
-        }
-        className={`flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full ${
-          selected ? "" : "border-3 border-black-700"
-        }`}
-      >
-        {selected && (
-          <img
-            src={checkButtonGreenIcon}
-            alt=""
-            className="h-[30px] w-[30px]"
-          />
-        )}
-      </button>
-    </li>
-  );
 }
 
 export function PlaylistBottomSheet({
@@ -182,61 +26,18 @@ export function PlaylistBottomSheet({
   const playlist = usePlaylistStore(
     (state) => state.playlist,
   );
-
   const selectTask = usePlaylistStore(
     (state) => state.selectTask,
   );
 
-  const reorderTask = usePlaylistStore(
-    (state) => state.reorderTask,
-  );
-
-  const replacePlaylist = usePlaylistStore(
-    (state) => state.replacePlaylist,
-  );
-
-  const removeTasks = usePlaylistStore(
-    (state) => state.removeTasks,
-  );
-
-  const { refreshPlaylist } = usePlaylistRefresh();
-
   const [filter, setFilter] =
     useState<PlaylistFilter>("all");
-
-  const [selectedTaskIds, setSelectedTaskIds] = useState<
-    Set<string>
-  >(new Set());
-
-  const [
-    showDeleteSelectedDialog,
-    setShowDeleteSelectedDialog,
-  ] = useState(false);
-
   const [deletingSelectedTasks, setDeletingSelectedTasks] =
     useState(false);
-
-  const [savingOrder, setSavingOrder] =
-    useState(false);
+  const [savingOrder, setSavingOrder] = useState(false);
 
   const sheetDragStartYRef = useRef<number | null>(null);
   const ignoreNextClickRef = useRef(false);
-  const ignoreTaskClickRef = useRef(false);
-
-  const sensors = useSensors(
-    useSensor(MouseSensor, {
-      activationConstraint: {
-        delay: 250,
-        tolerance: 8,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 250,
-        tolerance: 8,
-      },
-    }),
-  );
 
   const filteredTasks = useMemo(
     () =>
@@ -248,241 +49,60 @@ export function PlaylistBottomSheet({
     [filter, playlist],
   );
 
-  const validSelectedTaskIds = useMemo(() => {
-    const playlistTaskIds = new Set(
-      playlist.map((task) => task.id),
-    );
+  const {
+    validSelectedTaskIds,
+    showDeleteSelectedDialog,
+    playlistMutationInProgress,
+    setShowDeleteSelectedDialog,
+    toggleTask,
+    selectAll,
+    resetSelection,
+    deleteSelected,
+  } = usePlaylistDelete({
+    playlist,
+    savingOrder,
+    deletingSelectedTasks,
+    setDeletingSelectedTasks,
+    onShowToast,
+  });
 
-    return new Set(
-      [...selectedTaskIds].filter((id) =>
-        playlistTaskIds.has(id),
-      ),
-    );
-  }, [playlist, selectedTaskIds]);
-
-  const draggingDisabled =
-    filter !== "all" ||
-    deletingSelectedTasks ||
-    savingOrder ||
-    showDeleteSelectedDialog;
-
-  const playlistMutationInProgress =
-    deletingSelectedTasks || savingOrder;
-
-  const handleToggleTask = (taskId: string) => {
-    if (playlistMutationInProgress) {
-      return;
-    }
-
-    setSelectedTaskIds((current) => {
-      const next = new Set(current);
-
-      if (next.has(taskId)) {
-        next.delete(taskId);
-      } else {
-        next.add(taskId);
-      }
-
-      return next;
-    });
-  };
-
-  const handleDeleteSelected = async () => {
-    if (playlistMutationInProgress) {
-      return;
-    }
-
-    const selectedTasks = playlist.filter((task) =>
-      validSelectedTaskIds.has(task.id),
-    );
-
-    const deletableTasks = selectedTasks.flatMap((task) =>
-      typeof task.playlistItemId === "number"
-        ? [
-            {
-              taskId: task.id,
-              playlistItemId: task.playlistItemId,
-            },
-          ]
-        : [],
-    );
-
-    if (deletableTasks.length === 0) {
-      setShowDeleteSelectedDialog(false);
-      onShowToast(
-        "삭제할 플레이리스트 과업을 찾지 못했습니다.",
-      );
-      return;
-    }
-
-    setDeletingSelectedTasks(true);
-
-    try {
-      const results = await Promise.allSettled(
-        deletableTasks.map(({ playlistItemId }) =>
-          deletePlaylistItem(playlistItemId),
-        ),
-      );
-
-      const successfullyDeletedTaskIds =
-        results.flatMap((result, index) =>
-          result.status === "fulfilled"
-            ? [deletableTasks[index].taskId]
-            : [],
-        );
-
-      const failedCount = results.filter(
-        (result) => result.status === "rejected",
-      ).length;
-
-      const missingPlaylistItemIdCount =
-        selectedTasks.length - deletableTasks.length;
-
-      let refreshFailed = false;
-
-      try {
-        await refreshPlaylist();
-      } catch {
-        refreshFailed = true;
-        removeTasks(successfullyDeletedTaskIds);
-      }
-
-      setSelectedTaskIds(new Set());
-      setShowDeleteSelectedDialog(false);
-
-      if (
-        failedCount > 0 ||
-        missingPlaylistItemIdCount > 0
-      ) {
-        onShowToast(
-          "일부 과업을 삭제하지 못했습니다.",
-        );
-        return;
-      }
-
-      if (refreshFailed) {
-        onShowToast(
-          "과업은 삭제되었지만 목록을 새로 불러오지 못했습니다.",
-        );
-        return;
-      }
-
-      onShowToast("재생 목록에서 삭제되었습니다.");
-    } catch {
-      setSelectedTaskIds(new Set());
-      setShowDeleteSelectedDialog(false);
-
-      onShowToast(
-        "과업 플레이리스트 삭제에 실패했습니다.",
-      );
-    } finally {
-      setDeletingSelectedTasks(false);
-    }
-  };
-
-  const handleSelectAll = () => {
-    if (playlistMutationInProgress) {
-      return;
-    }
-
-    setSelectedTaskIds(
-      new Set(filteredTasks.map((task) => task.id)),
-    );
-  };
+  const {
+    sensors,
+    draggingDisabled,
+    handleDragStart,
+    handleDragCancel,
+    handleDragEnd,
+    consumeIgnoredTaskClick,
+  } = usePlaylistReorder({
+    playlist,
+    draggingAllowed: filter === "all",
+    deletingSelectedTasks,
+    showDeleteSelectedDialog,
+    savingOrder,
+    setSavingOrder,
+    onShowToast,
+  });
 
   const handleFilterChange = (
     nextFilter: PlaylistFilter,
   ) => {
     setFilter(nextFilter);
-    setSelectedTaskIds(new Set());
-    setShowDeleteSelectedDialog(false);
+    resetSelection();
   };
 
   const handleSelectTask = (taskId: string) => {
+    const ignoredTaskClick = consumeIgnoredTaskClick();
+
     if (
       playlistMutationInProgress ||
-      ignoreTaskClickRef.current
+      ignoredTaskClick
     ) {
-      ignoreTaskClickRef.current = false;
       return;
     }
 
     selectTask(taskId);
-    setSelectedTaskIds(new Set());
+    resetSelection();
     onOpenChange(false);
-  };
-
-  const handleDragStart = () => {
-    if (draggingDisabled) {
-      return;
-    }
-
-    ignoreTaskClickRef.current = true;
-  };
-
-  const handleDragCancel = () => {
-
-    window.setTimeout(() => {
-      ignoreTaskClickRef.current = false;
-    }, 0);
-  };
-
-  const handleDragEnd = async (
-    event: DragEndEvent,
-  ) => {
-
-    const { active, over } = event;
-
-    if (
-      draggingDisabled ||
-      !over ||
-      active.id === over.id
-    ) {
-      window.setTimeout(() => {
-        ignoreTaskClickRef.current = false;
-      }, 0);
-
-      return;
-    }
-
-    const previousPlaylist = [...playlist];
-
-    reorderTask(
-      String(active.id),
-      String(over.id),
-    );
-
-    const nextPlaylist =
-      usePlaylistStore.getState().playlist;
-
-    setSavingOrder(true);
-
-    try {
-      const payload =
-        createPlaylistOrderRequest(nextPlaylist);
-
-      await updatePlaylistOrder(payload);
-
-      onShowToast(
-        "재생 목록 순서가 변경되었습니다.",
-      );
-    } catch {
-      try {
-        await refreshPlaylist();
-      } catch {
-        replacePlaylist(previousPlaylist);
-      }
-
-      onShowToast(
-        "재생 목록 순서 변경에 실패했습니다.",
-      );
-    } finally {
-      setSavingOrder(false);
-
-      window.setTimeout(() => {
-        ignoreTaskClickRef.current = false;
-      }, 0);
-    }
   };
 
   const handleSheetClick = (
@@ -594,7 +214,7 @@ export function PlaylistBottomSheet({
         {open && (
           <div className="flex h-[calc(100%-34px)] flex-col px-5 pb-5">
             <div className="flex shrink-0 gap-2 overflow-x-auto pb-3">
-              {FILTERS.map((item) => {
+              {PLAYLIST_FILTERS.map((item) => {
                 const active = filter === item.id;
 
                 return (
@@ -641,7 +261,7 @@ export function PlaylistBottomSheet({
               ) : (
                 <button
                   type="button"
-                  onClick={handleSelectAll}
+                  onClick={() => selectAll(filteredTasks)}
                   disabled={
                     filteredTasks.length === 0 ||
                     playlistMutationInProgress
@@ -672,7 +292,7 @@ export function PlaylistBottomSheet({
                   >
                     <ul className="flex flex-col gap-3">
                       {filteredTasks.map((task) => (
-                        <PlaylistTaskRow
+                        <PlaylistTaskCard
                           key={task.id}
                           task={task}
                           selected={validSelectedTaskIds.has(
@@ -688,7 +308,7 @@ export function PlaylistBottomSheet({
                             handleSelectTask(task.id)
                           }
                           onToggle={() =>
-                            handleToggleTask(task.id)
+                            toggleTask(task.id)
                           }
                         />
                       ))}
@@ -719,7 +339,7 @@ export function PlaylistBottomSheet({
             setShowDeleteSelectedDialog(false);
           }
         }}
-        onConfirm={handleDeleteSelected}
+        onConfirm={deleteSelected}
       />
     </>
   );

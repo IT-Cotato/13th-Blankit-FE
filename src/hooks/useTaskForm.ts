@@ -1,0 +1,175 @@
+import { useRef, useState } from "react";
+import { flushSync } from "react-dom";
+
+import {
+  createTask,
+  getTask,
+  getTaskFormOptions,
+  updateTask as updateTaskApi,
+} from "@/api/tasks";
+import { getTaskErrorMessage } from "@/utils/taskError";
+
+import type { TaskFormHandle } from "@/components/task-create/TaskForm";
+import type {
+  TaskCreateRequest,
+  TaskDetailResponse,
+  TaskFormOptionsResponse,
+  TaskUpdateRequest,
+} from "@/types/taskApi";
+
+interface UseTaskFormOptions {
+  selectedTaskId: number | null;
+  clearSelectedTask: () => void;
+  notifyTaskChanged: () => void;
+  showToast: (message: string) => void;
+}
+
+export function useTaskForm({
+  selectedTaskId,
+  clearSelectedTask,
+  notifyTaskChanged,
+  showToast,
+}: UseTaskFormOptions) {
+  const taskFormRef = useRef<TaskFormHandle>(null);
+
+  const [editingTask, setEditingTask] =
+    useState<TaskDetailResponse | null>(null);
+  const [loadingTaskDetail, setLoadingTaskDetail] =
+    useState(false);
+  const [taskTitle, setTaskTitle] = useState("");
+  const [isComposerOpen, setIsComposerOpen] =
+    useState(false);
+  const [taskFormOptions, setTaskFormOptions] =
+    useState<TaskFormOptionsResponse | null>(null);
+  const [openingComposer, setOpeningComposer] =
+    useState(false);
+
+  const openComposer = async () => {
+    if (openingComposer) {
+      return;
+    }
+
+    try {
+      setOpeningComposer(true);
+
+      const formOptions = await getTaskFormOptions();
+
+      flushSync(() => {
+        setTaskFormOptions(formOptions);
+        setEditingTask(null);
+        clearSelectedTask();
+        setTaskTitle("");
+        setIsComposerOpen(true);
+      });
+
+      taskFormRef.current?.focus();
+    } catch (error) {
+      console.error(error);
+
+      showToast(
+        getTaskErrorMessage(error) ??
+          "과업 등록 정보를 불러오지 못했습니다.",
+      );
+    } finally {
+      setOpeningComposer(false);
+    }
+  };
+
+  const closeComposer = () => {
+    setIsComposerOpen(false);
+    setEditingTask(null);
+    setTaskTitle("");
+  };
+
+  const completeCreate = async (
+    request: TaskCreateRequest,
+  ) => {
+    try {
+      await createTask(request);
+
+      notifyTaskChanged();
+      closeComposer();
+      showToast("과업 추가가 완료되었습니다.");
+    } catch (error) {
+      console.error(error);
+
+      showToast(
+        getTaskErrorMessage(error) ??
+          "과업 추가에 실패했습니다.",
+      );
+    }
+  };
+
+  const editSelectedTask = async () => {
+    if (
+      selectedTaskId === null ||
+      loadingTaskDetail
+    ) {
+      return;
+    }
+
+    try {
+      setLoadingTaskDetail(true);
+
+      const [taskDetail, formOptions] = await Promise.all([
+        getTask(selectedTaskId),
+        getTaskFormOptions(),
+      ]);
+
+      flushSync(() => {
+        clearSelectedTask();
+        setEditingTask(taskDetail);
+        setTaskFormOptions(formOptions);
+        setTaskTitle(taskDetail.title);
+        setIsComposerOpen(true);
+      });
+
+      taskFormRef.current?.focus();
+    } catch (error) {
+      console.error(error);
+
+      showToast(
+        getTaskErrorMessage(error) ??
+          "과업 정보를 불러오지 못했습니다.",
+      );
+    } finally {
+      setLoadingTaskDetail(false);
+    }
+  };
+
+  const updateTask = async (
+    taskId: number,
+    request: TaskUpdateRequest,
+  ) => {
+    try {
+      await updateTaskApi(taskId, request);
+
+      closeComposer();
+      notifyTaskChanged();
+      showToast("수정이 완료되었습니다.");
+    } catch (error) {
+      console.error(error);
+
+      showToast(
+        getTaskErrorMessage(error) ??
+          "과업 수정에 실패했습니다.",
+      );
+    }
+  };
+
+  return {
+    taskFormOptions,
+    openingComposer,
+    loadingTaskDetail,
+    editingTask,
+    taskTitle,
+    isComposerOpen,
+    taskFormRef,
+    setTaskTitle,
+    openComposer,
+    closeComposer,
+    completeCreate,
+    editSelectedTask,
+    updateTask,
+  };
+}
