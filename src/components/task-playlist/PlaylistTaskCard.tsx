@@ -61,23 +61,17 @@ export function PlaylistTaskCard({
         disabled={interactionDisabled}
         onClick={onSelectTask}
         aria-label={`${task.title} 과업 시작`}
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-black-850"
+        className="flex min-w-0 flex-1 items-center gap-3 text-left"
       >
-        <img
-          src={task.categoryIcon}
-          alt=""
-          className="h-5 w-5"
-        />
-      </button>
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black-850">
+          <img
+            src={task.categoryIcon}
+            alt=""
+            className="h-5 w-5"
+          />
+        </span>
 
-      <button
-        type="button"
-        disabled={interactionDisabled}
-        onClick={onSelectTask}
-        aria-label={`${task.title} 과업 시작`}
-        className="min-w-0 flex-1 text-left"
-      >
-        <span className="block truncate text-[13px] font-semibold text-black-200">
+        <span className="block min-w-0 flex-1 truncate text-[13px] font-semibold text-black-200">
           {task.title}
         </span>
       </button>

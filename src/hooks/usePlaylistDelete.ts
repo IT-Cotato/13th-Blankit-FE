@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { deletePlaylistItem } from "@/api/playlist";
 import { usePlaylistRefresh } from "@/hooks/usePlaylistRefresh";
@@ -25,6 +25,7 @@ export function usePlaylistDelete({
     (state) => state.removeTasks,
   );
   const { refreshPlaylist } = usePlaylistRefresh();
+  const deleteInFlightRef = useRef(false);
 
   const [selectedTaskIds, setSelectedTaskIds] = useState<
     Set<string>
@@ -80,7 +81,10 @@ export function usePlaylistDelete({
   };
 
   const deleteSelected = async () => {
-    if (playlistMutationInProgress) {
+    if (
+      playlistMutationInProgress ||
+      deleteInFlightRef.current
+    ) {
       return;
     }
 
@@ -106,6 +110,7 @@ export function usePlaylistDelete({
       return;
     }
 
+    deleteInFlightRef.current = true;
     setDeletingSelectedTasks(true);
 
     try {
@@ -142,7 +147,9 @@ export function usePlaylistDelete({
         missingPlaylistItemIdCount > 0
       ) {
         onShowToast(
-          "일부 과업을 삭제하지 못했습니다.",
+          refreshFailed
+            ? "일부 과업을 삭제하지 못했고 목록도 새로 불러오지 못했습니다."
+            : "일부 과업을 삭제하지 못했습니다.",
         );
         return;
       }
@@ -161,6 +168,7 @@ export function usePlaylistDelete({
         "과업 플레이리스트 삭제에 실패했습니다.",
       );
     } finally {
+      deleteInFlightRef.current = false;
       setDeletingSelectedTasks(false);
     }
   };
