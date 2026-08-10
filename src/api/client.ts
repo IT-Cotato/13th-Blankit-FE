@@ -5,6 +5,7 @@ import { useAuthStore } from "@/store/authStore";
 const REISSUE_ENDPOINT_PATH = "/api/auth/reissue";
 const LOGIN_ENDPOINT_PATH = "/api/auth/login";
 const SIGNUP_ENDPOINT_PATH = "/api/auth/signup";
+const LOGOUT_ENDPOINT_PATH = "/api/auth/logout";
 
 // 이 엔드포인트들의 401은 "세션 만료"가 아니라 "정상적인 인증 시도/확인 결과"이므로
 // 자동 재발급/강제 로그아웃 대상에서 제외해야 함
@@ -12,6 +13,7 @@ const AUTH_FLOW_ENDPOINT_PATHS = [
     REISSUE_ENDPOINT_PATH,
     LOGIN_ENDPOINT_PATH,
     SIGNUP_ENDPOINT_PATH,
+    LOGOUT_ENDPOINT_PATH,
 ];
 
 export const apiClient = axios.create({

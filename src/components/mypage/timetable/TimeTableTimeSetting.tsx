@@ -1,6 +1,8 @@
 import { useState } from "react";
 
 import { useTimeTableStore } from "@/store/useTimeTableStore";
+import { updateTimetableSettings } from "@/api/mypage/timetable";
+import { formatTimetableSettingHour } from "@/utils/timetableApiMapper";
 
 const TIME_OPTIONS = Array.from(
   { length: 25 },
@@ -92,6 +94,17 @@ export function TimeTableTimeSetting() {
   const startTime = `${String(startHour).padStart(2, "0")}:00`;
   const endTime = `${String(endHour).padStart(2, "0")}:00`;
 
+  const saveTimeRange = async (nextStartHour: number, nextEndHour: number) => {
+    try {
+      await updateTimetableSettings({
+        startTime: formatTimetableSettingHour(nextStartHour),
+        endTime: formatTimetableSettingHour(nextEndHour),
+      });
+    } catch (error) {
+      console.error("시간표 표시 범위 수정 API 호출에 실패했습니다.", error);
+    }
+  };
+
   return (
     <section className="flex w-full flex-col items-start">
       <h2 className="w-full flex-1 text-left text-base font-semibold leading-[150%] tracking-[-0.24px] text-black-100">
@@ -114,7 +127,12 @@ export function TimeTableTimeSetting() {
               )
             }
             onChange={(time) => {
-              setStartHour(Number(time.slice(0, 2)));
+              const nextStartHour = Number(time.slice(0, 2));
+              const nextEndHour = nextStartHour >= endHour
+                ? Math.min(24, nextStartHour + 1)
+                : endHour;
+              setStartHour(nextStartHour);
+              void saveTimeRange(nextStartHour, nextEndHour);
               setOpenPicker(null);
             }}
           />
@@ -131,7 +149,12 @@ export function TimeTableTimeSetting() {
               )
             }
             onChange={(time) => {
-              setEndHour(Number(time.slice(0, 2)));
+              const nextEndHour = Number(time.slice(0, 2));
+              const nextStartHour = nextEndHour <= startHour
+                ? Math.max(0, nextEndHour - 1)
+                : startHour;
+              setEndHour(nextEndHour);
+              void saveTimeRange(nextStartHour, nextEndHour);
               setOpenPicker(null);
             }}
           />

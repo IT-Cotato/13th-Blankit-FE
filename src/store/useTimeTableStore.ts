@@ -17,6 +17,7 @@ type TimeTableState = {
   endHour: number;
   setStartHour: (hour: number) => void;
   setEndHour: (hour: number) => void;
+  setEntries: (entries: TimeTableEntry[]) => void;
   addEntries: (entries: TimeTableEntry[]) => void;
   replaceSchedule: (scheduleId: string, entries: TimeTableEntry[]) => void;
   removeSchedule: (scheduleId: string) => void;
@@ -37,6 +38,7 @@ export const useTimeTableStore = create<TimeTableState>((set) => ({
       startHour: hour <= state.startHour ? Math.max(0, hour - 1) : state.startHour,
       endHour: hour,
     })),
+  setEntries: (entries) => set({ entries }),
   addEntries: (entries) =>
     set((state) => ({ entries: [...state.entries, ...entries] })),
   replaceSchedule: (scheduleId, entries) =>

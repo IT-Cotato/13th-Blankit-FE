@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { MyPageDetailTopBar } from "@/components/mypage/MyPageDetailTopBar";
@@ -8,6 +8,8 @@ import {
 } from "@/components/mypage/priority/PriorityLevelTabs";
 import { PriorityTaskCard } from "@/components/mypage/priority/PriorityTaskCard";
 import { mockPriorityTasks } from "@/mocks/priorityTasks";
+import { getPriorityTasks, updateTaskStar } from "@/api/mypage/priority";
+import type { PriorityTask } from "@/types/priority";
 
 const priorityOrder = {
   HIGH: 0,
@@ -17,7 +19,8 @@ const priorityOrder = {
 
 export function PrioritySetting() {
   const navigate = useNavigate();
-  const [tasks, setTasks] = useState(mockPriorityTasks);
+  const [tasks, setTasks] = useState<PriorityTask[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPriority, setSelectedPriority] =
     useState<PriorityFilter>("ALL");
@@ -34,14 +37,46 @@ export function PrioritySetting() {
         : 0,
     );
 
-  const handleStarToggle = (taskId: number) => {
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadPriorityTasks = async () => {
+      try {
+        const priorityTasks = await getPriorityTasks();
+        if (!cancelled) setTasks(priorityTasks);
+      } catch (error) {
+        console.error("우선순위 과업을 불러오지 못해 목 데이터를 표시합니다.", error);
+        if (!cancelled) setTasks(mockPriorityTasks);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    void loadPriorityTasks();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleStarToggle = async (taskId: number) => {
+    const task = tasks.find((item) => item.taskId === taskId);
+    if (!task) return;
+
+    const nextIsStarred = !task.isStarred;
     setTasks((currentTasks) =>
       currentTasks.map((task) =>
         task.taskId === taskId
-          ? { ...task, isStarred: !task.isStarred }
+          ? { ...task, isStarred: nextIsStarred }
           : task,
       ),
     );
+
+    try {
+      await updateTaskStar(taskId, nextIsStarred);
+    } catch (error) {
+      console.error("별표 변경에 실패해 목 데이터를 표시합니다.", error);
+      setTasks(mockPriorityTasks);
+    }
   };
 
   return (
@@ -121,9 +156,15 @@ export function PrioritySetting() {
             />
           ))}
 
-          {filteredTasks.length === 0 && (
+          {!isLoading && filteredTasks.length === 0 && (
             <p className="text-center text-sm font-medium leading-[21px] tracking-[-0.21px] text-black-100">
               검색 결과가 없습니다.
+            </p>
+          )}
+
+          {isLoading && (
+            <p role="status" className="text-center text-sm font-medium text-black-600">
+              우선순위 과업을 불러오는 중입니다.
             </p>
           )}
         </section>
