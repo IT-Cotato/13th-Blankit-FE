@@ -1,9 +1,10 @@
 type LogoutModalProps = {
   onCancel: () => void;
   onConfirm: () => void;
+  isLoggingOut?: boolean;
 };
 
-export function LogoutModal({ onCancel, onConfirm }: LogoutModalProps) {
+export function LogoutModal({ onCancel, onConfirm, isLoggingOut = false }: LogoutModalProps) {
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-5"
@@ -30,6 +31,7 @@ export function LogoutModal({ onCancel, onConfirm }: LogoutModalProps) {
           <button
             type="button"
             onClick={onCancel}
+            disabled={isLoggingOut}
             className="flex h-[41px] min-w-0 flex-1 basis-0 items-center justify-center gap-2.5 rounded-md bg-black-800 px-5 py-2.5 text-center text-sm font-medium leading-[21px] tracking-[-0.21px] text-black-600"
           >
             취소
@@ -37,6 +39,8 @@ export function LogoutModal({ onCancel, onConfirm }: LogoutModalProps) {
           <button
             type="button"
             onClick={onConfirm}
+            disabled={isLoggingOut}
+            aria-busy={isLoggingOut}
             className="flex h-[41px] min-w-0 flex-1 basis-0 items-center justify-center gap-2.5 rounded-md bg-green-500 px-5 py-2.5 text-center text-sm font-semibold leading-[21px] tracking-[-0.21px] text-black-900"
           >
             확인

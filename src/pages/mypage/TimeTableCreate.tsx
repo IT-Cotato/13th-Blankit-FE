@@ -8,6 +8,11 @@ import {
   useTimeTableStore,
   type TimeTableEntry,
 } from "@/store/useTimeTableStore";
+import { createTimetableEntry } from "@/api/mypage/timetable";
+import {
+  mapTimetableRequest,
+  mapTimetableResponse,
+} from "@/utils/timetableApiMapper";
 
 type DraftEntry = Omit<TimeTableEntry, "id">;
 
@@ -15,23 +20,36 @@ export function TimeTableCreate() {
   const navigate = useNavigate();
   const addEntries = useTimeTableStore((state) => state.addEntries);
   const savedEntries = useTimeTableStore((state) => state.entries);
+  const startHour = useTimeTableStore((state) => state.startHour);
   const [draftEntries, setDraftEntries] = useState<DraftEntry[]>([]);
   const [isEntrySheetOpen, setIsEntrySheetOpen] = useState(false);
 
-  const handleComplete = (details: {
+  const handleComplete = async (details: {
     title: string;
     place: string;
     color: string;
   }) => {
-    const scheduleId = `${Date.now()}`;
-    addEntries(
-      draftEntries.map((entry, index) => ({
+    const localEntries = draftEntries.map((entry, index) => {
+      const scheduleId = `${Date.now()}-${index}`;
+      return {
         ...entry,
         ...details,
         scheduleId,
-        id: `${scheduleId}-${index}`,
-      })),
-    );
+        id: scheduleId,
+      };
+    });
+
+    try {
+      const createdEntries = await Promise.all(
+        localEntries.map((entry) =>
+          createTimetableEntry(mapTimetableRequest(entry, startHour)),
+        ),
+      );
+      addEntries(createdEntries.map((item) => mapTimetableResponse(item, startHour)));
+    } catch (error) {
+      console.error("시간표 추가 API 호출에 실패해 로컬 데이터를 표시합니다.", error);
+      addEntries(localEntries);
+    }
     navigate("/mypage/timetable");
   };
 

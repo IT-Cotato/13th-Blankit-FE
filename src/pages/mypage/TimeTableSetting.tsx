@@ -4,12 +4,18 @@ import { MyPageDetailTopBar } from "@/components/mypage/MyPageDetailTopBar";
 import { TimeTableDataSetting } from "@/components/mypage/timetable/TimeTableDataSetting";
 import { TimeTableTimeSetting } from "@/components/mypage/timetable/TimeTableTimeSetting";
 import { useTimeTableStore } from "@/store/useTimeTableStore";
+import { resetTimetable } from "@/api/mypage/timetable";
 
 export function TimeTableSetting() {
   const navigate = useNavigate();
   const resetTimeTable = useTimeTableStore((state) => state.resetTimeTable);
 
-  const handleReset = () => {
+  const handleReset = async () => {
+    try {
+      await resetTimetable();
+    } catch (error) {
+      console.error("시간표 초기화 API 호출에 실패했습니다.", error);
+    }
     resetTimeTable();
     navigate("/mypage/timetable", { replace: true });
   };

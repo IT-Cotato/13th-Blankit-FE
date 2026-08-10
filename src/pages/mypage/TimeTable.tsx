@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { TopBarIconButton } from "@/components/layout/top-bar/TopBarIconButton";
@@ -8,6 +8,15 @@ import { TimeTableDetailSheet } from "@/components/mypage/timetable/TimeTableDet
 import { TimeTableEntrySheet } from "@/components/mypage/timetable/TimeTableEntrySheet";
 import { WeeklyTimeTable } from "@/components/mypage/timetable/WeeklyTimeTable";
 import { useTimeTableStore, type TimeTableEntry } from "@/store/useTimeTableStore";
+import {
+  deleteTimetableEntry,
+  getTimetable,
+  updateTimetableEntry,
+} from "@/api/mypage/timetable";
+import {
+  mapTimetableRequest,
+  mapTimetableResponse,
+} from "@/utils/timetableApiMapper";
 
 type ActionIconProps = {
   src: string;
@@ -30,6 +39,7 @@ export function TimeTable() {
   const startHour = useTimeTableStore((state) => state.startHour);
   const removeSchedule = useTimeTableStore((state) => state.removeSchedule);
   const replaceSchedule = useTimeTableStore((state) => state.replaceSchedule);
+  const setEntries = useTimeTableStore((state) => state.setEntries);
   const [selectedEntry, setSelectedEntry] = useState<TimeTableEntry | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
@@ -42,6 +52,26 @@ export function TimeTable() {
   const selectedEntries = selectedScheduleId
     ? entries.filter((entry) => (entry.scheduleId ?? entry.id) === selectedScheduleId)
     : [];
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadTimetable = async () => {
+      try {
+        const timetable = await getTimetable();
+        if (!cancelled) {
+          setEntries(timetable.map((item) => mapTimetableResponse(item, startHour)));
+        }
+      } catch (error) {
+        console.error("시간표를 불러오지 못해 기존 데이터를 표시합니다.", error);
+      }
+    };
+
+    void loadTimetable();
+    return () => {
+      cancelled = true;
+    };
+  }, [setEntries, startHour]);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-black-900 text-black-100">
@@ -101,8 +131,15 @@ export function TimeTable() {
       {isDeleteModalOpen && (
         <TimeTableDeleteModal
           onCancel={() => setIsDeleteModalOpen(false)}
-          onConfirm={() => {
-            if (selectedScheduleId) removeSchedule(selectedScheduleId);
+          onConfirm={async () => {
+            if (selectedScheduleId) {
+              try {
+                await deleteTimetableEntry(Number(selectedScheduleId));
+              } catch (error) {
+                console.error("시간표 삭제 API 호출에 실패했습니다.", error);
+              }
+              removeSchedule(selectedScheduleId);
+            }
             setIsDeleteModalOpen(false);
             setSelectedEntry(null);
           }}
@@ -122,16 +159,23 @@ export function TimeTable() {
             color: selectedEntry.color ?? "#5BE478",
           }}
           onClose={() => setIsEditSheetOpen(false)}
-          onComplete={(details) => {
-            replaceSchedule(
-              selectedScheduleId,
-              editEntries.map((entry, index) => ({
+          onComplete={async (details) => {
+            const nextEntries = editEntries.map((entry, index) => ({
                 ...entry,
                 ...details,
                 scheduleId: selectedScheduleId,
                 id: `${selectedScheduleId}-${index}`,
-              })),
-            );
+              }));
+            try {
+              const updated = await updateTimetableEntry(
+                Number(selectedScheduleId),
+                mapTimetableRequest(nextEntries[0], startHour),
+              );
+              replaceSchedule(selectedScheduleId, [mapTimetableResponse(updated, startHour)]);
+            } catch (error) {
+              console.error("시간표 수정 API 호출에 실패했습니다.", error);
+              replaceSchedule(selectedScheduleId, nextEntries);
+            }
             setIsEditSheetOpen(false);
             setSelectedEntry(null);
           }}
