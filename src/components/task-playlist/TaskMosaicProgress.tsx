@@ -2,7 +2,8 @@ import { getTaskMosaicState } from "@/utils/taskTimer";
 
 interface TaskMosaicProgressProps {
   elapsedSeconds: number;
-  estimatedMinutes: number;
+  recommendedMinutes: number | null;
+  isLoadingRecommendedMinutes: boolean;
 }
 
 const MOSAIC_SLOT_COUNT = 100;
@@ -24,32 +25,48 @@ function getMosaicSlotColorClassName(
 
 export function TaskMosaicProgress({
   elapsedSeconds,
-  estimatedMinutes,
+  recommendedMinutes,
+  isLoadingRecommendedMinutes,
 }: TaskMosaicProgressProps) {
-  const estimatedSeconds = Math.max(
+  const hasRecommendedMinutes =
+    recommendedMinutes !== null;
+  const safeRecommendedMinutes =
+    recommendedMinutes ?? 0;
+  const recommendedSeconds = Math.max(
     0,
-    estimatedMinutes * 60,
+    safeRecommendedMinutes * 60,
   );
 
   const currentSeconds = Math.min(
     Math.max(0, elapsedSeconds),
-    estimatedSeconds,
+    recommendedSeconds,
   );
 
   const { completedSlots, recommendedSlots } =
-    getTaskMosaicState(
-      elapsedSeconds,
-      estimatedMinutes,
-      MOSAIC_SLOT_COUNT,
-    );
+    !hasRecommendedMinutes
+    ? { completedSlots: 0, recommendedSlots: 0 }
+    : getTaskMosaicState(
+        elapsedSeconds,
+        safeRecommendedMinutes,
+        MOSAIC_SLOT_COUNT,
+      );
 
   return (
     <div
       role="progressbar"
-      aria-label="현재 과업 진행 시간"
+      aria-label="플레이리스트 누적 진행 시간"
       aria-valuemin={0}
-      aria-valuemax={estimatedSeconds}
-      aria-valuenow={currentSeconds}
+      aria-valuemax={
+        hasRecommendedMinutes
+          ? recommendedSeconds
+          : undefined
+      }
+      aria-valuenow={
+        hasRecommendedMinutes
+          ? currentSeconds
+          : undefined
+      }
+      aria-busy={isLoadingRecommendedMinutes}
       className="grid w-full max-w-[222px] grid-cols-10 gap-2"
     >
       {Array.from(

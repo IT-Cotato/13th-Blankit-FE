@@ -1,8 +1,15 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { CategoryIconBadge } from "@/components/category/CategoryIconBadge";
 import { useCurrentTaskTimer } from "@/hooks/useCurrentTaskTimer";
-import { getTaskCombination } from "@/mocks/taskCombinations";
-import { getCombinationAccentClassName } from "@/utils/taskCombinationCategories";
+import { useTaskSession } from "@/hooks/useTaskSession";
+import { usePlaylistStore } from "@/store/usePlaylistStore";
+import {
+  getMissingTaskIdMessage,
+  shouldRestoreTimerFromSession,
+  updateTimerWithSession,
+} from "@/utils/taskSessionTimer";
 import { formatTimer } from "@/utils/taskTimer";
 
 import type { PlaylistTask } from "@/types/taskCombination";
@@ -11,31 +18,82 @@ import { TaskTimerToggleIcon } from "./TaskTimerToggleIcon";
 
 interface CurrentTaskMiniPlayerProps {
   task: PlaylistTask;
+  onShowToast: (message: string) => void;
 }
 
 export function CurrentTaskMiniPlayer({
   task,
+  onShowToast,
 }: CurrentTaskMiniPlayerProps) {
   const navigate = useNavigate();
-  const combination = getTaskCombination(
-    task.sourceMode ?? "",
+  const hasStarted = usePlaylistStore(
+    (state) => state.hasStarted,
   );
-  const accentClassName = combination
-    ? getCombinationAccentClassName(combination.accent)
-    : "";
+  const restoreTimerFromSession = usePlaylistStore(
+    (state) => state.restoreTimerFromSession,
+  );
   const {
     displayedElapsedSeconds,
     progress,
     isPlaying,
-    pauseCurrentTask,
     toggleTimer,
   } = useCurrentTaskTimer(
     task.estimatedMinutes,
   );
+  const {
+    session,
+    isLoadingSession,
+    isUpdatingSession,
+    changeSessionStatus,
+  } = useTaskSession(task.taskId ?? null);
+  const missingTaskIdMessage =
+    getMissingTaskIdMessage(task.taskId);
+
+  useEffect(() => {
+    if (!missingTaskIdMessage) {
+      return;
+    }
+
+    onShowToast(missingTaskIdMessage);
+  }, [missingTaskIdMessage, onShowToast]);
+
+  useEffect(() => {
+    if (
+      !session ||
+      !shouldRestoreTimerFromSession(hasStarted)
+    ) {
+      return;
+    }
+
+    restoreTimerFromSession(
+      session.elapsedTime,
+      session.status === "PLAYING",
+    );
+  }, [hasStarted, restoreTimerFromSession, session]);
 
   const handleOpenPlayer = () => {
-    pauseCurrentTask(Date.now());
     navigate("/task-playlist");
+  };
+
+  const handleToggleTimer = async () => {
+    if (
+      !session ||
+      isLoadingSession ||
+      isUpdatingSession
+    ) {
+      return;
+    }
+
+    try {
+      await updateTimerWithSession(
+        isPlaying ? "PAUSED" : "PLAYING",
+        displayedElapsedSeconds,
+        changeSessionStatus,
+        toggleTimer,
+      );
+    } catch {
+      return;
+    }
   };
 
   return (
@@ -72,17 +130,12 @@ export function CurrentTaskMiniPlayer({
           className="flex min-w-0 flex-1 items-center gap-4 text-left"
           aria-label={`${task.title} 플레이 화면으로 이동`}
         >
-          {combination ? (
-            <span
-              aria-hidden="true"
-              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[6px] ${accentClassName}`}
-            >
-              <img
-                src={combination.icon}
-                alt=""
-                className="h-[88%] w-[88%] object-contain"
-              />
-            </span>
+          {task.categoryIcon ? (
+            <CategoryIconBadge
+              icon={task.categoryIcon}
+              color={task.category.color}
+              size={40}
+            />
           ) : (
             <span
               aria-hidden="true"
@@ -92,7 +145,6 @@ export function CurrentTaskMiniPlayer({
 
           <span className="min-w-0 flex-1">
             <span className="block text-[15px] font-semibold text-black-300">
-              {formatTimer(displayedElapsedSeconds)} /{" "}
               {formatTimer(task.estimatedMinutes * 60)}
             </span>
             <span className="mt-1 block truncate text-[12px] font-medium text-black-600">
@@ -103,7 +155,14 @@ export function CurrentTaskMiniPlayer({
 
         <button
           type="button"
-          onClick={toggleTimer}
+          disabled={
+            !session ||
+            isLoadingSession ||
+            isUpdatingSession
+          }
+          onClick={() => {
+            void handleToggleTimer();
+          }}
           aria-label={isPlaying ? "과업 일시정지" : "과업 재생"}
           className="ml-4 flex h-12 w-12 shrink-0 items-center justify-center"
         >

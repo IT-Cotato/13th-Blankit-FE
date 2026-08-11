@@ -5,11 +5,16 @@ import type {
   PlaylistTimerState,
 } from "@/store/playlist/playlistTypes";
 
-export const EMPTY_PLAYLIST_TIMER_STATE = {
+export const EMPTY_CURRENT_TASK_TIMER_STATE = {
   elapsedSeconds: 0,
   startedAt: null,
   isPlaying: false,
   hasStarted: false,
+} as const;
+
+export const EMPTY_PLAYLIST_TIMER_STATE = {
+  ...EMPTY_CURRENT_TASK_TIMER_STATE,
+  accumulatedElapsedSeconds: 0,
 } as const;
 
 export const createPlaylistTimer: PlaylistStoreCreator<
@@ -17,6 +22,26 @@ export const createPlaylistTimer: PlaylistStoreCreator<
 > = (set, get) => ({
   ...EMPTY_PLAYLIST_TIMER_STATE,
   hasSeenCompletionTooltip: false,
+
+  restoreTimerFromSession: (
+    elapsedSeconds,
+    isPlaying,
+    now = Date.now(),
+  ) => {
+    const safeElapsedSeconds = Number.isFinite(
+      elapsedSeconds,
+    )
+      ? Math.max(0, Math.floor(elapsedSeconds))
+      : 0;
+
+    set({
+      elapsedSeconds: safeElapsedSeconds,
+      startedAt: isPlaying ? now : null,
+      isPlaying,
+      hasStarted:
+        isPlaying || safeElapsedSeconds > 0,
+    });
+  },
 
   playCurrentTask: (now = Date.now()) => {
     const state = get();

@@ -228,6 +228,7 @@ export function TaskRecommendationsPage({
                 <li key={task.taskId}>
                   <TaskChip
                     title={task.title}
+                    memo={task.memo}
                     priority={
                       task.priority
                     }

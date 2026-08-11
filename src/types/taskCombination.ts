@@ -16,6 +16,7 @@ export type CombinationAccent =
 export interface CombinationTask {
   id: string;
   title: string;
+  memo: string | null;
   priority: TaskPriority;
   status: TaskStatus;
   progressRate: number;

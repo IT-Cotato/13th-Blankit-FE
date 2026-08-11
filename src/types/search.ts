@@ -18,6 +18,7 @@ export type SearchHistoryParams = {
 export type SearchTask = {
   taskId: number;
   title: string;
+  memo: string | null;
   categoryId: number;
   categoryName: string;
   categoryColor: string;

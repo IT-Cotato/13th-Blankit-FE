@@ -8,6 +8,7 @@ import { FeedbackProgressSlider } from "./FeedbackProgressSlider";
 interface FeedbackStepRowProps {
   step: FeedbackStep;
   onTitleChange: (title: string) => void;
+  onTitleBlur: (title: string) => void;
   onProgressChange: (progress: number) => void;
   onDelete: () => void;
 }
@@ -15,6 +16,7 @@ interface FeedbackStepRowProps {
 export function FeedbackStepRow({
   step,
   onTitleChange,
+  onTitleBlur,
   onProgressChange,
   onDelete,
 }: FeedbackStepRowProps) {
@@ -116,6 +118,9 @@ export function FeedbackStepRow({
           value={step.title}
           onChange={(event) =>
             onTitleChange(event.target.value)
+          }
+          onBlur={(event) =>
+            onTitleBlur(event.currentTarget.value)
           }
           aria-label="단계 이름"
           placeholder="단계 이름"

@@ -18,7 +18,7 @@ export interface PlaylistTasksState {
   removeCombination: (modeId: CombinationModeId) => void;
   removeTasks: (taskIds: string[]) => void;
   clearPlaylist: () => void;
-  completeCurrentTask: () => void;
+  completeCurrentTask: (now?: number) => void;
   selectTask: (taskId: string) => void;
   reorderTask: (
     activeTaskId: string,
@@ -31,10 +31,16 @@ export interface PlaylistTasksState {
 
 export interface PlaylistTimerState {
   elapsedSeconds: number;
+  accumulatedElapsedSeconds: number;
   startedAt: number | null;
   isPlaying: boolean;
   hasStarted: boolean;
   hasSeenCompletionTooltip: boolean;
+  restoreTimerFromSession: (
+    elapsedSeconds: number,
+    isPlaying: boolean,
+    now?: number,
+  ) => void;
   playCurrentTask: (now?: number) => void;
   pauseCurrentTask: (now?: number) => void;
   dismissCompletionTooltip: () => void;
@@ -51,6 +57,14 @@ export interface PlaylistFeedbackState {
     taskId: string,
     progress: number,
   ) => void;
+  restoreFeedbackProgress: (
+    taskId: string,
+    progress: number,
+  ) => void;
+  replaceFeedbackSteps: (
+    taskId: string,
+    steps: FeedbackStep[],
+  ) => void;
   splitFeedbackIntoSteps: (taskId: string) => void;
   addFeedbackStep: (taskId: string) => void;
   updateFeedbackStep: (
@@ -59,7 +73,10 @@ export interface PlaylistFeedbackState {
     update: Partial<
       Pick<
         FeedbackStep,
-        "title" | "progress" | "progressTouched"
+        | "taskStepId"
+        | "title"
+        | "progress"
+        | "progressTouched"
       >
     >,
   ) => void;
@@ -69,6 +86,7 @@ export interface PlaylistFeedbackState {
   ) => void;
   completeFeedback: (
     taskId: string,
+    now?: number,
   ) => FeedbackCompletionResult | null;
 }
 
