@@ -164,14 +164,7 @@ export function TaskFeedbackSheet({
   const canComplete = canCompleteFeedback(draft);
 
   return (
-    <div
-      className="fixed inset-0 z-[55] flex items-end bg-black/60"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          void handleClose();
-        }
-      }}
-    >
+    <div className="fixed inset-0 z-[55] flex items-end bg-black/60">
       <section
         role="dialog"
         aria-modal="true"
