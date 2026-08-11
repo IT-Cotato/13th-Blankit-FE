@@ -150,6 +150,7 @@ export function TimeTableTimeWheel({
   const [endMinuteIndex, setEndMinuteIndex] = useState(
     Math.floor((initialEndMinutes % 60) / 5),
   );
+  const displayHourCount = Math.max(1, endHour - startHour);
   const selectedEndHour = hours[endHourIndex];
   const endMinuteOptions = selectedEndHour === 24 ? ["00"] : MINUTES;
 
@@ -173,7 +174,7 @@ export function TimeTableTimeWheel({
       dayIndex,
       startSlot: Math.max(0, Math.round((startMinutes - startHour * 60) / 5)),
       endSlot: Math.min(
-        hours.length * 12 - 1,
+        displayHourCount * 12 - 1,
         Math.round((safeEndMinutes - startHour * 60) / 5) - 1,
       ),
     });

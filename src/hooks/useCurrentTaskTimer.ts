@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
 import {
   getElapsedSeconds,
+  getPlaylistElapsedSeconds,
   getTaskProgress,
 } from "@/utils/taskTimer";
 
@@ -11,6 +12,9 @@ export function useCurrentTaskTimer(
 ) {
   const elapsedSeconds = usePlaylistStore(
     (state) => state.elapsedSeconds,
+  );
+  const accumulatedElapsedSeconds = usePlaylistStore(
+    (state) => state.accumulatedElapsedSeconds,
   );
   const startedAt = usePlaylistStore(
     (state) => state.startedAt,
@@ -46,6 +50,11 @@ export function useCurrentTaskTimer(
     isPlaying,
     now,
   );
+  const displayedPlaylistElapsedSeconds =
+    getPlaylistElapsedSeconds(
+      accumulatedElapsedSeconds,
+      displayedElapsedSeconds,
+    );
 
   const toggleTimer = () => {
     const actionNow = Date.now();
@@ -61,6 +70,7 @@ export function useCurrentTaskTimer(
 
   return {
     displayedElapsedSeconds,
+    displayedPlaylistElapsedSeconds,
     progress: getTaskProgress(
       displayedElapsedSeconds,
       estimatedMinutes,

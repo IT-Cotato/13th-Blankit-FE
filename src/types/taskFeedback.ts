@@ -1,5 +1,6 @@
 export interface FeedbackStep {
   id: string;
+  taskStepId?: number;
   title: string;
   progress: number;
   progressTouched: boolean;

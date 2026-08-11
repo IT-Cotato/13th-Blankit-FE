@@ -1,11 +1,4 @@
-const COLORS = [
-  "#FC5F5F",
-  "#FF9A33",
-  "#D3FB65",
-  "#5BE478",
-  "#B3BBFA",
-  "#ACB1B6",
-];
+import { TIMETABLE_COLORS } from "@/constants/timetable";
 
 type TimeTableColorPickerProps = {
   value: string;
@@ -23,7 +16,7 @@ export function TimeTableColorPicker({
       </legend>
 
       <div className="mt-2 flex w-full items-center justify-between">
-        {COLORS.map((color) => (
+        {TIMETABLE_COLORS.map((color) => (
           <button
             key={color}
             type="button"

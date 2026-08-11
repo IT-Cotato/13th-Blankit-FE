@@ -28,6 +28,7 @@ export interface PlaylistItemResponse {
   playlistItemId: number;
   taskId: number;
   title: string;
+  memo: string | null;
   categoryName: string;
   categoryColor: string;
   categoryIconKey: CategoryIconKey;

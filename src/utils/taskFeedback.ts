@@ -12,13 +12,14 @@ const DEFAULT_STEP_TITLES = [
 
 export function createFeedbackDraft(
   progress: number,
+  memo: string | null = null,
 ): TaskFeedbackDraft {
   const boundedProgress = Number.isFinite(progress)
     ? Math.min(100, Math.max(0, progress))
     : 0;
 
   return {
-    memo: "",
+    memo: memo?.trim() ?? "",
     progress: boundedProgress,
     progressTouched: false,
     steps: [],
@@ -61,6 +62,7 @@ export function appendFeedbackStep(
 
 export function canCompleteFeedback(
   draft: TaskFeedbackDraft,
+  hasSavedProgress = false,
 ) {
   const hasValidStepTitles = draft.steps.every(
     (step) => step.title.trim().length > 0,
@@ -69,14 +71,38 @@ export function canCompleteFeedback(
   const hasMemo = draft.memo.trim().length > 0;
 
   const hasProgress =
+    hasSavedProgress ||
     draft.progressTouched ||
-    draft.steps.some((step) => step.progressTouched);
+    draft.steps.some(
+      (step) => step.progressTouched,
+    );
 
-  return hasValidStepTitles && hasMemo && hasProgress;
+  return (
+    hasValidStepTitles &&
+    (hasMemo || hasProgress)
+  );
 }
 
 export function getFeedbackCompletionResult(
   playlistLength: number,
 ): FeedbackCompletionResult {
   return playlistLength > 1 ? "advanced" : "stayed";
+}
+
+export function restoreFeedbackProgress(
+  draft: TaskFeedbackDraft,
+  progress: number,
+): TaskFeedbackDraft {
+  return {
+    ...draft,
+    progress,
+  };
+}
+
+export async function getFeedbackCloseResult(
+  saveDraft: () => Promise<boolean>,
+) {
+  const saved = await saveDraft();
+
+  return saved ? "close" : "confirm-discard";
 }

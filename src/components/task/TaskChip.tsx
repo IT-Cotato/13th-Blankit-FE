@@ -16,6 +16,7 @@ import type {
 
 interface TaskChipBaseProps {
   title: string;
+  memo?: string | null;
   priority: TaskPriority;
   progressRate: number;
   status?: TaskStatus;
@@ -77,11 +78,14 @@ export function TaskChip(
 ) {
   const {
     title,
+    memo,
     priority,
     progressRate,
     status = "TODO",
     onClick,
   } = props;
+
+  const trimmedMemo = memo?.trim();
 
   const categoryPresentation =
     props.category !== undefined
@@ -135,6 +139,15 @@ export function TaskChip(
         >
           {title}
         </p>
+
+        {trimmedMemo && (
+          <p
+            data-task-memo
+            className="truncate text-[12px] font-medium leading-[150%] tracking-[-0.015em] text-black-650"
+          >
+            {trimmedMemo}
+          </p>
+        )}
       </div>
 
       {isDone ? (

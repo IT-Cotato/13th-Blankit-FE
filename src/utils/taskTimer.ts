@@ -34,6 +34,16 @@ export function getTaskProgress(
   return Math.min(100, progress);
 }
 
+export function getPlaylistElapsedSeconds(
+  accumulatedElapsedSeconds: number,
+  currentTaskElapsedSeconds: number,
+) {
+  return (
+    Math.max(0, Math.floor(accumulatedElapsedSeconds)) +
+    Math.max(0, Math.floor(currentTaskElapsedSeconds))
+  );
+}
+
 export function formatTimer(seconds: number) {
   const safeSeconds = Number.isFinite(seconds)
     ? Math.max(0, Math.floor(seconds))

@@ -345,6 +345,7 @@ function App() {
             task={
               currentPlaylistTask
             }
+            onShowToast={showToast}
           />
         )}
 

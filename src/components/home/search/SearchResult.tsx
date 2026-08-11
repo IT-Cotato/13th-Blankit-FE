@@ -60,6 +60,7 @@ export function SearchResult({
           <li key={task.taskId}>
             <TaskChip
               title={task.title}
+              memo={task.memo}
               progressRate={task.progressRate}
               priority={task.priority}
               status={task.status}

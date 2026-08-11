@@ -15,12 +15,22 @@ export async function getTimetable(): Promise<TimetableResponse[]> {
   return response.data.data;
 }
 
-export async function createTimetableEntry(
-  payload: TimetableRequest,
-): Promise<TimetableResponse> {
-  const response = await apiClient.post<ApiEnvelope<TimetableResponse>>(
+export async function createTimetableEntries(
+  payload: TimetableRequest[],
+): Promise<TimetableResponse[]> {
+  const response = await apiClient.post<ApiEnvelope<TimetableResponse[]>>(
     "/api/timetable",
     payload,
+  );
+  return response.data.data;
+}
+
+export async function importEverytimeTimetable(
+  url: string,
+): Promise<TimetableResponse[]> {
+  const response = await apiClient.post<ApiEnvelope<TimetableResponse[]>>(
+    "/api/timetable/import/everytime",
+    { url },
   );
   return response.data.data;
 }

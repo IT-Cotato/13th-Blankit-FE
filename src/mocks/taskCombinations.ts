@@ -53,6 +53,7 @@ export const taskCombinations = [
     tasks: [
       {
         id: "fire-1",
+        memo: null,
         title: "발표 자료 최종 수정",
         priority: "HIGH",
         status: "IN_PROGRESS",
@@ -65,6 +66,7 @@ export const taskCombinations = [
       },
       {
         id: "fire-2",
+        memo: null,
         title: "오늘 마감 보고서 제출",
         priority: "HIGH",
         status: "TODO",
@@ -86,6 +88,7 @@ export const taskCombinations = [
     tasks: [
       {
         id: "balance-1",
+        memo: "몇 페이지 몇 챕터까지 함",
         title: "물리 공부",
         priority: "HIGH",
         status: "IN_PROGRESS",
@@ -98,6 +101,7 @@ export const taskCombinations = [
       },
       {
         id: "balance-2",
+        memo: null,
         title: "책상 정리",
         priority: "LOW",
         status: "TODO",
@@ -119,6 +123,7 @@ export const taskCombinations = [
     tasks: [
       {
         id: "quick-try-1",
+        memo: null,
         title: "이메일 답장",
         priority: "MEDIUM",
         status: "TODO",
@@ -131,6 +136,7 @@ export const taskCombinations = [
       },
       {
         id: "quick-try-2",
+        memo: null,
         title: "주간 일정 확인",
         priority: "LOW",
         status: "TODO",
@@ -152,6 +158,7 @@ export const taskCombinations = [
     tasks: [
       {
         id: "get-it-done-1",
+        memo: null,
         title: "프로젝트 발표 준비",
         priority: "HIGH",
         status: "IN_PROGRESS",
@@ -164,6 +171,7 @@ export const taskCombinations = [
       },
       {
         id: "get-it-done-2",
+        memo: null,
         title: "포트폴리오 수정",
         priority: "MEDIUM",
         status: "IN_PROGRESS",

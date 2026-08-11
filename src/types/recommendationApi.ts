@@ -4,6 +4,7 @@ import type { TaskPriority } from "@/types/task";
 export interface RecommendedTaskItem {
   taskId: number;
   title: string;
+  memo: string | null;
   priority: TaskPriority;
   categoryColor: string;
   categoryIconKey: CategoryIconKey;
