@@ -16,8 +16,13 @@ import { TaskMosaicProgress } from "@/components/task-playlist/TaskMosaicProgres
 import { TaskPlayerHeader } from "@/components/task-playlist/TaskPlayerHeader";
 import { useCurrentTaskTimer } from "@/hooks/useCurrentTaskTimer";
 import { useTaskSession } from "@/hooks/useTaskSession";
+import { useTodayRecommendedMinutes } from "@/hooks/useTodayRecommendedMinutes";
 import { useToast } from "@/hooks/useToast";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
+import {
+  shouldRestoreTimerFromSession,
+  updateTimerWithSession,
+} from "@/utils/taskSessionTimer";
 import { formatTimer } from "@/utils/taskTimer";
 import { getTaskPlayerControls } from "@/utils/taskPlayerControls";
 
@@ -48,6 +53,10 @@ export function TaskPlaylistPage() {
     (state) => state.restoreTimerFromSession,
   );
 
+  const pauseCurrentTask = usePlaylistStore(
+    (state) => state.pauseCurrentTask,
+  );
+
   const [isBottomSheetOpen, setIsBottomSheetOpen] =
     useState(false);
 
@@ -69,9 +78,19 @@ export function TaskPlaylistPage() {
   } = useTaskSession(task?.taskId ?? null);
 
   const {
-    displayedElapsedSeconds,
+    displayedElapsedSeconds: currentTaskElapsedSeconds,
+    displayedPlaylistElapsedSeconds,
     isPlaying,
+    toggleTimer,
   } = useCurrentTaskTimer(task?.estimatedMinutes ?? 0);
+
+  const {
+    recommendedMinutes,
+    recommendationTimeError,
+  } = useTodayRecommendedMinutes();
+
+  const hasPlaylistStarted =
+    hasStarted || displayedPlaylistElapsedSeconds > 0;
 
   const controls = getTaskPlayerControls({
     isPlaying,
@@ -87,8 +106,18 @@ export function TaskPlaylistPage() {
   }, [sessionError, showFeedbackToast]);
 
   useEffect(() => {
-    if (!session) {
-      restoreTimerFromSession(0, false);
+    if (!recommendationTimeError) {
+      return;
+    }
+
+    showFeedbackToast(recommendationTimeError);
+  }, [recommendationTimeError, showFeedbackToast]);
+
+  useEffect(() => {
+    if (
+      !session ||
+      !shouldRestoreTimerFromSession(hasStarted)
+    ) {
       return;
     }
 
@@ -96,7 +125,7 @@ export function TaskPlaylistPage() {
       session.elapsedTime,
       session.status === "PLAYING",
     );
-  }, [restoreTimerFromSession, session]);
+  }, [hasStarted, restoreTimerFromSession, session]);
 
   const handleToggleTimer = async () => {
     if (
@@ -112,9 +141,11 @@ export function TaskPlaylistPage() {
       : "PLAYING";
 
     try {
-      await changeSessionStatus(
+      await updateTimerWithSession(
         nextStatus,
-        displayedElapsedSeconds,
+        currentTaskElapsedSeconds,
+        changeSessionStatus,
+        toggleTimer,
       );
     } catch {
       return;
@@ -146,12 +177,14 @@ export function TaskPlaylistPage() {
       const updatedSession =
         await changeSessionStatus(
           "PAUSED",
-          displayedElapsedSeconds,
+          currentTaskElapsedSeconds,
         );
 
       if (!updatedSession) {
         return;
       }
+
+      pauseCurrentTask(Date.now());
 
       setIsFeedbackOpen(true);
     } catch {
@@ -199,8 +232,8 @@ export function TaskPlaylistPage() {
 
       <div className="flex flex-col items-center pt-20">
         <TaskMosaicProgress
-          elapsedSeconds={displayedElapsedSeconds}
-          estimatedMinutes={task.estimatedMinutes}
+          elapsedSeconds={displayedPlaylistElapsedSeconds}
+          recommendedMinutes={recommendedMinutes}
         />
 
         <div className="grid w-full max-w-[280px] grid-cols-[52px_1fr_52px] items-center gap-4 pt-20">
@@ -238,10 +271,12 @@ export function TaskPlaylistPage() {
             )}
 
             <p className="whitespace-nowrap text-center text-[32px] font-bold text-black-100">
-              {hasStarted
-                ? formatTimer(displayedElapsedSeconds)
+              {hasPlaylistStarted
+                ? formatTimer(
+                    displayedPlaylistElapsedSeconds,
+                  )
                 : formatTimer(
-                    task.estimatedMinutes * 60,
+                    (recommendedMinutes ?? 0) * 60,
                   )}
             </p>
           </div>

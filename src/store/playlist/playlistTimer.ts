@@ -5,11 +5,16 @@ import type {
   PlaylistTimerState,
 } from "@/store/playlist/playlistTypes";
 
-export const EMPTY_PLAYLIST_TIMER_STATE = {
+export const EMPTY_CURRENT_TASK_TIMER_STATE = {
   elapsedSeconds: 0,
   startedAt: null,
   isPlaying: false,
   hasStarted: false,
+} as const;
+
+export const EMPTY_PLAYLIST_TIMER_STATE = {
+  ...EMPTY_CURRENT_TASK_TIMER_STATE,
+  accumulatedElapsedSeconds: 0,
 } as const;
 
 export const createPlaylistTimer: PlaylistStoreCreator<

@@ -3,6 +3,7 @@ import {
   selectPlaylistTask,
 } from "@/store/playlistSelection";
 import {
+  EMPTY_CURRENT_TASK_TIMER_STATE,
   EMPTY_PLAYLIST_TIMER_STATE,
 } from "@/store/playlist/playlistTimer";
 
@@ -23,7 +24,10 @@ export const createPlaylistTasks: PlaylistStoreCreator<
         state.playlist,
         playlist,
       )
-        ? EMPTY_PLAYLIST_TIMER_STATE
+        ? playlist.length === 0 ||
+          state.playlist.length === 0
+          ? EMPTY_PLAYLIST_TIMER_STATE
+          : EMPTY_CURRENT_TASK_TIMER_STATE
         : {}),
     }));
   },
@@ -66,7 +70,9 @@ export const createPlaylistTasks: PlaylistStoreCreator<
           state.playlist,
           playlist,
         )
-          ? EMPTY_PLAYLIST_TIMER_STATE
+          ? playlist.length === 0
+            ? EMPTY_PLAYLIST_TIMER_STATE
+            : EMPTY_CURRENT_TASK_TIMER_STATE
           : {}),
       };
     });
@@ -86,7 +92,9 @@ export const createPlaylistTasks: PlaylistStoreCreator<
           state.playlist,
           playlist,
         )
-          ? EMPTY_PLAYLIST_TIMER_STATE
+          ? playlist.length === 0
+            ? EMPTY_PLAYLIST_TIMER_STATE
+            : EMPTY_CURRENT_TASK_TIMER_STATE
           : {}),
       };
     });
@@ -100,10 +108,19 @@ export const createPlaylistTasks: PlaylistStoreCreator<
   },
 
   completeCurrentTask: () => {
-    set((state) => ({
-      playlist: state.playlist.slice(1),
-      ...EMPTY_PLAYLIST_TIMER_STATE,
-    }));
+    set((state) => {
+      const playlist = state.playlist.slice(1);
+
+      return {
+        playlist,
+        accumulatedElapsedSeconds:
+          playlist.length > 0
+            ? state.accumulatedElapsedSeconds +
+              state.elapsedSeconds
+            : 0,
+        ...EMPTY_CURRENT_TASK_TIMER_STATE,
+      };
+    });
   },
 
   selectTask: (taskId) => {
@@ -119,7 +136,7 @@ export const createPlaylistTasks: PlaylistStoreCreator<
 
       return {
         playlist,
-        ...EMPTY_PLAYLIST_TIMER_STATE,
+        ...EMPTY_CURRENT_TASK_TIMER_STATE,
       };
     });
   },
@@ -155,7 +172,7 @@ export const createPlaylistTasks: PlaylistStoreCreator<
           state.playlist,
           playlist,
         )
-          ? EMPTY_PLAYLIST_TIMER_STATE
+          ? EMPTY_CURRENT_TASK_TIMER_STATE
           : {}),
       };
     });

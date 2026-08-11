@@ -31,6 +31,7 @@ export interface PlaylistTasksState {
 
 export interface PlaylistTimerState {
   elapsedSeconds: number;
+  accumulatedElapsedSeconds: number;
   startedAt: number | null;
   isPlaying: boolean;
   hasStarted: boolean;

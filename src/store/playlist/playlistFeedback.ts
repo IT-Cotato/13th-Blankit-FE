@@ -1,5 +1,5 @@
 import {
-  EMPTY_PLAYLIST_TIMER_STATE,
+  EMPTY_CURRENT_TASK_TIMER_STATE,
 } from "@/store/playlist/playlistTimer";
 import {
   appendFeedbackStep,
@@ -238,7 +238,10 @@ export const createPlaylistFeedback: PlaylistStoreCreator<
                 ...current.playlist.slice(1),
               ],
         feedbackDrafts,
-        ...EMPTY_PLAYLIST_TIMER_STATE,
+        accumulatedElapsedSeconds:
+          current.accumulatedElapsedSeconds +
+          current.elapsedSeconds,
+        ...EMPTY_CURRENT_TASK_TIMER_STATE,
       };
     });
 
