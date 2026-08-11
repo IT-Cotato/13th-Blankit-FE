@@ -46,7 +46,7 @@ export function TaskActionSheet({
     },
   ];
   const bottomClassName = aboveBottomNavigation
-    ? "bottom-[calc(90px+env(safe-area-inset-bottom))]"
+    ? "bottom-[90px]"
     : "bottom-0";
 
   return (
@@ -74,6 +74,7 @@ export function TaskActionSheet({
               className="
                 flex h-[67px] min-w-0 flex-1
                 items-center justify-center
+                rounded-[6px]
                 p-2.5
                 text-[12px] font-medium text-black-900
                 active:bg-green-600

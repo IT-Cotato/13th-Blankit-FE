@@ -1,4 +1,5 @@
 import backIcon from "@/assets/icons/header/back-black-700.svg";
+import sadBunnyIcon from "@/assets/icons/sad-bunny.svg";
 
 import { CategoryChip } from "./CategoryChip";
 
@@ -9,8 +10,10 @@ interface CategoryListSheetProps {
   selectedCategoryId: number | null;
   editable: boolean;
   loading?: boolean;
+  draftCategoryName: string;
   onBack: () => void;
   onStartCreate: () => void;
+  onDraftCategoryNameChange: (name: string) => void;
   onToggleEdit: () => void;
   onSelect: (category: Category) => void;
   onStartUpdate: (category: Category) => void;
@@ -22,8 +25,10 @@ export function CategoryListSheet({
   selectedCategoryId,
   editable,
   loading = false,
+  draftCategoryName,
   onBack,
   onStartCreate,
+  onDraftCategoryNameChange,
   onToggleEdit,
   onSelect,
   onStartUpdate,
@@ -50,15 +55,29 @@ export function CategoryListSheet({
           />
         </button>
 
-        <button
-          type="button"
-          aria-label="카테고리 추가하기"
-          disabled={loading}
-          onClick={onStartCreate}
-          className="h-11 min-w-0 flex-1 rounded-[8px] bg-black-800 px-4 text-left text-[16px] text-black-500 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          카테고리 추가하기
-        </button>
+        <input
+          data-autofocus
+          autoFocus
+          type="text"
+          enterKeyHint="next"
+          maxLength={30}
+          aria-label="카테고리명"
+          placeholder="카테고리 추가하기"
+          value={draftCategoryName}
+          onChange={(event) =>
+            onDraftCategoryNameChange(event.target.value)
+          }
+          onKeyDown={(event) => {
+            if (
+              event.key === "Enter" &&
+              draftCategoryName.trim().length > 0
+            ) {
+              event.preventDefault();
+              onStartCreate();
+            }
+          }}
+          className="h-11 min-w-0 flex-1 rounded-[8px] bg-black-800 px-4 text-left text-[16px] text-black-100 outline-none placeholder:text-black-500"
+        />
 
         <button
           type="button"
@@ -74,6 +93,19 @@ export function CategoryListSheet({
         <p className="py-10 text-center text-[13px] text-black-500">
           카테고리를 불러오는 중이에요.
         </p>
+      ) : categories.length === 0 ? (
+        <div className="flex min-h-[180px] flex-col items-center justify-center">
+          <img
+            src={sadBunnyIcon}
+            alt=""
+            className="h-[80px] w-[72px]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-center font-medium leading-[150%] tracking-[-0.015em] text-[14px] text-white">
+            등록된 카테고리가 없습니다.
+          </p>
+        </div>
       ) : (
         <div className="mt-5 flex flex-wrap gap-3">
           {categories.map((category) => (
@@ -83,7 +115,9 @@ export function CategoryListSheet({
               selected={category.categoryId === selectedCategoryId}
               editable={editable}
               onClick={() =>
-                editable ? onStartUpdate(category) : onSelect(category)
+                editable
+                  ? onStartUpdate(category)
+                  : onSelect(category)
               }
               onDelete={() => onRequestDelete(category)}
             />

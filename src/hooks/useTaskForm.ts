@@ -8,6 +8,7 @@ import {
   updateTask as updateTaskApi,
 } from "@/api/tasks";
 import { getTaskErrorMessage } from "@/utils/taskError";
+import { openTaskComposerWithOptions } from "@/hooks/taskComposerOpening";
 
 import type { TaskFormHandle } from "@/components/task-create/TaskForm";
 import type {
@@ -52,19 +53,26 @@ export function useTaskForm({
     try {
       setOpeningComposer(true);
 
-      const formOptions = await getTaskFormOptions();
+      await openTaskComposerWithOptions({
+        openComposer: () => {
+          flushSync(() => {
+            setTaskFormOptions(null);
+            setEditingTask(null);
+            clearSelectedTask();
+            setTaskTitle("");
+            setIsComposerOpen(true);
+          });
 
-      flushSync(() => {
-        setTaskFormOptions(formOptions);
-        setEditingTask(null);
-        clearSelectedTask();
-        setTaskTitle("");
-        setIsComposerOpen(true);
+          taskFormRef.current?.focus();
+        },
+        loadOptions: getTaskFormOptions,
+        applyOptions: setTaskFormOptions,
       });
-
-      taskFormRef.current?.focus();
     } catch (error) {
       console.error(error);
+
+      setIsComposerOpen(false);
+      setTaskFormOptions(null);
 
       showToast(
         getTaskErrorMessage(error) ??

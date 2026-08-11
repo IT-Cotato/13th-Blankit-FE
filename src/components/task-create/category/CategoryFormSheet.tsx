@@ -88,6 +88,7 @@ export function CategoryFormSheet({
         <div className="relative min-w-0 flex-1">
           <input
             ref={inputRef}
+            data-autofocus
             value={name}
             maxLength={30}
             disabled={submitting}

@@ -47,6 +47,7 @@ export function useCategoryFlow({
   const [pendingDeleteCategory, setPendingDeleteCategory] =
     useState<Category | null>(null);
   const [availableColors, setAvailableColors] = useState<string[]>([]);
+  const [draftCategoryName, setDraftCategoryName] = useState("");
   const [formMode, setFormMode] =
     useState<CategoryFormMode>("create");
   const [editable, setEditable] = useState(false);
@@ -141,6 +142,7 @@ export function useCategoryFlow({
 
         setCategories((current) => [...current, created]);
         setSelectedCategory(created);
+        setDraftCategoryName("");
       } else if (editingCategory) {
         const updated = await updateCategory(
           editingCategory.categoryId,
@@ -211,6 +213,7 @@ export function useCategoryFlow({
 
   function selectCategory(category: Category) {
     setSelectedCategory(category);
+    setDraftCategoryName("");
     setView("composer");
     onReturnToComposer?.();
   }
@@ -218,6 +221,7 @@ export function useCategoryFlow({
   function backToComposer() {
     setView("composer");
     setEditable(false);
+    setDraftCategoryName("");
     onReturnToComposer?.();
   }
 
@@ -241,6 +245,7 @@ export function useCategoryFlow({
     editingCategory,
     pendingDeleteCategory,
     availableColors,
+    draftCategoryName,
     formMode,
     editable,
     loading,
@@ -256,6 +261,7 @@ export function useCategoryFlow({
     backToList,
     toggleEditable,
     requestDelete: setPendingDeleteCategory,
+    setDraftCategoryName,
     cancelDelete: () => setPendingDeleteCategory(null),
   };
 }
