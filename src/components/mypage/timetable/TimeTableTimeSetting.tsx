@@ -1,7 +1,10 @@
 import { useState } from "react";
 
 import { useTimeTableStore } from "@/store/useTimeTableStore";
-import { updateTimetableSettings } from "@/api/mypage/timetable";
+import {
+  deleteTimetableEntry,
+  updateTimetableSettings,
+} from "@/api/mypage/timetable";
 import { formatTimetableSettingHour } from "@/utils/timetableApiMapper";
 
 const TIME_OPTIONS = Array.from(
@@ -36,6 +39,7 @@ type TimePickerProps = {
   isOpen: boolean;
   onToggle: () => void;
   onChange: (value: string) => void;
+  disabled?: boolean;
 };
 
 function TimePicker({
@@ -44,6 +48,7 @@ function TimePicker({
   isOpen,
   onToggle,
   onChange,
+  disabled = false,
 }: TimePickerProps) {
   return (
     <div className="relative min-w-0 flex-1">
@@ -53,6 +58,7 @@ function TimePicker({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         onClick={onToggle}
+        disabled={disabled}
         className="flex h-8 w-full items-center justify-between rounded-md bg-black-800 px-3 text-sm font-medium leading-[21px] tracking-[-0.21px] text-black-600 outline-none focus-visible:outline-2 focus-visible:outline-green-500"
       >
         <span>{value}</span>
@@ -88,20 +94,71 @@ function TimePicker({
 export function TimeTableTimeSetting() {
   const startHour = useTimeTableStore((state) => state.startHour);
   const endHour = useTimeTableStore((state) => state.endHour);
-  const setStartHour = useTimeTableStore((state) => state.setStartHour);
-  const setEndHour = useTimeTableStore((state) => state.setEndHour);
+  const applyTimeRange = useTimeTableStore((state) => state.applyTimeRange);
+  const entries = useTimeTableStore((state) => state.entries);
+  const removeSchedule = useTimeTableStore((state) => state.removeSchedule);
   const [openPicker, setOpenPicker] = useState<OpenPicker>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const startTime = `${String(startHour).padStart(2, "0")}:00`;
   const endTime = `${String(endHour).padStart(2, "0")}:00`;
 
   const saveTimeRange = async (nextStartHour: number, nextEndHour: number) => {
+    if (isSaving) return;
+
+    setIsSaving(true);
+    setErrorMessage(null);
+
     try {
+      const nextStartMinutes = nextStartHour * 60;
+      const nextEndMinutes = nextEndHour * 60;
+      const schedulesOutsideRange = entries.filter((entry) => {
+        const entryStartMinutes = startHour * 60 + entry.startSlot * 5;
+        const entryEndMinutes = startHour * 60 + (entry.endSlot + 1) * 5;
+        return (
+          entryStartMinutes < nextStartMinutes ||
+          entryEndMinutes > nextEndMinutes
+        );
+      });
+      const schedulesById = new Map(
+        schedulesOutsideRange.map((entry) => [
+          entry.scheduleId ?? entry.id,
+          entry,
+        ]),
+      );
+
       await updateTimetableSettings({
         startTime: formatTimetableSettingHour(nextStartHour),
         endTime: formatTimetableSettingHour(nextEndHour),
       });
+
+      const deletionResults = await Promise.allSettled(
+        [...schedulesById.entries()].map(async ([scheduleId, entry]) => {
+          if (!entry.isLocalFallback) {
+            await deleteTimetableEntry(Number(scheduleId));
+          }
+          return scheduleId;
+        }),
+      );
+
+      deletionResults.forEach((result) => {
+        if (result.status === "fulfilled") {
+          removeSchedule(result.value);
+        }
+      });
+
+      applyTimeRange(nextStartHour, nextEndHour);
+
+      if (deletionResults.some((result) => result.status === "rejected")) {
+        setErrorMessage(
+          "시간은 변경했지만 범위를 벗어난 일정 일부를 삭제하지 못했습니다.",
+        );
+      }
     } catch (error) {
       console.error("시간표 표시 범위 수정 API 호출에 실패했습니다.", error);
+      setErrorMessage("시간표 표시 시간을 변경하지 못했습니다.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -126,12 +183,12 @@ export function TimeTableTimeSetting() {
                 current === "start" ? null : "start",
               )
             }
+            disabled={isSaving}
             onChange={(time) => {
               const nextStartHour = Number(time.slice(0, 2));
               const nextEndHour = nextStartHour >= endHour
                 ? Math.min(24, nextStartHour + 1)
                 : endHour;
-              setStartHour(nextStartHour);
               void saveTimeRange(nextStartHour, nextEndHour);
               setOpenPicker(null);
             }}
@@ -148,17 +205,23 @@ export function TimeTableTimeSetting() {
                 current === "end" ? null : "end",
               )
             }
+            disabled={isSaving}
             onChange={(time) => {
               const nextEndHour = Number(time.slice(0, 2));
               const nextStartHour = nextEndHour <= startHour
                 ? Math.max(0, nextEndHour - 1)
                 : startHour;
-              setEndHour(nextEndHour);
               void saveTimeRange(nextStartHour, nextEndHour);
               setOpenPicker(null);
             }}
           />
         </div>
+
+        {errorMessage && (
+          <p role="alert" className="mt-2 text-xs font-medium text-red-400">
+            {errorMessage}
+          </p>
+        )}
       </div>
     </section>
   );
