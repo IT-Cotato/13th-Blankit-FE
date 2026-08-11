@@ -213,6 +213,7 @@ export function useCategoryFlow({
 
   function selectCategory(category: Category) {
     setSelectedCategory(category);
+    setDraftCategoryName("");
     setView("composer");
     onReturnToComposer?.();
   }
