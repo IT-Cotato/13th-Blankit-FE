@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { TopBarIconButton } from "@/components/layout/top-bar/TopBarIconButton";
 import { MyPageDetailTopBar } from "@/components/mypage/MyPageDetailTopBar";
@@ -35,11 +35,15 @@ function ActionIcon({ src }: ActionIconProps) {
 
 export function TimeTable() {
   const navigate = useNavigate();
+  const location = useLocation();
   const entries = useTimeTableStore((state) => state.entries);
   const startHour = useTimeTableStore((state) => state.startHour);
   const removeSchedule = useTimeTableStore((state) => state.removeSchedule);
   const replaceSchedule = useTimeTableStore((state) => state.replaceSchedule);
   const setEntries = useTimeTableStore((state) => state.setEntries);
+  const skipInitialRefreshRef = useRef(
+    location.state?.skipInitialTimetableRefresh === true && entries.length > 0,
+  );
   const [selectedEntry, setSelectedEntry] = useState<TimeTableEntry | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
@@ -52,8 +56,26 @@ export function TimeTable() {
   const selectedEntries = selectedScheduleId
     ? entries.filter((entry) => (entry.scheduleId ?? entry.id) === selectedScheduleId)
     : [];
+  const selectedSubjectEntries = selectedEntry
+    ? entries
+        .filter(
+          (entry) =>
+            entry.title?.trim().toLocaleLowerCase("ko-KR") ===
+            selectedEntry.title?.trim().toLocaleLowerCase("ko-KR"),
+        )
+        .sort(
+          (first, second) =>
+            first.dayIndex - second.dayIndex ||
+            first.startSlot - second.startSlot,
+        )
+    : [];
 
   useEffect(() => {
+    if (skipInitialRefreshRef.current) {
+      skipInitialRefreshRef.current = false;
+      return;
+    }
+
     let cancelled = false;
 
     const loadTimetable = async () => {
@@ -107,7 +129,7 @@ export function TimeTable() {
 
       {selectedEntry && (
         <TimeTableDetailSheet
-          entries={selectedEntries}
+          entries={selectedSubjectEntries}
           startHour={startHour}
           onClose={() => setSelectedEntry(null)}
           onEdit={() => {

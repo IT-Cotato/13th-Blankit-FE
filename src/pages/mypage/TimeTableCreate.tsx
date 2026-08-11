@@ -8,7 +8,7 @@ import {
   useTimeTableStore,
   type TimeTableEntry,
 } from "@/store/useTimeTableStore";
-import { createTimetableEntry } from "@/api/mypage/timetable";
+import { createTimetableEntries } from "@/api/mypage/timetable";
 import {
   mapTimetableRequest,
   mapTimetableResponse,
@@ -40,24 +40,20 @@ export function TimeTableCreate() {
       };
     });
 
-    const results = await Promise.allSettled(
-      localEntries.map((entry) =>
-        createTimetableEntry(mapTimetableRequest(entry, startHour)),
-      ),
-    );
-    const nextEntries = results.map((result, index) => {
-      if (result.status === "fulfilled") {
-        return mapTimetableResponse(result.value, startHour);
-      }
-
+    try {
+      const createdEntries = await createTimetableEntries(
+        localEntries.map((entry) => mapTimetableRequest(entry, startHour)),
+      );
+      addEntries(
+        createdEntries.map((entry) => mapTimetableResponse(entry, startHour)),
+      );
+    } catch (error) {
       console.error(
         "시간표 추가 API 호출에 실패해 로컬 데이터를 표시합니다.",
-        result.reason,
+        error,
       );
-      return localEntries[index];
-    });
-
-    addEntries(nextEntries);
+      addEntries(localEntries);
+    }
     navigate("/mypage/timetable");
   };
 

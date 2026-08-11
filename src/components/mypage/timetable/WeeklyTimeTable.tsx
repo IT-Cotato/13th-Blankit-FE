@@ -174,13 +174,7 @@ export function WeeklyTimeTable({
           {hours.map((hour, index) => (
             <div
               key={hour}
-              className={`absolute left-0 flex w-full items-center text-left text-sm font-medium leading-[150%] tracking-[-0.21px] text-black-700 ${
-                index === 0
-                  ? ""
-                  : index === hours.length - 1
-                    ? "-translate-y-full"
-                    : "-translate-y-1/2"
-              }`}
+              className="absolute left-0 flex w-full -translate-y-1/2 items-center text-left text-sm font-medium leading-[150%] tracking-[-0.21px] text-black-700"
               style={{
                 top: `${(index / displayHourCount) * 100}%`,
               }}
