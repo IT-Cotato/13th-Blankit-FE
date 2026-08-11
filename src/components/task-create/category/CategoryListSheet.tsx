@@ -1,4 +1,5 @@
 import backIcon from "@/assets/icons/header/back-black-700.svg";
+import sadBunnyIcon from "@/assets/icons/sad-bunny.svg";
 
 import { CategoryChip } from "./CategoryChip";
 
@@ -74,6 +75,19 @@ export function CategoryListSheet({
         <p className="py-10 text-center text-[13px] text-black-500">
           카테고리를 불러오는 중이에요.
         </p>
+      ) : categories.length === 0 ? (
+        <div className="flex min-h-[180px] flex-col items-center justify-center">
+          <img
+            src={sadBunnyIcon}
+            alt=""
+            className="h-[80px] w-[72px]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-center font-medium leading-[150%] tracking-[-0.015em] text-[14px] text-white">
+            등록된 카테고리가 없습니다.
+          </p>
+        </div>
       ) : (
         <div className="mt-5 flex flex-wrap gap-3">
           {categories.map((category) => (
@@ -83,7 +97,9 @@ export function CategoryListSheet({
               selected={category.categoryId === selectedCategoryId}
               editable={editable}
               onClick={() =>
-                editable ? onStartUpdate(category) : onSelect(category)
+                editable
+                  ? onStartUpdate(category)
+                  : onSelect(category)
               }
               onDelete={() => onRequestDelete(category)}
             />
