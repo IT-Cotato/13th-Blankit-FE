@@ -2,6 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
 import checkButtonGreenIcon from "@/assets/icons/task-combination/check-button-green.svg";
+import { PlaylistTaskProgressIcon } from "@/components/task-playlist/PlaylistTaskProgressIcon";
 
 import type { CSSProperties } from "react";
 import type { PlaylistTask } from "@/types/taskCombination";
@@ -63,13 +64,11 @@ export function PlaylistTaskCard({
         aria-label={`${task.title} 과업 시작`}
         className="flex min-w-0 flex-1 items-center gap-3 text-left"
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black-850">
-          <img
-            src={task.categoryIcon}
-            alt=""
-            className="h-5 w-5"
-          />
-        </span>
+        <PlaylistTaskProgressIcon
+          icon={task.categoryIcon}
+          color={task.category.color}
+          progressRate={task.progressRate}
+        />
 
         <span className="block min-w-0 flex-1 truncate text-[13px] font-semibold text-black-200">
           {task.title}
