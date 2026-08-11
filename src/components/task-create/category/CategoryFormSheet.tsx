@@ -60,13 +60,6 @@ export function CategoryFormSheet({
   }
 
   return (
-    <>
-      <div
-        aria-hidden="true"
-        className="fixed inset-x-0 bottom-0 z-[69] bg-black-850"
-        style={{ height: keyboardInset }}
-      />
-
     <section
       role="dialog"
       aria-modal="true"
@@ -77,6 +70,12 @@ export function CategoryFormSheet({
         maxHeight: Math.max(0, viewportHeight - 12),
       }}
     >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-full bg-black-850"
+        style={{ height: keyboardInset }}
+      />
+
       <header className="flex items-center gap-3">
         <button
           type="button"
@@ -236,6 +235,5 @@ export function CategoryFormSheet({
         </div>
       </fieldset>
     </section>
-    </>
   );
 }
