@@ -4,12 +4,14 @@ import type { SearchHistory } from "@/types/search";
 
 type RecentSearchesProps = {
   searches: SearchHistory[];
+  onSelect: (keyword: string) => void;
   onRemove: (searchHistoryId: number) => void;
   onClear: () => void;
 };
 
 export function RecentSearch({
   searches,
+  onSelect,
   onRemove,
   onClear,
 }: RecentSearchesProps) {
@@ -42,38 +44,50 @@ export function RecentSearch({
       </div>
 
       <ul className="flex flex-col gap-4">
-            {visibleSearches.map((search) => (
-                <li
-                key={search.searchHistoryId}
-                className="flex items-center justify-between"
-                >
-                <div className="flex min-w-0 items-center gap-2">
-                    <img
-                    src={clockIcon}
-                    alt=""
-                    className="h-4 w-4 shrink-0"
-                    />
+        {visibleSearches.map((search) => (
+          <li
+            key={search.searchHistoryId}
+            className="flex items-center justify-between"
+          >
+            <button
+              type="button"
+              onClick={() => onSelect(search.keyword)}
+              className="
+                flex min-w-0 flex-1
+                items-center gap-2 text-left
+              "
+            >
+              <img
+                src={clockIcon}
+                alt=""
+                className="h-4 w-4 shrink-0"
+              />
 
-                    <span className="truncate text-[14px] font-medium text-black-400">
-                    {search.keyword}
-                    </span>
-                </div>
+              <span className="truncate text-[14px] font-medium text-black-400">
+                {search.keyword}
+              </span>
+            </button>
 
-                <button
-                    type="button"
-                    onClick={() => onRemove(search.searchHistoryId)}
-                    aria-label={`${search.keyword} 최근 검색어 삭제`}
-                    className="flex h-6 w-6 shrink-0 items-center justify-center"
-                >
-                    <img
-                    src={clearIcon}
-                    alt=""
-                    className="h-2.5 w-2.5"
-                    />
-                </button>
-                </li>
-            ))}
-        </ul>
+            <button
+              type="button"
+              onClick={() =>
+                onRemove(search.searchHistoryId)
+              }
+              aria-label={`${search.keyword} 최근 검색어 삭제`}
+              className="
+                flex h-6 w-6 shrink-0
+                items-center justify-center
+              "
+            >
+              <img
+                src={clearIcon}
+                alt=""
+                className="h-2.5 w-2.5"
+              />
+            </button>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

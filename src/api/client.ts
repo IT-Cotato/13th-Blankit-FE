@@ -7,8 +7,8 @@ const LOGIN_ENDPOINT_PATH = "/api/auth/login";
 const SIGNUP_ENDPOINT_PATH = "/api/auth/signup";
 const LOGOUT_ENDPOINT_PATH = "/api/auth/logout";
 
-// 이 엔드포인트들의 401은 "세션 만료"가 아니라 "정상적인 인증 시도/확인 결과"이므로
-// 자동 재발급/강제 로그아웃 대상에서 제외해야 함
+// 이 엔드포인트들의 401은 "세션 만료"가 아니라 "정상적인 인증 시도/확인 결과"
+// 자동 재발급/강제 로그아웃 대상에서 제외
 const AUTH_FLOW_ENDPOINT_PATHS = [
     REISSUE_ENDPOINT_PATH,
     LOGIN_ENDPOINT_PATH,
@@ -20,7 +20,7 @@ export const apiClient = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL,
 });
 
-// 동시에 여러 요청이 401을 받아도 재발급 호출은 한 번만 나가도록 공유되는 in-flight Promise.
+// 동시에 여러 요청이 401을 받아도 재발급 호출은 한 번만 나가도록 공유
 // 첫 요청이 재발급을 시작하면 그 Promise를 저장해두고, 뒤이은 요청들은 새로 호출하지 않고 같은 Promise를 기다림.
 let reissuePromise: Promise<{
     newAccessToken: string;
@@ -28,11 +28,16 @@ let reissuePromise: Promise<{
 }> | null = null;
 
 // 요청 보낼 때마다 accessToken이 있으면 자동으로 Authorization 헤더에 첨부
+// 토큰 콘솔 출력(테스트용)
 apiClient.interceptors.request.use((config) => {
     const accessToken = useAuthStore.getState().accessToken;
 
     if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
+
+        if (import.meta.env.DEV) {
+            console.log("[apiClient] accessToken 첨부:", accessToken);
+        }
     }
 
     return config;

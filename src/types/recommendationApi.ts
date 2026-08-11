@@ -10,7 +10,7 @@ export interface RecommendedTaskItem {
   rankOrder: number;
   score: number;
   recommendedMinutes: number | null;
-  progressRate?: number;
+  progressRate: number;
 }
 
 export interface TodayRecommendationResponse {
