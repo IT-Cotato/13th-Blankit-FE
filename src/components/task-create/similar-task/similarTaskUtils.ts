@@ -1,17 +1,31 @@
-export function formatElapsedMinutes(minutes: number): string {
-  const safeMinutes = Math.max(0, Math.floor(minutes));
-  const hours = Math.floor(safeMinutes / 60);
-  const remainingMinutes = safeMinutes % 60;
+export function formatElapsedTime(
+  totalElapsedSeconds: number,
+): string {
+  const safeSeconds = Number.isFinite(
+    totalElapsedSeconds,
+  )
+    ? Math.max(0, Math.floor(totalElapsedSeconds))
+    : 0;
+  const hours = Math.floor(safeSeconds / 3600);
+  const minutes = Math.floor(
+    (safeSeconds % 3600) / 60,
+  );
+  const seconds = safeSeconds % 60;
+  const parts: string[] = [];
 
-  if (hours === 0) {
-    return `${remainingMinutes}분`;
+  if (hours > 0) {
+    parts.push(`${hours}시간`);
   }
 
-  if (remainingMinutes === 0) {
-    return `${hours}시간`;
+  if (minutes > 0) {
+    parts.push(`${minutes}분`);
   }
 
-  return `${hours}시간 ${remainingMinutes}분`;
+  if (seconds > 0 || parts.length === 0) {
+    parts.push(`${seconds}초`);
+  }
+
+  return parts.join(" ");
 }
 
 export function formatTaskDeadline(deadline: string): string {
