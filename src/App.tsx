@@ -384,6 +384,9 @@ function App() {
           taskManager.selectedTaskId !==
           null
         }
+        editingTaskReady={
+          taskManager.editingTaskReady
+        }
         onCloseActionSheet={
           taskManager.closeActionSheet
         }

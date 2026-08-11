@@ -6,7 +6,6 @@ import { Toast } from "@/components/common/Toast";
 
 import { CategoryFormSheet } from "./CategoryFormSheet";
 import { CategoryListSheet } from "./CategoryListSheet";
-import { getCategoryFormInitialName } from "./categoryDraft";
 
 import type { CategoryFlow } from "./useCategoryFlow";
 
@@ -112,10 +111,8 @@ export function TaskCategoryPicker({
           }
           editable={categoryFlow.editable}
           loading={categoryFlow.loading}
-          draftCategoryName={categoryFlow.draftCategoryName}
           onBack={categoryFlow.backToComposer}
           onStartCreate={categoryFlow.startCreate}
-          onDraftCategoryNameChange={categoryFlow.setDraftCategoryName}
           onToggleEdit={categoryFlow.toggleEditable}
           onSelect={categoryFlow.selectCategory}
           onStartUpdate={categoryFlow.startUpdate}
@@ -130,11 +127,7 @@ export function TaskCategoryPicker({
           }`}
           mode={categoryFlow.formMode}
           initialName={
-            getCategoryFormInitialName(
-              categoryFlow.formMode,
-              categoryFlow.editingCategory?.categoryName,
-              categoryFlow.draftCategoryName,
-            )
+            categoryFlow.editingCategory?.categoryName
           }
           initialColor={categoryFlow.editingCategory?.color}
           initialIconKey={
