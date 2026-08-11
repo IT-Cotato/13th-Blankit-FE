@@ -34,6 +34,7 @@ export function mapPlaylistResponse(
         playlistItemId: item.playlistItemId,
         sourceMode: item.sourceMode,
         title: item.title,
+        memo: item.memo ?? detail.memo ?? null,
         priority: detail.priority ?? "LOW",
         status: detail.status,
         progressRate: item.progressRate ?? detail.progressRate ?? 0,
