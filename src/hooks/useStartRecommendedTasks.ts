@@ -59,7 +59,12 @@ export function useStartRecommendedTasks({
       tasksAdded = true;
 
       await refreshPlaylist();
-      navigate("/task-playlist");
+      navigate("/task-playlist", {
+        state: {
+          playlistCreatedToastMessage:
+            "지금 가장 필요한 과업들로\n사용자에게 딱 맞는 플레이리스트를 만들었어요.\n바로 시작해보세요!",
+        },
+      });
     } catch {
       onShowToast(
         tasksAdded
