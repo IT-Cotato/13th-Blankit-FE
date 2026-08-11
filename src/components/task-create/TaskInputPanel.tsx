@@ -10,7 +10,6 @@ import { CategoryIconBadge } from "@/components/category/CategoryIconBadge";
 import { TaskOptionButton } from "@/components/task-create/TaskOptionButton";
 import { useDragScroll } from "@/components/task-create/hooks/useDragScroll";
 import { getCategoryPresentation } from "@/constants/category";
-import { useVisualViewport } from "@/hooks/useVisualViewport";
 
 import type { AlarmOption } from "@/components/task-create/alarm/alarmOptions";
 import type { Category } from "@/types/category";
@@ -47,7 +46,6 @@ export function TaskInputPanel({
   onOpenAlarm,
 }: TaskInputPanelProps) {
   const { scrollerRef, dragHandlers } = useDragScroll();
-  const { keyboardInset } = useVisualViewport();
   const categoryPresentation = category
     ? getCategoryPresentation(category)
     : null;
@@ -61,14 +59,7 @@ export function TaskInputPanel({
       className={`fixed inset-x-0 bottom-0 z-[70] min-h-[150px] rounded-t-[24px] bg-black-850 px-5 pb-5 pt-6 transition-opacity ${
         visible ? "opacity-100" : "pointer-events-none opacity-0"
       }`}
-      style={{ bottom: keyboardInset }}
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-full bg-black-850"
-        style={{ height: keyboardInset }}
-      />
-
       <div className="flex items-center gap-3">
         <input
           ref={inputRef}
