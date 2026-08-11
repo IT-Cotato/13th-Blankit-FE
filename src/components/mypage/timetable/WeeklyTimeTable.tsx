@@ -82,7 +82,8 @@ export function WeeklyTimeTable({
     { length: endHour - startHour + 1 },
     (_, index) => index + startHour,
   );
-  const halfHourSlotCount = hours.length * 2;
+  const displayHourCount = Math.max(1, endHour - startHour);
+  const halfHourSlotCount = displayHourCount * 2;
   const timeSlotCount = halfHourSlotCount * 6;
   const [dragSelection, setDragSelection] = useState<DragSelection | null>(null);
 
@@ -173,9 +174,15 @@ export function WeeklyTimeTable({
           {hours.map((hour, index) => (
             <div
               key={hour}
-              className="absolute left-0 flex w-full -translate-y-1/2 items-center text-left text-sm font-medium leading-[150%] tracking-[-0.21px] text-black-700"
+              className={`absolute left-0 flex w-full items-center text-left text-sm font-medium leading-[150%] tracking-[-0.21px] text-black-700 ${
+                index === 0
+                  ? ""
+                  : index === hours.length - 1
+                    ? "-translate-y-full"
+                    : "-translate-y-1/2"
+              }`}
               style={{
-                top: `${((index + 0.5) / hours.length) * 100}%`,
+                top: `${(index / displayHourCount) * 100}%`,
               }}
             >
               {hour}:00
@@ -229,7 +236,7 @@ export function WeeklyTimeTable({
           >
             <svg
               className="h-full w-full"
-              viewBox={`0 0 ${DAYS.length * 100} ${hours.length * 100}`}
+              viewBox={`0 0 ${DAYS.length * 100} ${displayHourCount * 100}`}
               preserveAspectRatio="none"
               shapeRendering="crispEdges"
             >
@@ -239,13 +246,13 @@ export function WeeklyTimeTable({
                   x1={(index + 1) * 100}
                   x2={(index + 1) * 100}
                   y1="0"
-                  y2={hours.length * 100}
+                  y2={displayHourCount * 100}
                   stroke="var(--color-black-800)"
                   strokeWidth="1"
                   vectorEffect="non-scaling-stroke"
                 />
               ))}
-              {hours.slice(1).map((hour, index) => (
+              {hours.slice(1, -1).map((hour, index) => (
                 <line
                   key={`hour-divider-${hour}`}
                   x1="0"

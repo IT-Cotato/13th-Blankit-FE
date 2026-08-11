@@ -120,6 +120,7 @@ export function TimeTable() {
                 dayIndex: entry.dayIndex,
                 startSlot: entry.startSlot,
                 endSlot: entry.endSlot,
+                isLocalFallback: entry.isLocalFallback,
               })),
             );
             setIsEditSheetOpen(true);

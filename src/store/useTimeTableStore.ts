@@ -9,6 +9,7 @@ export type TimeTableEntry = {
   dayIndex: number;
   startSlot: number;
   endSlot: number;
+  isLocalFallback?: boolean;
 };
 
 type TimeTableState = {
@@ -38,7 +39,13 @@ export const useTimeTableStore = create<TimeTableState>((set) => ({
       startHour: hour <= state.startHour ? Math.max(0, hour - 1) : state.startHour,
       endHour: hour,
     })),
-  setEntries: (entries) => set({ entries }),
+  setEntries: (entries) =>
+    set((state) => ({
+      entries: [
+        ...entries,
+        ...state.entries.filter((entry) => entry.isLocalFallback),
+      ],
+    })),
   addEntries: (entries) =>
     set((state) => ({ entries: [...state.entries, ...entries] })),
   replaceSchedule: (scheduleId, entries) =>

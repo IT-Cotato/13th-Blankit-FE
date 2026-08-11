@@ -36,20 +36,28 @@ export function TimeTableCreate() {
         ...details,
         scheduleId,
         id: scheduleId,
+        isLocalFallback: true,
       };
     });
 
-    try {
-      const createdEntries = await Promise.all(
-        localEntries.map((entry) =>
-          createTimetableEntry(mapTimetableRequest(entry, startHour)),
-        ),
+    const results = await Promise.allSettled(
+      localEntries.map((entry) =>
+        createTimetableEntry(mapTimetableRequest(entry, startHour)),
+      ),
+    );
+    const nextEntries = results.map((result, index) => {
+      if (result.status === "fulfilled") {
+        return mapTimetableResponse(result.value, startHour);
+      }
+
+      console.error(
+        "시간표 추가 API 호출에 실패해 로컬 데이터를 표시합니다.",
+        result.reason,
       );
-      addEntries(createdEntries.map((item) => mapTimetableResponse(item, startHour)));
-    } catch (error) {
-      console.error("시간표 추가 API 호출에 실패해 로컬 데이터를 표시합니다.", error);
-      addEntries(localEntries);
-    }
+      return localEntries[index];
+    });
+
+    addEntries(nextEntries);
     navigate("/mypage/timetable");
   };
 
