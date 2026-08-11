@@ -5,6 +5,14 @@ type ChangeSessionStatus = (
   elapsedTime: number,
 ) => Promise<unknown | null>;
 
+export function getMissingTaskIdMessage(
+  taskId: number | undefined,
+) {
+  return taskId === undefined
+    ? "과업 정보를 확인할 수 없습니다."
+    : null;
+}
+
 export function shouldRestoreTimerFromSession(
   hasStarted: boolean,
 ) {

@@ -62,6 +62,7 @@ export function appendFeedbackStep(
 
 export function canCompleteFeedback(
   draft: TaskFeedbackDraft,
+  hasSavedProgress = false,
 ) {
   const hasValidStepTitles = draft.steps.every(
     (step) => step.title.trim().length > 0,
@@ -70,6 +71,7 @@ export function canCompleteFeedback(
   const hasMemo = draft.memo.trim().length > 0;
 
   const hasProgress =
+    hasSavedProgress ||
     draft.progressTouched ||
     draft.steps.some(
       (step) => step.progressTouched,
@@ -85,4 +87,22 @@ export function getFeedbackCompletionResult(
   playlistLength: number,
 ): FeedbackCompletionResult {
   return playlistLength > 1 ? "advanced" : "stayed";
+}
+
+export function restoreFeedbackProgress(
+  draft: TaskFeedbackDraft,
+  progress: number,
+): TaskFeedbackDraft {
+  return {
+    ...draft,
+    progress,
+  };
+}
+
+export async function getFeedbackCloseResult(
+  saveDraft: () => Promise<boolean>,
+) {
+  const saved = await saveDraft();
+
+  return saved ? "close" : "confirm-discard";
 }

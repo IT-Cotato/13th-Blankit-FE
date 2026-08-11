@@ -1,8 +1,17 @@
-import { useEffect, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
+import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
 import { useTaskSteps } from "@/hooks/useTaskSteps";
-import { canCompleteFeedback } from "@/utils/taskFeedback";
+import {
+  canCompleteFeedback,
+  getFeedbackCloseResult,
+} from "@/utils/taskFeedback";
 
 import { FeedbackProgressSlider } from "./FeedbackProgressSlider";
 import { FeedbackStepRow } from "./FeedbackStepRow";
@@ -64,6 +73,9 @@ export function TaskFeedbackSheet({
 }: TaskFeedbackSheetProps) {
   const memoInputRef = useRef<HTMLInputElement>(null);
   const skipNextMemoBlurSaveRef = useRef(false);
+  const closeInFlightRef = useRef(false);
+  const [showDiscardDialog, setShowDiscardDialog] =
+    useState(false);
   const draft = usePlaylistStore(
     (state) => state.feedbackDrafts[taskId],
   );
@@ -97,6 +109,7 @@ export function TaskFeedbackSheet({
   const {
     isSavingFeedback,
     feedbackError,
+    hasSavedProgress,
     saveDraft,
     saveMemoDraft,
     submitFinalFeedback,
@@ -128,19 +141,54 @@ export function TaskFeedbackSheet({
     onShowToast(feedbackError);
   }, [feedbackError, onShowToast]);
 
-  const handleClose = async () => {
-    if (isSavingFeedback) {
+  const handleClose = useCallback(async () => {
+    if (
+      isSavingFeedback ||
+      closeInFlightRef.current
+    ) {
       skipNextMemoBlurSaveRef.current = false;
       return;
     }
 
-    const canClose = await saveDraft();
-    skipNextMemoBlurSaveRef.current = false;
+    closeInFlightRef.current = true;
 
-    if (canClose) {
-      onClose();
+    try {
+      const closeResult =
+        await getFeedbackCloseResult(saveDraft);
+
+      skipNextMemoBlurSaveRef.current = false;
+
+      if (closeResult === "close") {
+        onClose();
+        return;
+      }
+
+      setShowDiscardDialog(true);
+    } finally {
+      closeInFlightRef.current = false;
     }
-  };
+  }, [isSavingFeedback, onClose, saveDraft]);
+
+  useEffect(() => {
+    if (!open || showDiscardDialog) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      event.preventDefault();
+      void handleClose();
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleClose, open, showDiscardDialog]);
 
   const handleComplete = async () => {
     skipNextMemoBlurSaveRef.current = false;
@@ -176,10 +224,14 @@ export function TaskFeedbackSheet({
   }
 
   const hasSteps = draft.steps.length > 0;
-  const canComplete = canCompleteFeedback(draft);
+  const canComplete = canCompleteFeedback(
+    draft,
+    hasSavedProgress,
+  );
 
   return (
-    <div className="fixed inset-0 z-[55] flex items-end bg-black/60">
+    <>
+      <div className="fixed inset-0 z-[55] flex items-end bg-black/60">
       <section
         role="dialog"
         aria-modal="true"
@@ -329,7 +381,20 @@ export function TaskFeedbackSheet({
             완료
           </button>
         </div>
-      </section>
-    </div>
+        </section>
+      </div>
+
+      <ConfirmModal
+        open={showDiscardDialog}
+        title={"임시저장에 실패했습니다.\n저장하지 않고 닫으시겠습니까?"}
+        cancelLabel="취소"
+        confirmLabel="닫기"
+        onCancel={() => setShowDiscardDialog(false)}
+        onConfirm={() => {
+          setShowDiscardDialog(false);
+          onClose();
+        }}
+      />
+    </>
   );
 }

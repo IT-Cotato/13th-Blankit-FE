@@ -20,6 +20,7 @@ import { useTodayRecommendedMinutes } from "@/hooks/useTodayRecommendedMinutes";
 import { useToast } from "@/hooks/useToast";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
 import {
+  getMissingTaskIdMessage,
   shouldRestoreTimerFromSession,
   updateTimerWithSession,
 } from "@/utils/taskSessionTimer";
@@ -86,16 +87,28 @@ export function TaskPlaylistPage() {
 
   const {
     recommendedMinutes,
+    isLoadingRecommendedMinutes,
     recommendationTimeError,
   } = useTodayRecommendedMinutes();
 
   const hasPlaylistStarted =
     hasStarted || displayedPlaylistElapsedSeconds > 0;
+  const missingTaskIdMessage = task
+    ? getMissingTaskIdMessage(task.taskId)
+    : null;
 
   const controls = getTaskPlayerControls({
     isPlaying,
     hasStarted,
   });
+
+  useEffect(() => {
+    if (!missingTaskIdMessage) {
+      return;
+    }
+
+    showFeedbackToast(missingTaskIdMessage);
+  }, [missingTaskIdMessage, showFeedbackToast]);
 
   useEffect(() => {
     if (!sessionError) {
@@ -234,6 +247,9 @@ export function TaskPlaylistPage() {
         <TaskMosaicProgress
           elapsedSeconds={displayedPlaylistElapsedSeconds}
           recommendedMinutes={recommendedMinutes}
+          isLoadingRecommendedMinutes={
+            isLoadingRecommendedMinutes
+          }
         />
 
         <div className="grid w-full max-w-[280px] grid-cols-[52px_1fr_52px] items-center gap-4 pt-20">

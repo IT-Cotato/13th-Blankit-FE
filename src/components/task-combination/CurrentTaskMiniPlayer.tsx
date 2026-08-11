@@ -6,6 +6,7 @@ import { useCurrentTaskTimer } from "@/hooks/useCurrentTaskTimer";
 import { useTaskSession } from "@/hooks/useTaskSession";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
 import {
+  getMissingTaskIdMessage,
   shouldRestoreTimerFromSession,
   updateTimerWithSession,
 } from "@/utils/taskSessionTimer";
@@ -17,10 +18,12 @@ import { TaskTimerToggleIcon } from "./TaskTimerToggleIcon";
 
 interface CurrentTaskMiniPlayerProps {
   task: PlaylistTask;
+  onShowToast: (message: string) => void;
 }
 
 export function CurrentTaskMiniPlayer({
   task,
+  onShowToast,
 }: CurrentTaskMiniPlayerProps) {
   const navigate = useNavigate();
   const hasStarted = usePlaylistStore(
@@ -43,6 +46,16 @@ export function CurrentTaskMiniPlayer({
     isUpdatingSession,
     changeSessionStatus,
   } = useTaskSession(task.taskId ?? null);
+  const missingTaskIdMessage =
+    getMissingTaskIdMessage(task.taskId);
+
+  useEffect(() => {
+    if (!missingTaskIdMessage) {
+      return;
+    }
+
+    onShowToast(missingTaskIdMessage);
+  }, [missingTaskIdMessage, onShowToast]);
 
   useEffect(() => {
     if (

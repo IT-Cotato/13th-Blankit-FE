@@ -18,7 +18,7 @@ export interface PlaylistTasksState {
   removeCombination: (modeId: CombinationModeId) => void;
   removeTasks: (taskIds: string[]) => void;
   clearPlaylist: () => void;
-  completeCurrentTask: () => void;
+  completeCurrentTask: (now?: number) => void;
   selectTask: (taskId: string) => void;
   reorderTask: (
     activeTaskId: string,
@@ -57,6 +57,10 @@ export interface PlaylistFeedbackState {
     taskId: string,
     progress: number,
   ) => void;
+  restoreFeedbackProgress: (
+    taskId: string,
+    progress: number,
+  ) => void;
   replaceFeedbackSteps: (
     taskId: string,
     steps: FeedbackStep[],
@@ -82,6 +86,7 @@ export interface PlaylistFeedbackState {
   ) => void;
   completeFeedback: (
     taskId: string,
+    now?: number,
   ) => FeedbackCompletionResult | null;
 }
 

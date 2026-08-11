@@ -27,5 +27,5 @@ export async function submitTaskFeedback(
     payload,
   );
 
-  return response.data.data ?? null;
+  return response.data.data;
 }

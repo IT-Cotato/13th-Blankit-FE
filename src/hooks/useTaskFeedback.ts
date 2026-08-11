@@ -17,6 +17,7 @@ import type { SubmitTaskFeedbackRequest } from "@/types/taskFeedbackApi";
 function createFeedbackPayload(
   draft: TaskFeedbackDraft,
   isDraft: boolean,
+  hasSavedProgress: boolean,
 ): SubmitTaskFeedbackRequest {
   const memo = draft.memo.trim();
   const hasSteps = draft.steps.length > 0;
@@ -24,7 +25,7 @@ function createFeedbackPayload(
   return {
     progressRate: hasSteps
       ? null
-      : draft.progressTouched
+      : draft.progressTouched || hasSavedProgress
         ? Math.round(draft.progress)
         : null,
     memo: memo || null,
@@ -48,9 +49,11 @@ function createFeedbackPayload(
 
 function hasFeedbackContent(
   draft: TaskFeedbackDraft,
+  hasSavedProgress: boolean,
 ) {
   return (
     draft.memo.trim().length > 0 ||
+    hasSavedProgress ||
     draft.progressTouched ||
     draft.steps.some(
       (step) => step.progressTouched,
@@ -76,8 +79,8 @@ export function useTaskFeedback({
   const updateFeedbackMemo = usePlaylistStore(
     (state) => state.updateFeedbackMemo,
   );
-  const updateFeedbackProgress = usePlaylistStore(
-    (state) => state.updateFeedbackProgress,
+  const restoreFeedbackProgress = usePlaylistStore(
+    (state) => state.restoreFeedbackProgress,
   );
 
   const [isLoadingFeedback, setIsLoadingFeedback] =
@@ -87,6 +90,13 @@ export function useTaskFeedback({
   const [feedbackError, setFeedbackError] = useState<
     string | null
   >(null);
+  const [savedProgress, setSavedProgress] = useState<{
+    sessionId: number | null;
+    progressRate: number | null;
+  }>({
+    sessionId: null,
+    progressRate: null,
+  });
   const [refreshKey, setRefreshKey] = useState(0);
 
   const saveInFlightRef = useRef(false);
@@ -120,6 +130,10 @@ export function useTaskFeedback({
         };
 
         if (!feedback) {
+          setSavedProgress({
+            sessionId,
+            progressRate: null,
+          });
           return;
         }
 
@@ -128,7 +142,17 @@ export function useTaskFeedback({
           feedback.memo ?? "",
         );
 
-        updateFeedbackProgress(
+        const savedProgressRate =
+          feedback.progressRate > 0
+            ? feedback.progressRate
+            : null;
+
+        setSavedProgress({
+          sessionId,
+          progressRate: savedProgressRate,
+        });
+
+        restoreFeedbackProgress(
           feedbackTaskId,
           feedback.progressRate,
         );
@@ -156,8 +180,14 @@ export function useTaskFeedback({
     refreshKey,
     sessionId,
     updateFeedbackMemo,
-    updateFeedbackProgress,
+    restoreFeedbackProgress,
   ]);
+
+  const savedProgressRate =
+    savedProgress.sessionId === sessionId
+      ? savedProgress.progressRate
+      : null;
+  const hasSavedProgress = savedProgressRate !== null;
 
   const saveFeedback = useCallback(
     async (
@@ -175,6 +205,13 @@ export function useTaskFeedback({
           : "";
       const memoChanged =
         currentMemo !== lastSavedMemo;
+      const hasProgressChanged =
+        draft.progressTouched &&
+        Math.round(draft.progress) !==
+          savedProgressRate;
+      const haveStepsChanged = draft.steps.some(
+        (step) => step.progressTouched,
+      );
 
       if (
         isDraft &&
@@ -185,7 +222,19 @@ export function useTaskFeedback({
       }
 
       if (
-        !hasFeedbackContent(draft) &&
+        isDraft &&
+        !memoChanged &&
+        !hasProgressChanged &&
+        !haveStepsChanged
+      ) {
+        return true;
+      }
+
+      if (
+        !hasFeedbackContent(
+          draft,
+          hasSavedProgress,
+        ) &&
         !memoChanged
       ) {
         return isDraft;
@@ -203,15 +252,25 @@ export function useTaskFeedback({
       setFeedbackError(null);
 
       try {
+        const payload = createFeedbackPayload(
+          draft,
+          isDraft,
+          hasSavedProgress,
+        );
+
         await submitTaskFeedback(
           sessionId,
-          createFeedbackPayload(draft, isDraft),
+          payload,
         );
 
         lastSavedMemoRef.current = {
           sessionId,
           memo: currentMemo,
         };
+        setSavedProgress({
+          sessionId,
+          progressRate: payload.progressRate,
+        });
 
         return true;
       } catch {
@@ -227,7 +286,12 @@ export function useTaskFeedback({
         setIsSavingFeedback(false);
       }
     },
-    [draft, sessionId],
+    [
+      draft,
+      hasSavedProgress,
+      savedProgressRate,
+      sessionId,
+    ],
   );
 
   const saveDraft = useCallback(
@@ -253,6 +317,7 @@ export function useTaskFeedback({
     isLoadingFeedback,
     isSavingFeedback,
     feedbackError,
+    hasSavedProgress,
     saveDraft,
     saveMemoDraft,
     submitFinalFeedback,

@@ -7,7 +7,9 @@ import {
   createDefaultFeedbackSteps,
   createFeedbackDraft,
   getFeedbackCompletionResult,
+  restoreFeedbackProgress,
 } from "@/utils/taskFeedback";
+import { getElapsedSeconds } from "@/utils/taskTimer";
 
 import type {
   PlaylistFeedbackState,
@@ -81,6 +83,25 @@ export const createPlaylistFeedback: PlaylistStoreCreator<
             progress,
             progressTouched: true,
           },
+        },
+      };
+    });
+  },
+  restoreFeedbackProgress: (taskId, progress) => {
+    set((state) => {
+      const draft = state.feedbackDrafts[taskId];
+
+      if (!draft) {
+        return state;
+      }
+
+      return {
+        feedbackDrafts: {
+          ...state.feedbackDrafts,
+          [taskId]: restoreFeedbackProgress(
+            draft,
+            progress,
+          ),
         },
       };
     });
@@ -197,7 +218,7 @@ export const createPlaylistFeedback: PlaylistStoreCreator<
     });
   },
 
-  completeFeedback: (taskId) => {
+  completeFeedback: (taskId, now = Date.now()) => {
     const state = get();
     const currentTask = state.playlist[0];
     const draft = state.feedbackDrafts[taskId];
@@ -228,6 +249,13 @@ export const createPlaylistFeedback: PlaylistStoreCreator<
           ? draft.progress
           : current.playlist[0].progressRate,
       };
+      const completedTaskElapsedSeconds =
+        getElapsedSeconds(
+          current.elapsedSeconds,
+          current.startedAt,
+          current.isPlaying,
+          now,
+        );
 
       return {
         playlist:
@@ -240,7 +268,7 @@ export const createPlaylistFeedback: PlaylistStoreCreator<
         feedbackDrafts,
         accumulatedElapsedSeconds:
           current.accumulatedElapsedSeconds +
-          current.elapsedSeconds,
+          completedTaskElapsedSeconds,
         ...EMPTY_CURRENT_TASK_TIMER_STATE,
       };
     });

@@ -6,6 +6,7 @@ import {
   EMPTY_CURRENT_TASK_TIMER_STATE,
   EMPTY_PLAYLIST_TIMER_STATE,
 } from "@/store/playlist/playlistTimer";
+import { getElapsedSeconds } from "@/utils/taskTimer";
 
 import type {
   PlaylistStoreCreator,
@@ -107,16 +108,23 @@ export const createPlaylistTasks: PlaylistStoreCreator<
     });
   },
 
-  completeCurrentTask: () => {
+  completeCurrentTask: (now = Date.now()) => {
     set((state) => {
       const playlist = state.playlist.slice(1);
+      const completedTaskElapsedSeconds =
+        getElapsedSeconds(
+          state.elapsedSeconds,
+          state.startedAt,
+          state.isPlaying,
+          now,
+        );
 
       return {
         playlist,
         accumulatedElapsedSeconds:
           playlist.length > 0
             ? state.accumulatedElapsedSeconds +
-              state.elapsedSeconds
+              completedTaskElapsedSeconds
             : 0,
         ...EMPTY_CURRENT_TASK_TIMER_STATE,
       };

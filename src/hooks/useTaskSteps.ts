@@ -12,9 +12,14 @@ import {
   updateTaskStep,
 } from "@/api/taskSteps";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
+import {
+  queueStepTitleSave,
+  takeNextStepTitleSave,
+} from "@/utils/taskStepSaveQueue";
 
 import type { FeedbackStep } from "@/types/taskFeedback";
 import type { TaskStepResponse } from "@/types/taskStep";
+import type { StepTitleSaveQueue } from "@/utils/taskStepSaveQueue";
 
 const DEFAULT_STEP_TITLES = [
   "개념 정리",
@@ -65,6 +70,12 @@ export function useTaskSteps({
   const [refreshKey, setRefreshKey] = useState(0);
 
   const mutationInFlightRef = useRef(false);
+  const pendingStepTitleSavesRef = useRef<
+    StepTitleSaveQueue
+  >(new Map());
+  const saveStepTitleRef = useRef<
+    ((step: FeedbackStep, title: string) => Promise<void>) | null
+  >(null);
   const savedStepTitlesRef = useRef(
     new Map<number, string>(),
  );
@@ -128,6 +139,45 @@ export function useTaskSteps({
     taskId,
   ]);
 
+  const runNextPendingTitleSave = useCallback(() => {
+    if (mutationInFlightRef.current) {
+      return;
+    }
+
+    let pendingSave = takeNextStepTitleSave(
+      pendingStepTitleSavesRef.current,
+    );
+
+    while (pendingSave) {
+      const currentStep =
+        usePlaylistStore
+          .getState()
+          .feedbackDrafts[
+            feedbackTaskId
+          ]?.steps.find(
+            (step) => step.id === pendingSave?.stepId,
+          );
+
+      if (currentStep) {
+        void saveStepTitleRef.current?.(
+          currentStep,
+          pendingSave.title,
+        );
+        return;
+      }
+
+      pendingSave = takeNextStepTitleSave(
+        pendingStepTitleSavesRef.current,
+      );
+    }
+  }, [feedbackTaskId]);
+
+  const finishStepMutation = useCallback(() => {
+    mutationInFlightRef.current = false;
+    setIsUpdatingSteps(false);
+    runNextPendingTitleSave();
+  }, [runNextPendingTitleSave]);
+
   const createDefaultSteps = useCallback(async () => {
     if (
       taskId === null ||
@@ -162,19 +212,15 @@ export function useTaskSteps({
         "일부 세부 단계를 생성하지 못했습니다.",
       );
     } finally {
-      mutationInFlightRef.current = false;
-      setIsUpdatingSteps(false);
+      finishStepMutation();
     }
-  }, [applyServerSteps, taskId]);
+  }, [applyServerSteps, finishStepMutation, taskId]);
 
   const saveStepTitle = useCallback(
     async (step: FeedbackStep, title: string) => {
         const trimmedTitle = title.trim();
 
-        if (
-        taskId === null ||
-        mutationInFlightRef.current
-        ) {
+        if (taskId === null) {
         return;
         }
 
@@ -191,6 +237,15 @@ export function useTaskSteps({
             step.taskStepId,
         ) === trimmedTitle
         ) {
+        return;
+        }
+
+        if (mutationInFlightRef.current) {
+        queueStepTitleSave(
+            pendingStepTitleSavesRef.current,
+            step.id,
+            trimmedTitle,
+        );
         return;
         }
 
@@ -217,28 +272,75 @@ export function useTaskSteps({
             savedStep.title,
         );
 
+        const hasPendingNewerTitle =
+            pendingStepTitleSavesRef.current.has(
+            step.id,
+            );
+
         updateFeedbackStep(
             feedbackTaskId,
             step.id,
             {
             taskStepId: savedStep.taskStepId,
-            title: savedStep.title,
             progress: savedStep.progressRate,
+            ...(hasPendingNewerTitle
+                ? {}
+                : { title: savedStep.title }),
             },
         );
         } catch {
+        const hasPendingNewerTitle =
+            pendingStepTitleSavesRef.current.has(
+            step.id,
+            );
+
+        if (!hasPendingNewerTitle) {
+            const lastSavedTitle =
+            typeof step.taskStepId === "number"
+                ? savedStepTitlesRef.current.get(
+                    step.taskStepId,
+                )
+                : undefined;
+
+            if (lastSavedTitle) {
+            updateFeedbackStep(
+                feedbackTaskId,
+                step.id,
+                { title: lastSavedTitle },
+            );
+            } else {
+            removeFeedbackStep(
+                feedbackTaskId,
+                step.id,
+            );
+            }
+        }
+
         setStepsError(
             typeof step.taskStepId === "number"
             ? "세부 단계 제목을 저장하지 못했습니다."
             : "세부 단계를 생성하지 못했습니다.",
         );
         } finally {
-        mutationInFlightRef.current = false;
-        setIsUpdatingSteps(false);
+        finishStepMutation();
         }
     },
-    [feedbackTaskId, taskId, updateFeedbackStep],
+    [
+      feedbackTaskId,
+      finishStepMutation,
+      removeFeedbackStep,
+      taskId,
+      updateFeedbackStep,
+    ],
   );
+
+  useEffect(() => {
+    saveStepTitleRef.current = saveStepTitle;
+
+    return () => {
+      saveStepTitleRef.current = null;
+    };
+  }, [saveStepTitle]);
 
   const deleteStep = useCallback(
     async (step: FeedbackStep) => {
@@ -281,11 +383,15 @@ export function useTaskSteps({
             "세부 단계를 삭제하지 못했습니다.",
         );
         } finally {
-        mutationInFlightRef.current = false;
-        setIsUpdatingSteps(false);
+        finishStepMutation();
         }
     },
-    [feedbackTaskId, removeFeedbackStep, taskId],
+    [
+      feedbackTaskId,
+      finishStepMutation,
+      removeFeedbackStep,
+      taskId,
+    ],
   );
   
   const refreshSteps = useCallback(() => {
