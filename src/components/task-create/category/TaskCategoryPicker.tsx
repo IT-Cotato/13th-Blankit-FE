@@ -6,6 +6,7 @@ import { Toast } from "@/components/common/Toast";
 
 import { CategoryFormSheet } from "./CategoryFormSheet";
 import { CategoryListSheet } from "./CategoryListSheet";
+import { getCategoryFormInitialName } from "./categoryDraft";
 
 import type { CategoryFlow } from "./useCategoryFlow";
 
@@ -44,6 +45,9 @@ export function TaskCategoryPicker({
 
     const frameId = requestAnimationFrame(() => {
       const firstFocusableElement =
+        containerRef.current?.querySelector<HTMLElement>(
+          "[data-autofocus]",
+        ) ??
         containerRef.current?.querySelector<HTMLElement>(
           "button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])",
         );
@@ -108,8 +112,10 @@ export function TaskCategoryPicker({
           }
           editable={categoryFlow.editable}
           loading={categoryFlow.loading}
+          draftCategoryName={categoryFlow.draftCategoryName}
           onBack={categoryFlow.backToComposer}
           onStartCreate={categoryFlow.startCreate}
+          onDraftCategoryNameChange={categoryFlow.setDraftCategoryName}
           onToggleEdit={categoryFlow.toggleEditable}
           onSelect={categoryFlow.selectCategory}
           onStartUpdate={categoryFlow.startUpdate}
@@ -124,7 +130,11 @@ export function TaskCategoryPicker({
           }`}
           mode={categoryFlow.formMode}
           initialName={
-            categoryFlow.editingCategory?.categoryName
+            getCategoryFormInitialName(
+              categoryFlow.formMode,
+              categoryFlow.editingCategory?.categoryName,
+              categoryFlow.draftCategoryName,
+            )
           }
           initialColor={categoryFlow.editingCategory?.color}
           initialIconKey={

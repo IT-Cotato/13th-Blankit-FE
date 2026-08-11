@@ -72,7 +72,9 @@ export function TaskActionLayer({
         <TaskForm
           formOptions={taskFormOptions}
           key={
-            editingTask?.taskId ?? "create"
+            `${editingTask?.taskId ?? "create"}-${
+              taskFormOptions === null ? "loading" : "ready"
+            }`
           }
           ref={taskFormRef}
           title={taskTitle}

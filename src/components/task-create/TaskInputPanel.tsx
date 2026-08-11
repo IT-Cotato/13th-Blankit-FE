@@ -1,6 +1,7 @@
 import type { RefObject } from "react";
 
 import arrowRightIcon from "@/assets/icons/arrow/arrow-pointing-right.svg";
+import arrowRightWhiteIcon from "@/assets/icons/arrow/arrow-pointing-right-white.svg";
 import calendarIcon from "@/assets/icons/bottom-nav/calendar-green.svg";
 import alarmIcon from "@/assets/icons/task/alarm-icon.svg";
 import categoryIcon from "@/assets/icons/task/category_icon.svg";
@@ -62,6 +63,7 @@ export function TaskInputPanel({
       <div className="flex items-center gap-3">
         <input
           ref={inputRef}
+          autoFocus
           type="text"
           value={title}
           aria-label="과업명"
@@ -82,7 +84,11 @@ export function TaskInputPanel({
           onClick={onContinue}
           className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
         >
-          <img src={arrowRightIcon} alt="" className="h-[42px] w-[42px]" />
+          <img
+            src={canContinue ? arrowRightWhiteIcon : arrowRightIcon}
+            alt=""
+            className="h-[42px] w-[42px]"
+          />
         </button>
       </div>
 
