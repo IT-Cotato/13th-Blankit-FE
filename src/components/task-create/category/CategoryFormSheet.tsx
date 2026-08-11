@@ -70,12 +70,6 @@ export function CategoryFormSheet({
         maxHeight: Math.max(0, viewportHeight - 12),
       }}
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-full bg-black-850"
-        style={{ height: keyboardInset }}
-      />
-
       <header className="flex items-center gap-3">
         <button
           type="button"
