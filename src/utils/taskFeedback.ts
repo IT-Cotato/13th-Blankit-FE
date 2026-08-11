@@ -12,13 +12,14 @@ const DEFAULT_STEP_TITLES = [
 
 export function createFeedbackDraft(
   progress: number,
+  memo: string | null = null,
 ): TaskFeedbackDraft {
   const boundedProgress = Number.isFinite(progress)
     ? Math.min(100, Math.max(0, progress))
     : 0;
 
   return {
-    memo: "",
+    memo: memo?.trim() ?? "",
     progress: boundedProgress,
     progressTouched: false,
     steps: [],

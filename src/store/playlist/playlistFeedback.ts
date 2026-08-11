@@ -39,6 +39,7 @@ export const createPlaylistFeedback: PlaylistStoreCreator<
         ...current.feedbackDrafts,
         [taskId]: createFeedbackDraft(
           task.progressRate,
+          task.memo,
         ),
       },
     }));
@@ -222,6 +223,7 @@ export const createPlaylistFeedback: PlaylistStoreCreator<
 
       const updatedCurrentTask = {
         ...current.playlist[0],
+        memo: draft.memo.trim() || null,
         progressRate: draft.progressTouched
           ? draft.progress
           : current.playlist[0].progressRate,

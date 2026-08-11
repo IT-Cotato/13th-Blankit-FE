@@ -90,6 +90,10 @@ export function useTaskFeedback({
   const [refreshKey, setRefreshKey] = useState(0);
 
   const saveInFlightRef = useRef(false);
+  const lastSavedMemoRef = useRef({
+    sessionId: null as number | null,
+    memo: "",
+  });
 
   useEffect(() => {
     if (!enabled || sessionId === null) {
@@ -106,7 +110,16 @@ export function useTaskFeedback({
         const feedback =
           await getTaskFeedback(sessionId);
 
-        if (cancelled || !feedback) {
+        if (cancelled) {
+          return;
+        }
+
+        lastSavedMemoRef.current = {
+          sessionId,
+          memo: feedback?.memo?.trim() ?? "",
+        };
+
+        if (!feedback) {
           return;
         }
 
@@ -147,54 +160,90 @@ export function useTaskFeedback({
   ]);
 
   const saveFeedback = useCallback(
-    async (isDraft: boolean) => {
-        if (!draft || !hasFeedbackContent(draft)) {
-        return isDraft;
-        }
+    async (
+      isDraft: boolean,
+      skipIfMemoUnchanged = false,
+    ) => {
+      if (!draft) {
+        return false;
+      }
 
-        if (
+      const currentMemo = draft.memo.trim();
+      const lastSavedMemo =
+        lastSavedMemoRef.current.sessionId === sessionId
+          ? lastSavedMemoRef.current.memo
+          : "";
+      const memoChanged =
+        currentMemo !== lastSavedMemo;
+
+      if (
+        isDraft &&
+        skipIfMemoUnchanged &&
+        !memoChanged
+      ) {
+        return isDraft;
+      }
+
+      if (
+        !hasFeedbackContent(draft) &&
+        !memoChanged
+      ) {
+        return isDraft;
+      }
+
+      if (
         sessionId === null ||
         saveInFlightRef.current
-        ) {
+      ) {
         return false;
-        }
+      }
 
-        saveInFlightRef.current = true;
-        setIsSavingFeedback(true);
-        setFeedbackError(null);
+      saveInFlightRef.current = true;
+      setIsSavingFeedback(true);
+      setFeedbackError(null);
 
-        try {
+      try {
         await submitTaskFeedback(
-            sessionId,
-            createFeedbackPayload(draft, isDraft),
+          sessionId,
+          createFeedbackPayload(draft, isDraft),
         );
 
+        lastSavedMemoRef.current = {
+          sessionId,
+          memo: currentMemo,
+        };
+
         return true;
-        } catch {
+      } catch {
         setFeedbackError(
-            isDraft
+          isDraft
             ? "과업 피드백을 임시 저장하지 못했습니다."
             : "과업 피드백을 완료하지 못했습니다.",
         );
 
         return false;
-        } finally {
+      } finally {
         saveInFlightRef.current = false;
         setIsSavingFeedback(false);
-        }
+      }
     },
     [draft, sessionId],
-    );
+  );
 
-const saveDraft = useCallback(
-  () => saveFeedback(true),
-  [saveFeedback],
-);
+  const saveDraft = useCallback(
+    () => saveFeedback(true),
+    [saveFeedback],
+  );
 
-const submitFinalFeedback = useCallback(
-  () => saveFeedback(false),
-  [saveFeedback],
-);
+  const saveMemoDraft = useCallback(
+    () => saveFeedback(true, true),
+    [saveFeedback],
+  );
+
+  const submitFinalFeedback = useCallback(
+    () => saveFeedback(false),
+    [saveFeedback],
+  );
 
   const refreshFeedback = useCallback(() => {
     setRefreshKey((current) => current + 1);
@@ -205,6 +254,7 @@ const submitFinalFeedback = useCallback(
     isSavingFeedback,
     feedbackError,
     saveDraft,
+    saveMemoDraft,
     submitFinalFeedback,
     refreshFeedback,
   };

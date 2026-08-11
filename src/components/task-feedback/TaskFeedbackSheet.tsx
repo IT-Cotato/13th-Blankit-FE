@@ -63,6 +63,7 @@ export function TaskFeedbackSheet({
   onShowToast,
 }: TaskFeedbackSheetProps) {
   const memoInputRef = useRef<HTMLInputElement>(null);
+  const skipNextMemoBlurSaveRef = useRef(false);
   const draft = usePlaylistStore(
     (state) => state.feedbackDrafts[taskId],
   );
@@ -97,6 +98,7 @@ export function TaskFeedbackSheet({
     isSavingFeedback,
     feedbackError,
     saveDraft,
+    saveMemoDraft,
     submitFinalFeedback,
   } = useTaskFeedback({
     sessionId,
@@ -128,10 +130,12 @@ export function TaskFeedbackSheet({
 
   const handleClose = async () => {
     if (isSavingFeedback) {
+      skipNextMemoBlurSaveRef.current = false;
       return;
     }
 
     const canClose = await saveDraft();
+    skipNextMemoBlurSaveRef.current = false;
 
     if (canClose) {
       onClose();
@@ -139,6 +143,8 @@ export function TaskFeedbackSheet({
   };
 
   const handleComplete = async () => {
+    skipNextMemoBlurSaveRef.current = false;
+
     if (
       isSavingFeedback ||
       isUpdatingSteps
@@ -154,6 +160,15 @@ export function TaskFeedbackSheet({
     }
 
     await onComplete();
+  };
+
+  const handleMemoBlur = () => {
+    if (skipNextMemoBlurSaveRef.current) {
+      skipNextMemoBlurSaveRef.current = false;
+      return;
+    }
+
+    void saveMemoDraft();
   };
 
   if (!open || !draft) {
@@ -176,6 +191,9 @@ export function TaskFeedbackSheet({
             <button
               type="button"
               disabled={isSavingFeedback}
+              onPointerDown={() => {
+                skipNextMemoBlurSaveRef.current = true;
+              }}
               onClick={() => {
                 void handleClose();
               }}
@@ -205,6 +223,7 @@ export function TaskFeedbackSheet({
                     event.target.value,
                   )
                 }
+                onBlur={handleMemoBlur}
                 placeholder="3장 15p까지 함"
                 aria-label="과업 피드백 메모"
                 className="min-w-0 flex-1 bg-transparent px-2 text-[16px] font-medium text-black-200 outline-none placeholder:text-black-600"
@@ -212,6 +231,7 @@ export function TaskFeedbackSheet({
 
               <button
                 type="button"
+                disabled={isSavingFeedback}
                 onClick={() =>
                   memoInputRef.current?.blur()
                 }
@@ -299,6 +319,9 @@ export function TaskFeedbackSheet({
         <div className="shrink-0 bg-black-850 px-5 pb-5 pt-4 shadow-[0_-12px_24px_rgba(0,0,0,0.18)]">
           <button
             type="button"
+            onPointerDown={() => {
+              skipNextMemoBlurSaveRef.current = true;
+            }}
             onClick={() => { void handleComplete(); }}
             disabled={!canComplete || isSavingFeedback || isUpdatingSteps}
             className="h-[52px] w-full rounded-[8px] bg-green-500 text-[14px] font-semibold text-black-900 disabled:bg-black-800 disabled:text-black-600 disabled:font-medium"
