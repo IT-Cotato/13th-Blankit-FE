@@ -222,7 +222,9 @@ export function HomePage({
               }
             />
 
-            <TaskCombinationSection />
+            <TaskCombinationSection
+              refreshKey={refreshKey}
+            />
           </div>
 
           {shouldRenderDockedBar && (

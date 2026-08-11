@@ -1,9 +1,7 @@
 import type { StateCreator } from "zustand";
 
 import type {
-  CombinationModeId,
   PlaylistTask,
-  TaskCombination,
 } from "@/types/taskCombination";
 import type {
   FeedbackCompletionResult,
@@ -14,8 +12,6 @@ import type {
 export interface PlaylistTasksState {
   playlist: PlaylistTask[];
   replacePlaylist: (playlist: PlaylistTask[]) => void;
-  addCombination: (combination: TaskCombination) => void;
-  removeCombination: (modeId: CombinationModeId) => void;
   removeTasks: (taskIds: string[]) => void;
   clearPlaylist: () => void;
   completeCurrentTask: (now?: number) => void;
@@ -24,9 +20,6 @@ export interface PlaylistTasksState {
     activeTaskId: string,
     overTaskId: string,
   ) => void;
-  isCombinationAdded: (
-    modeId: CombinationModeId,
-  ) => boolean;
 }
 
 export interface PlaylistTimerState {

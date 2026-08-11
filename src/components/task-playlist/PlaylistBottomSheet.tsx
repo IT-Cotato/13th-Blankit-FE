@@ -7,7 +7,6 @@ import { PlaylistTaskCard } from "@/components/task-playlist/PlaylistTaskCard";
 import { ACTIVE_FILTER_CLASS_NAMES, PLAYLIST_FILTERS } from "@/components/task-playlist/playlistBottomSheetModes";
 import { usePlaylistDelete } from "@/hooks/usePlaylistDelete";
 import { usePlaylistReorder } from "@/hooks/usePlaylistReorder";
-import { taskCombinations } from "@/mocks/taskCombinations";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
 
 import type { PlaylistFilter } from "@/components/task-playlist/playlistBottomSheetModes";
@@ -162,9 +161,9 @@ export function PlaylistBottomSheet({
   };
 
   const selectedModeName =
-    taskCombinations.find(
-      (combination) => combination.id === filter,
-    )?.name ?? "";
+    PLAYLIST_FILTERS.find(
+      (playlistFilter) => playlistFilter.id === filter,
+    )?.label ?? "";
 
   const allFilteredTasksSelected =
     filteredTasks.length > 0 &&

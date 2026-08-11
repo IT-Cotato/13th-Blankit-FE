@@ -15,7 +15,7 @@ import type {
 
 export const createPlaylistTasks: PlaylistStoreCreator<
   PlaylistTasksState
-> = (set, get) => ({
+> = (set) => ({
   playlist: [],
 
   replacePlaylist: (playlist) => {
@@ -31,52 +31,6 @@ export const createPlaylistTasks: PlaylistStoreCreator<
           : EMPTY_CURRENT_TASK_TIMER_STATE
         : {}),
     }));
-  },
-
-  addCombination: (combination) => {
-    const isAlreadyAdded = get().playlist.some(
-      (task) => task.sourceMode === combination.id,
-    );
-
-    if (
-      combination.tasks.length === 0 ||
-      isAlreadyAdded
-    ) {
-      return;
-    }
-
-    set((state) => ({
-      playlist: [
-        ...state.playlist,
-        ...combination.tasks.map((task) => ({
-          ...task,
-          sourceMode: combination.id,
-        })),
-      ],
-      ...(state.playlist.length === 0
-        ? EMPTY_PLAYLIST_TIMER_STATE
-        : {}),
-    }));
-  },
-
-  removeCombination: (modeId) => {
-    set((state) => {
-      const playlist = state.playlist.filter(
-        (task) => task.sourceMode !== modeId,
-      );
-
-      return {
-        playlist,
-        ...(hasCurrentPlaylistTaskChanged(
-          state.playlist,
-          playlist,
-        )
-          ? playlist.length === 0
-            ? EMPTY_PLAYLIST_TIMER_STATE
-            : EMPTY_CURRENT_TASK_TIMER_STATE
-          : {}),
-      };
-    });
   },
 
   removeTasks: (taskIds) => {
@@ -186,8 +140,4 @@ export const createPlaylistTasks: PlaylistStoreCreator<
     });
   },
 
-  isCombinationAdded: (modeId) =>
-    get().playlist.some(
-      (task) => task.sourceMode === modeId,
-    ),
 });
