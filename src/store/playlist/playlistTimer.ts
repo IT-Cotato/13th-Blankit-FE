@@ -18,6 +18,26 @@ export const createPlaylistTimer: PlaylistStoreCreator<
   ...EMPTY_PLAYLIST_TIMER_STATE,
   hasSeenCompletionTooltip: false,
 
+  restoreTimerFromSession: (
+    elapsedSeconds,
+    isPlaying,
+    now = Date.now(),
+  ) => {
+    const safeElapsedSeconds = Number.isFinite(
+      elapsedSeconds,
+    )
+      ? Math.max(0, Math.floor(elapsedSeconds))
+      : 0;
+
+    set({
+      elapsedSeconds: safeElapsedSeconds,
+      startedAt: isPlaying ? now : null,
+      isPlaying,
+      hasStarted:
+        isPlaying || safeElapsedSeconds > 0,
+    });
+  },
+
   playCurrentTask: (now = Date.now()) => {
     const state = get();
 

@@ -70,9 +70,14 @@ export function canCompleteFeedback(
 
   const hasProgress =
     draft.progressTouched ||
-    draft.steps.some((step) => step.progressTouched);
+    draft.steps.some(
+      (step) => step.progressTouched,
+    );
 
-  return hasValidStepTitles && hasMemo && hasProgress;
+  return (
+    hasValidStepTitles &&
+    (hasMemo || hasProgress)
+  );
 }
 
 export function getFeedbackCompletionResult(

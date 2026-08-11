@@ -84,7 +84,25 @@ export const createPlaylistFeedback: PlaylistStoreCreator<
       };
     });
   },
+  replaceFeedbackSteps: (taskId, steps) => {
+    set((state) => {
+      const draft = state.feedbackDrafts[taskId];
 
+      if (!draft) {
+        return state;
+      }
+
+      return {
+        feedbackDrafts: {
+          ...state.feedbackDrafts,
+          [taskId]: {
+            ...draft,
+            steps,
+          },
+        },
+      };
+    });
+  },
   splitFeedbackIntoSteps: (taskId) => {
     set((state) => {
       const draft = state.feedbackDrafts[taskId];
