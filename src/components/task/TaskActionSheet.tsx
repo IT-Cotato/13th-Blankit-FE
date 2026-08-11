@@ -6,6 +6,7 @@ interface TaskActionSheetProps {
   open: boolean;
   aboveBottomNavigation: boolean;
   addingToPlaylist: boolean;
+  editingTaskReady: boolean;
   onClose: () => void;
   onAddToPlaylist: () => void;
   onEdit: () => void;
@@ -16,6 +17,7 @@ export function TaskActionSheet({
   open,
   aboveBottomNavigation,
   addingToPlaylist,
+  editingTaskReady,
   onClose,
   onAddToPlaylist,
   onEdit,
@@ -36,7 +38,7 @@ export function TaskActionSheet({
       label: "수정",
       icon: editIcon,
       onClick: onEdit,
-      disabled: false,
+      disabled: !editingTaskReady,
     },
     {
       label: "삭제",

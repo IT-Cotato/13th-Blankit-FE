@@ -37,10 +37,18 @@ export function useTaskManager({
     showToast,
   });
 
+  const selectTask = (taskId: number) => {
+    setSelectedTaskId(taskId);
+    taskForm.prepareTaskForEdit(taskId);
+  };
+
   return {
     taskFormOptions: taskForm.taskFormOptions,
     openingComposer: taskForm.openingComposer,
     loadingTaskDetail: taskForm.loadingTaskDetail,
+    editingTaskReady:
+      selectedTaskId !== null &&
+      taskForm.preparedEditTaskId === selectedTaskId,
     deletingTask: taskActions.deletingTask,
     addingToPlaylist: taskActions.addingToPlaylist,
     taskDataVersion,
@@ -51,7 +59,7 @@ export function useTaskManager({
     isComposerOpen: taskForm.isComposerOpen,
     taskFormRef: taskForm.taskFormRef,
 
-    selectTask: setSelectedTaskId,
+    selectTask,
     setTaskTitle: taskForm.setTaskTitle,
 
     openComposer: taskForm.openComposer,

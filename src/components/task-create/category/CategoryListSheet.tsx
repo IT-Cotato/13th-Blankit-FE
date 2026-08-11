@@ -10,10 +10,8 @@ interface CategoryListSheetProps {
   selectedCategoryId: number | null;
   editable: boolean;
   loading?: boolean;
-  draftCategoryName: string;
   onBack: () => void;
   onStartCreate: () => void;
-  onDraftCategoryNameChange: (name: string) => void;
   onToggleEdit: () => void;
   onSelect: (category: Category) => void;
   onStartUpdate: (category: Category) => void;
@@ -25,10 +23,8 @@ export function CategoryListSheet({
   selectedCategoryId,
   editable,
   loading = false,
-  draftCategoryName,
   onBack,
   onStartCreate,
-  onDraftCategoryNameChange,
   onToggleEdit,
   onSelect,
   onStartUpdate,
@@ -55,29 +51,15 @@ export function CategoryListSheet({
           />
         </button>
 
-        <input
-          data-autofocus
-          autoFocus
-          type="text"
-          enterKeyHint="next"
-          maxLength={30}
-          aria-label="카테고리명"
-          placeholder="카테고리 추가하기"
-          value={draftCategoryName}
-          onChange={(event) =>
-            onDraftCategoryNameChange(event.target.value)
-          }
-          onKeyDown={(event) => {
-            if (
-              event.key === "Enter" &&
-              draftCategoryName.trim().length > 0
-            ) {
-              event.preventDefault();
-              onStartCreate();
-            }
-          }}
-          className="h-11 min-w-0 flex-1 rounded-[8px] bg-black-800 px-4 text-left text-[16px] text-black-100 outline-none placeholder:text-black-500"
-        />
+        <button
+          type="button"
+          aria-label="카테고리 추가하기"
+          disabled={loading}
+          onClick={onStartCreate}
+          className="h-11 min-w-0 flex-1 rounded-[8px] bg-black-800 px-4 text-left text-[16px] text-black-500 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          카테고리 추가하기
+        </button>
 
         <button
           type="button"

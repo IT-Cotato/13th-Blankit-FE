@@ -60,6 +60,13 @@ export function CategoryFormSheet({
   }
 
   return (
+    <>
+      <div
+        aria-hidden="true"
+        className="fixed inset-x-0 bottom-0 z-[69] bg-black-850"
+        style={{ height: keyboardInset }}
+      />
+
     <section
       role="dialog"
       aria-modal="true"
@@ -229,5 +236,6 @@ export function CategoryFormSheet({
         </div>
       </fieldset>
     </section>
+    </>
   );
 }

@@ -32,11 +32,19 @@ export function useTaskForm({
   showToast,
 }: UseTaskFormOptions) {
   const taskFormRef = useRef<TaskFormHandle>(null);
+  const preparedEditRef = useRef<{
+    taskId: number;
+    taskDetail: TaskDetailResponse;
+    formOptions: TaskFormOptionsResponse;
+  } | null>(null);
+  const prepareEditRequestIdRef = useRef(0);
 
   const [editingTask, setEditingTask] =
     useState<TaskDetailResponse | null>(null);
   const [loadingTaskDetail, setLoadingTaskDetail] =
     useState(false);
+  const [preparedEditTaskId, setPreparedEditTaskId] =
+    useState<number | null>(null);
   const [taskTitle, setTaskTitle] = useState("");
   const [isComposerOpen, setIsComposerOpen] =
     useState(false);
@@ -108,41 +116,68 @@ export function useTaskForm({
     }
   };
 
-  const editSelectedTask = async () => {
+  const prepareTaskForEdit = (taskId: number) => {
+    const requestId = prepareEditRequestIdRef.current + 1;
+    prepareEditRequestIdRef.current = requestId;
+    preparedEditRef.current = null;
+    setPreparedEditTaskId(null);
+    setLoadingTaskDetail(true);
+
+    void Promise.all([
+      getTask(taskId),
+      getTaskFormOptions(),
+    ])
+      .then(([taskDetail, formOptions]) => {
+        if (prepareEditRequestIdRef.current !== requestId) {
+          return;
+        }
+
+        preparedEditRef.current = {
+          taskId,
+          taskDetail,
+          formOptions,
+        };
+        setPreparedEditTaskId(taskId);
+      })
+      .catch((error) => {
+        if (prepareEditRequestIdRef.current !== requestId) {
+          return;
+        }
+
+        console.error(error);
+        showToast(
+          getTaskErrorMessage(error) ??
+            "과업 정보를 불러오지 못했습니다.",
+        );
+      })
+      .finally(() => {
+        if (prepareEditRequestIdRef.current === requestId) {
+          setLoadingTaskDetail(false);
+        }
+      });
+  };
+
+  const editSelectedTask = () => {
+    const preparedEdit = preparedEditRef.current;
+
     if (
       selectedTaskId === null ||
-      loadingTaskDetail
+      preparedEdit?.taskId !== selectedTaskId
     ) {
       return;
     }
 
-    try {
-      setLoadingTaskDetail(true);
+    flushSync(() => {
+      clearSelectedTask();
+      setEditingTask(preparedEdit.taskDetail);
+      setTaskFormOptions(preparedEdit.formOptions);
+      setTaskTitle(preparedEdit.taskDetail.title);
+      setIsComposerOpen(true);
+    });
 
-      const [taskDetail, formOptions] = await Promise.all([
-        getTask(selectedTaskId),
-        getTaskFormOptions(),
-      ]);
-
-      flushSync(() => {
-        clearSelectedTask();
-        setEditingTask(taskDetail);
-        setTaskFormOptions(formOptions);
-        setTaskTitle(taskDetail.title);
-        setIsComposerOpen(true);
-      });
-
-      taskFormRef.current?.focus();
-    } catch (error) {
-      console.error(error);
-
-      showToast(
-        getTaskErrorMessage(error) ??
-          "과업 정보를 불러오지 못했습니다.",
-      );
-    } finally {
-      setLoadingTaskDetail(false);
-    }
+    preparedEditRef.current = null;
+    setPreparedEditTaskId(null);
+    taskFormRef.current?.focus();
   };
 
   const updateTask = async (
@@ -169,6 +204,7 @@ export function useTaskForm({
     taskFormOptions,
     openingComposer,
     loadingTaskDetail,
+    preparedEditTaskId,
     editingTask,
     taskTitle,
     isComposerOpen,
@@ -177,6 +213,7 @@ export function useTaskForm({
     openComposer,
     closeComposer,
     completeCreate,
+    prepareTaskForEdit,
     editSelectedTask,
     updateTask,
   };

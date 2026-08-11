@@ -33,6 +33,7 @@ interface TaskActionLayerProps {
     request: TaskUpdateRequest,
   ) => void | Promise<void>;
   actionSheetOpen: boolean;
+  editingTaskReady: boolean;
   onCloseActionSheet: () => void;
   onEditTask: () => void;
   onRequestDelete: () => void;
@@ -56,6 +57,7 @@ export function TaskActionLayer({
   onCompleteCreate,
   onUpdateTask,
   actionSheetOpen,
+  editingTaskReady,
   onCloseActionSheet,
   onEditTask,
   onRequestDelete,
@@ -94,6 +96,7 @@ export function TaskActionLayer({
         addingToPlaylist={
           addingToPlaylist
         }
+        editingTaskReady={editingTaskReady}
         onClose={onCloseActionSheet}
         onAddToPlaylist={
           onAddToPlaylist
