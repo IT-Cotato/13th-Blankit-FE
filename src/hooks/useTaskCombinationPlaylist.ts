@@ -173,6 +173,10 @@ export function useTaskCombinationPlaylist({
         }
 
         onShowToast("재생 목록에서 삭제되었습니다.");
+      } catch {
+        onShowToast(
+          "과업 조합을 재생 목록에서 삭제하지 못했습니다.",
+        );
       } finally {
         playlistChangeInFlightRef.current = false;
         setIsDeletingCombination(false);

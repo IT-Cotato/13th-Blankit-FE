@@ -27,6 +27,7 @@ export function useStartRecommendedTasks({
     setIsStartingRecommendedTasks,
   ] = useState(false);
   const startInFlightRef = useRef(false);
+  const playlistRefreshPendingRef = useRef(false);
 
   const startRecommendedTasks = useCallback(async () => {
     if (playlistTaskCount > 0) {
@@ -49,16 +50,18 @@ export function useStartRecommendedTasks({
 
     startInFlightRef.current = true;
     setIsStartingRecommendedTasks(true);
-    let tasksAdded = false;
 
     try {
-      await addPlaylistItems({
-        taskIds,
-        sourceMode: null,
-      });
-      tasksAdded = true;
+      if (!playlistRefreshPendingRef.current) {
+        await addPlaylistItems({
+          taskIds,
+          sourceMode: null,
+        });
+        playlistRefreshPendingRef.current = true;
+      }
 
       await refreshPlaylist();
+      playlistRefreshPendingRef.current = false;
       navigate("/task-playlist", {
         state: {
           playlistCreatedToastMessage:
@@ -67,7 +70,7 @@ export function useStartRecommendedTasks({
       });
     } catch {
       onShowToast(
-        tasksAdded
+        playlistRefreshPendingRef.current
           ? "과업은 추가되었지만 재생 목록을 불러오지 못했습니다."
           : "추천 과업을 재생 목록에 추가하지 못했습니다.",
       );
