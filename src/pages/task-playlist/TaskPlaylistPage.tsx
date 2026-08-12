@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 
 import checkButtonGreenIcon from "@/assets/icons/task-combination/check-button-green.svg";
 import pauseButtonCircleIcon from "@/assets/icons/task-combination/pause-button-circle.svg";
@@ -29,6 +32,7 @@ import { getTaskPlayerControls } from "@/utils/taskPlayerControls";
 
 export function TaskPlaylistPage() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const task = usePlaylistStore(
     (state) => state.playlist[0],
@@ -70,6 +74,17 @@ export function TaskPlaylistPage() {
   } = useToast();
 
   const {
+    message: playlistCreatedToastMessage,
+    showToast: showPlaylistCreatedToast,
+  } = useToast();
+
+  const queuedPlaylistCreatedToastMessage = (
+    location.state as {
+      playlistCreatedToastMessage?: string;
+    } | null
+  )?.playlistCreatedToastMessage;
+
+  const {
     session,
     isLoadingSession,
     isUpdatingSession,
@@ -101,6 +116,25 @@ export function TaskPlaylistPage() {
     isPlaying,
     hasStarted,
   });
+
+  useEffect(() => {
+    if (!queuedPlaylistCreatedToastMessage) {
+      return;
+    }
+
+    showPlaylistCreatedToast(
+      queuedPlaylistCreatedToastMessage,
+    );
+    navigate(location.pathname, {
+      replace: true,
+      state: null,
+    });
+  }, [
+    location.pathname,
+    navigate,
+    queuedPlaylistCreatedToastMessage,
+    showPlaylistCreatedToast,
+  ]);
 
   useEffect(() => {
     if (!missingTaskIdMessage) {
@@ -360,6 +394,12 @@ export function TaskPlaylistPage() {
       <Toast
         message={feedbackToastMessage}
         variant="taskCombination"
+      />
+
+      <Toast
+        message={playlistCreatedToastMessage}
+        variant="taskCombination"
+        centeredWithBackdrop
       />
     </div>
   );

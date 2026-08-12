@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import sadBunnyIcon from "@/assets/icons/sad-bunny.svg";
 
+import { Toast } from "@/components/common/Toast";
 import { DockedTaskTimeBar } from "@/components/home/DockedTaskTimeBar";
 import { HomeTopBar } from "@/components/home/HomeTopBar";
 import { RecommendedTaskTimeCard } from "@/components/home/RecommendedTaskTimeCard";
@@ -11,6 +12,8 @@ import { TodayRecommendedTasks } from "@/components/task/TodayRecommendedTasks";
 import { TaskCombinationSection } from "@/components/task-combination/TaskCombinationSection";
 
 import { useTodayRecommendations } from "@/hooks/useTodayRecommendations";
+import { useStartRecommendedTasks } from "@/hooks/useStartRecommendedTasks";
+import { useToast } from "@/hooks/useToast";
 
 import { usePlaylistStore } from "@/store/usePlaylistStore";
 
@@ -85,12 +88,26 @@ export function HomePage({
     );
 
   const {
+    recommendedMinutes,
     recommendedTasks,
     loadingRecommendations,
     recommendationError,
   } = useTodayRecommendations(
     refreshKey,
   );
+
+  const {
+    message: startTaskToastMessage,
+    showToast: showStartTaskToast,
+  } = useToast();
+
+  const {
+    startRecommendedTasks,
+    isStartingRecommendedTasks,
+  } = useStartRecommendedTasks({
+    recommendedTasks,
+    onShowToast: showStartTaskToast,
+  });
 
   const hasTasks =
     recommendedTasks.length > 0;
@@ -184,7 +201,13 @@ export function HomePage({
             <WeeklyCalendar />
 
             <div ref={taskCardRef}>
-              <RecommendedTaskTimeCard />
+              <RecommendedTaskTimeCard
+                recommendedMinutes={recommendedMinutes}
+                isStarting={isStartingRecommendedTasks}
+                onStart={() => {
+                  void startRecommendedTasks();
+                }}
+              />
             </div>
 
             <TodayRecommendedTasks
@@ -199,7 +222,9 @@ export function HomePage({
               }
             />
 
-            <TaskCombinationSection />
+            <TaskCombinationSection
+              refreshKey={refreshKey}
+            />
           </div>
 
           {shouldRenderDockedBar && (
@@ -209,6 +234,11 @@ export function HomePage({
       ) : (
         <HomeEmptyState />
       )}
+
+      <Toast
+        message={startTaskToastMessage}
+        variant="taskCombination"
+      />
     </>
   );
 }

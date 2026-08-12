@@ -1,5 +1,3 @@
-import { taskCombinations } from "@/mocks/taskCombinations";
-
 import type { CombinationModeId } from "@/types/taskCombination";
 
 export type PlaylistFilter = "all" | CombinationModeId;
@@ -9,10 +7,10 @@ export const PLAYLIST_FILTERS: Array<{
   label: string;
 }> = [
   { id: "all", label: "전체" },
-  ...taskCombinations.map((combination) => ({
-    id: combination.id,
-    label: combination.name.replace(" 모드", ""),
-  })),
+  { id: "FIRE", label: "불끄기" },
+  { id: "BALANCE", label: "밸런스" },
+  { id: "TASTE", label: "찍먹" },
+  { id: "CLEAR", label: "해치우기" },
 ];
 
 export const ACTIVE_FILTER_CLASS_NAMES: Record<

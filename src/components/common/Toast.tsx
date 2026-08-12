@@ -2,25 +2,43 @@ interface ToastProps {
   message: string | null;
   aboveBottomNavigation?: boolean;
   variant?: "default" | "taskCombination";
+  centeredWithBackdrop?: boolean;
 }
 
 export function Toast({
   message,
   aboveBottomNavigation = false,
   variant = "default",
+  centeredWithBackdrop = false,
 }: ToastProps) {
   if (!message) {
     return null;
   }
 
   return (
-    <div
-      role="status"
-      aria-live={variant === "taskCombination" ? "polite" : undefined}
-      className={
-        variant === "taskCombination"
-          ? "fixed bottom-[190px] left-1/2 z-[60] -translate-x-1/2 whitespace-nowrap rounded-[6px] border border-black-750 bg-black-800 px-4 py-3 text-[13px] font-medium text-black-200 shadow-lg"
-          : `
+    <>
+      {centeredWithBackdrop && (
+        <div
+          aria-hidden="true"
+          className="fixed inset-0 z-[59] bg-black opacity-70"
+        />
+      )}
+
+      <div
+        role="status"
+        aria-live={
+          variant === "taskCombination"
+            ? "polite"
+            : undefined
+        }
+        className={
+          variant === "taskCombination"
+            ? `fixed left-1/2 z-[60] -translate-x-1/2 whitespace-pre-line rounded-[6px] border border-black-750 bg-black-800 px-4 py-3 text-center text-[13px] font-medium text-black-200 shadow-lg ${
+                centeredWithBackdrop
+                  ? "top-1/2 -translate-y-1/2"
+                  : "bottom-[190px]"
+              }`
+            : `
               fixed left-1/2 z-[120]
               flex h-[41px] w-fit min-w-[158px]
               max-w-[calc(100vw-32px)]
@@ -41,9 +59,10 @@ export function Toast({
                   : "bottom-4"
               }
             `
-      }
-    >
-      {message}
-    </div>
+        }
+      >
+        {message}
+      </div>
+    </>
   );
 }

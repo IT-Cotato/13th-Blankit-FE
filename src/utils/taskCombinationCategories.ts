@@ -13,7 +13,7 @@ const ACCENT_CLASS_NAMES: Record<
   orange: "bg-orange-800",
 };
 
-interface TaskCombinationCategory {
+interface TaskCombinationCategoryIcon {
   id: string;
   icon: string;
 }
@@ -24,32 +24,16 @@ export function getCombinationAccentClassName(
   return ACCENT_CLASS_NAMES[accent];
 }
 
-export function getUniqueTaskCombinationCategories(
+export function getTaskCombinationCategoryIcons(
   tasks: CombinationTask[],
   limit = 3,
-): TaskCombinationCategory[] {
+): TaskCombinationCategoryIcon[] {
   if (limit <= 0) {
     return [];
   }
 
-  const seenCategoryIds = new Set<string>();
-  const categories: TaskCombinationCategory[] = [];
-
-  for (const task of tasks) {
-    if (seenCategoryIds.has(task.categoryId)) {
-      continue;
-    }
-
-    seenCategoryIds.add(task.categoryId);
-    categories.push({
-      id: task.categoryId,
-      icon: task.categoryIcon,
-    });
-
-    if (categories.length >= limit) {
-      break;
-    }
-  }
-
-  return categories;
+  return tasks.slice(0, limit).map((task) => ({
+    id: task.id,
+    icon: task.categoryIcon,
+  }));
 }

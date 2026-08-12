@@ -11,6 +11,11 @@ export function useTodayRecommendations(
   refreshKey: number,
 ) {
   const [
+    recommendedMinutes,
+    setRecommendedMinutes,
+  ] = useState<number | null>(null);
+
+  const [
     recommendedTasks,
     setRecommendedTasks,
   ] = useState<RecommendedTaskItem[]>([]);
@@ -50,6 +55,16 @@ export function useTodayRecommendations(
           )
           .slice(0, 3);
 
+        setRecommendedMinutes(
+          Number.isFinite(
+            response.totalRecommendedMinutes,
+          )
+            ? Math.max(
+                0,
+                response.totalRecommendedMinutes,
+              )
+            : 0,
+        );
         setRecommendedTasks(topTasks);
       } catch (error) {
         if (cancelled) {
@@ -57,6 +72,7 @@ export function useTodayRecommendations(
         }
 
         console.error(error);
+        setRecommendedMinutes(null);
         setRecommendedTasks([]);
         setRecommendationError(
           "오늘 추천 과업을 불러오지 못했습니다.",
@@ -78,6 +94,7 @@ export function useTodayRecommendations(
   }, [refreshKey]);
 
   return {
+    recommendedMinutes,
     recommendedTasks,
     loadingRecommendations,
     recommendationError,

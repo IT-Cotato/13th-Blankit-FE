@@ -15,6 +15,7 @@ export type CombinationAccent =
 
 export interface CombinationTask {
   id: string;
+  taskId: number;
   title: string;
   memo: string | null;
   priority: TaskPriority;
@@ -36,7 +37,8 @@ export interface TaskCombination {
   tasks: CombinationTask[];
 }
 
-export interface PlaylistTask extends CombinationTask {
+export interface PlaylistTask
+  extends Omit<CombinationTask, "taskId"> {
   taskId?: number;
   playlistItemId?: number;
   sourceMode?: PlaylistSourceMode;
