@@ -124,6 +124,12 @@ export function TaskPlaylistPage() {
     hasStarted,
   });
 
+  const shouldShowCompletionTooltip =
+    !hasSeenCompletionTooltip &&
+    controls.taskAction === "complete" &&
+    !queuedPlaylistCreatedToastMessage &&
+    !playlistCreatedToastMessage;
+
   useEffect(() => {
     if (!queuedPlaylistCreatedToastMessage) {
       return;
@@ -378,12 +384,11 @@ export function TaskPlaylistPage() {
               />
             </button>
 
-            {!hasSeenCompletionTooltip &&
-              controls.taskAction === "complete" && (
-                <TaskCompletionTooltip
-                  onDismiss={dismissCompletionTooltip}
-                />
-              )}
+            {shouldShowCompletionTooltip && (
+              <TaskCompletionTooltip
+                onDismiss={dismissCompletionTooltip}
+              />
+            )}
           </div>
         </div>
       </div>
