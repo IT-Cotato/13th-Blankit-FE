@@ -11,8 +11,11 @@ import {
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { SplashScreen } from "@/components/splash/SplashScreen";
+import { ExpiredTaskToast } from "@/components/task/ExpiredTaskToast";
+import { useExpiredTasks } from "@/hooks/useExpiredTasks";
 import { usePlaylistRefresh } from "@/hooks/usePlaylistRefresh";
 import { useAuthStore } from "@/store/authStore";
+import { useTaskCompletionStore } from "@/store/useTaskCompletionStore";
 
 import { Toast } from "./components/common/Toast";
 import { BottomNavigation } from "./components/layout/BottomNavigation";
@@ -92,6 +95,10 @@ function App() {
       (state) => state.clearPlaylist,
     );
 
+  const completedTaskId = useTaskCompletionStore(
+    (state) => state.completedTaskId,
+  );
+
   const {
     message: toastMessage,
     showToast,
@@ -101,6 +108,23 @@ function App() {
     useTaskManager({
       showToast,
     });
+
+  const {
+    currentExpiredTask,
+    extendCurrentTaskDeadline,
+  } = useExpiredTasks({
+    enabled:
+      isAppReady &&
+      isAuthenticated &&
+      authenticatedUserId !== null &&
+      location.pathname === "/" &&
+      completedTaskId === null &&
+      !taskManager.isComposerOpen,
+    refreshKey: taskManager.taskDataVersion,
+    onOpenTaskEdit: taskManager.openTaskForEdit,
+    onTaskDeleted: taskManager.notifyTaskChanged,
+    onShowToast: showToast,
+  });
 
   const {
     refreshPlaylist,
@@ -416,6 +440,15 @@ function App() {
           taskManager.addSelectedTaskToPlaylist
         }
       />
+
+      {currentExpiredTask && (
+        <ExpiredTaskToast
+          taskTitle={currentExpiredTask.title}
+          onExtendDeadline={
+            extendCurrentTaskDeadline
+          }
+        />
+      )}
 
       <Toast
         message={

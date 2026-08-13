@@ -66,6 +66,7 @@ export function useTaskManager({
     closeComposer: taskForm.closeComposer,
     completeCreate: taskForm.completeCreate,
     editSelectedTask: taskForm.editSelectedTask,
+    openTaskForEdit: taskForm.openTaskForEdit,
     updateTask: taskForm.updateTask,
 
     addSelectedTaskToPlaylist:
@@ -75,6 +76,7 @@ export function useTaskManager({
     requestDelete: taskActions.requestDelete,
     cancelDelete: taskActions.cancelDelete,
     confirmDelete: taskActions.confirmDelete,
+    notifyTaskChanged,
   };
 }
 

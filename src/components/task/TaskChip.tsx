@@ -20,6 +20,7 @@ interface TaskChipBaseProps {
   priority: TaskPriority;
   progressRate: number;
   status?: TaskStatus;
+  showCompletionCheck?: boolean;
   onClick?: () => void;
 }
 
@@ -82,6 +83,7 @@ export function TaskChip(
     priority,
     progressRate,
     status = "TODO",
+    showCompletionCheck = false,
     onClick,
   } = props;
 
@@ -118,7 +120,7 @@ export function TaskChip(
 
   const isDone = status === "DONE";
 
-  const ariaLabel = isDone
+  const ariaLabel = isDone || showCompletionCheck
   ? `${title}, 완료`
   : `${title}, 진행도 ${progressLevel}`;
 
@@ -150,7 +152,7 @@ export function TaskChip(
         )}
       </div>
 
-      {isDone ? (
+      {isDone || showCompletionCheck ? (
         <div
           aria-hidden="true"
           className="
@@ -159,6 +161,14 @@ export function TaskChip(
             justify-center rounded-full
             bg-lime-500
           "
+          style={
+            showCompletionCheck
+              ? {
+                  backgroundColor:
+                    priorityStyle.color,
+                }
+              : undefined
+          }
         >
           <svg
             width="20"
