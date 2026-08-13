@@ -184,7 +184,7 @@ export function DateSelectionSheet({
             disabled:cursor-not-allowed
             disabled:bg-black-800
             disabled:font-medium
-            disabled:text-black-650
+            disabled:text-black-600
           "
         >
           완료
