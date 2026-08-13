@@ -19,12 +19,13 @@ import type {
 import type { TaskStatus } from "@/types/task";
 
 const EXPIRED_TASK_DELETE_DELAY_MS = 5000;
+const MAX_DELETE_ATTEMPTS = 3;
 const TASK_PAGE_SIZE = 100;
 
 interface UseExpiredTasksOptions {
   enabled: boolean;
   refreshKey: number;
-  onOpenTaskEdit: (taskId: number) => Promise<void>;
+  onOpenTaskEdit: (taskId: number) => Promise<boolean>;
   onTaskDeleted: () => void;
   onShowToast: (message: string) => void;
 }
@@ -84,6 +85,13 @@ export function useExpiredTasks({
   >([]);
   const [isOpeningTaskEdit, setIsOpeningTaskEdit] =
     useState(false);
+  const [deleteAttempt, setDeleteAttempt] = useState<{
+    taskId: number | null;
+    count: number;
+  }>({
+    taskId: null,
+    count: 0,
+  });
   const ignoredTaskIdsRef = useRef(new Set<number>());
   const deletingTaskRef = useRef(false);
   const onOpenTaskEditRef = useRef(onOpenTaskEdit);
@@ -174,6 +182,10 @@ export function useExpiredTasks({
       );
 
       await deleteTask(taskId);
+      setDeleteAttempt({
+        taskId: null,
+        count: 0,
+      });
       finishCurrentTask(taskId);
       onTaskDeletedRef.current();
 
@@ -187,15 +199,37 @@ export function useExpiredTasks({
       }
     } catch (error) {
       console.error(error);
-      finishCurrentTask(taskId);
+      const currentAttemptCount =
+        deleteAttempt.taskId === taskId
+          ? deleteAttempt.count
+          : 0;
+      const nextAttemptCount = currentAttemptCount + 1;
+
+      if (nextAttemptCount >= MAX_DELETE_ATTEMPTS) {
+        setDeleteAttempt({
+          taskId: null,
+          count: 0,
+        });
+        finishCurrentTask(taskId);
+        onShowToastRef.current(
+          "과업을 자동 삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+        );
+        return;
+      }
+
+      setDeleteAttempt({
+        taskId,
+        count: nextAttemptCount,
+      });
       onShowToastRef.current(
-        "마감일이 지난 과업을 삭제하지 못했습니다.",
+        "과업 삭제에 실패하여 다시 시도합니다.",
       );
     } finally {
       deletingTaskRef.current = false;
     }
   }, [
     currentExpiredTask,
+    deleteAttempt,
     finishCurrentTask,
     refreshPlaylist,
   ]);
@@ -224,11 +258,19 @@ export function useExpiredTasks({
     }
 
     const taskId = currentExpiredTask.taskId;
+    setDeleteAttempt({
+      taskId: null,
+      count: 0,
+    });
     setIsOpeningTaskEdit(true);
-    finishCurrentTask(taskId);
 
     try {
-      await onOpenTaskEditRef.current(taskId);
+      const opened =
+        await onOpenTaskEditRef.current(taskId);
+
+      if (opened) {
+        finishCurrentTask(taskId);
+      }
     } finally {
       setIsOpeningTaskEdit(false);
     }

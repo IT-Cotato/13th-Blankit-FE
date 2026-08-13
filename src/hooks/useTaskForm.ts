@@ -195,7 +195,7 @@ export function useTaskForm({
         ]);
 
       if (prepareEditRequestIdRef.current !== requestId) {
-        return;
+        return false;
       }
 
       flushSync(() => {
@@ -207,9 +207,11 @@ export function useTaskForm({
       });
 
       taskFormRef.current?.focus();
+
+      return true;
     } catch (error) {
       if (prepareEditRequestIdRef.current !== requestId) {
-        return;
+        return false;
       }
 
       console.error(error);
@@ -217,6 +219,8 @@ export function useTaskForm({
         getTaskErrorMessage(error) ??
           "과업 정보를 불러오지 못했습니다.",
       );
+
+      return false;
     } finally {
       if (prepareEditRequestIdRef.current === requestId) {
         setLoadingTaskDetail(false);
