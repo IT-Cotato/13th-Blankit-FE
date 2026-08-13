@@ -4,7 +4,7 @@ type TimeTableDetailSheetProps = {
   entries: TimeTableEntry[];
   startHour: number;
   onClose: () => void;
-  onEdit: () => void;
+  onEdit: (entries: TimeTableEntry[]) => void;
   onDelete: () => void;
 };
 
@@ -49,7 +49,7 @@ export function TimeTableDetailSheet({
         <div className="flex w-full flex-col gap-3">
           <button
             type="button"
-            onClick={onEdit}
+            onClick={() => onEdit(entries)}
             className="flex h-12 w-full shrink-0 flex-col items-center justify-center gap-2.5 rounded-lg bg-black-800 px-[50px] text-sm font-medium leading-[21px] tracking-[-0.21px] text-black-600"
           >
             수정

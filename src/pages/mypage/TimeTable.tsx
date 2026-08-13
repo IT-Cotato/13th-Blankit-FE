@@ -33,6 +33,28 @@ function ActionIcon({ src }: ActionIconProps) {
   );
 }
 
+function normalizeSubjectTitle(title?: string): string {
+  return (title ?? "")
+    .normalize("NFKC")
+    .replace(/[[（][^\])）]*[\])）]/g, "")
+    .replace(/[-_·ㆍ]\s*\d+\s*분반$/u, "")
+    .replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+    .toLocaleLowerCase("ko-KR");
+}
+
+function isSameSubject(first: TimeTableEntry, second: TimeTableEntry): boolean {
+  const firstTitle = normalizeSubjectTitle(first.title);
+  const secondTitle = normalizeSubjectTitle(second.title);
+
+  return (
+    (firstTitle.length > 0 &&
+      (firstTitle === secondTitle ||
+        firstTitle.includes(secondTitle) ||
+        secondTitle.includes(firstTitle))) ||
+    (Boolean(first.color) && first.color === second.color)
+  );
+}
+
 export function TimeTable() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -53,15 +75,10 @@ export function TimeTable() {
   const selectedScheduleId = selectedEntry
     ? (selectedEntry.scheduleId ?? selectedEntry.id)
     : null;
-  const selectedEntries = selectedScheduleId
-    ? entries.filter((entry) => (entry.scheduleId ?? entry.id) === selectedScheduleId)
-    : [];
   const selectedSubjectEntries = selectedEntry
     ? entries
         .filter(
-          (entry) =>
-            entry.title?.trim().toLocaleLowerCase("ko-KR") ===
-            selectedEntry.title?.trim().toLocaleLowerCase("ko-KR"),
+          (entry) => isSameSubject(entry, selectedEntry),
         )
         .sort(
           (first, second) =>
@@ -133,8 +150,16 @@ export function TimeTable() {
           startHour={startHour}
           onClose={() => setSelectedEntry(null)}
           onEdit={() => {
+            const subjectEntries = useTimeTableStore
+              .getState()
+              .entries.filter((entry) => isSameSubject(entry, selectedEntry))
+              .sort(
+                (first, second) =>
+                  first.dayIndex - second.dayIndex ||
+                  first.startSlot - second.startSlot,
+              );
             setEditEntries(
-              selectedEntries.map((entry) => ({
+              subjectEntries.map((entry) => ({
                 scheduleId: entry.scheduleId,
                 title: entry.title,
                 place: entry.place,
@@ -173,7 +198,12 @@ export function TimeTable() {
         <TimeTableEntrySheet
           entries={editEntries}
           conflictEntries={entries.filter(
-            (entry) => (entry.scheduleId ?? entry.id) !== selectedScheduleId,
+            (entry) =>
+              !new Set(
+                selectedSubjectEntries.map(
+                  (subjectEntry) => subjectEntry.scheduleId ?? subjectEntry.id,
+                ),
+              ).has(entry.scheduleId ?? entry.id),
           )}
           onEntriesChange={setEditEntries}
           initialDetails={{
@@ -183,22 +213,37 @@ export function TimeTable() {
           }}
           onClose={() => setIsEditSheetOpen(false)}
           onComplete={async (details) => {
-            const nextEntries = editEntries.map((entry, index) => ({
+            const nextEntries = editEntries.map((entry, index) => {
+              const scheduleId = entry.scheduleId ?? `${Date.now()}-${index}`;
+              return {
                 ...entry,
                 ...details,
-                scheduleId: selectedScheduleId,
-                id: `${selectedScheduleId}-${index}`,
-              }));
-            try {
-              const updated = await updateTimetableEntry(
-                Number(selectedScheduleId),
-                mapTimetableRequest(nextEntries[0], startHour),
-              );
-              replaceSchedule(selectedScheduleId, [mapTimetableResponse(updated, startHour)]);
-            } catch (error) {
-              console.error("시간표 수정 API 호출에 실패했습니다.", error);
-              replaceSchedule(selectedScheduleId, nextEntries);
-            }
+                scheduleId,
+                id: scheduleId,
+              };
+            });
+            const updateResults = await Promise.allSettled(
+              nextEntries.map(async (entry) => {
+                if (entry.isLocalFallback) return entry;
+
+                const updated = await updateTimetableEntry(
+                  Number(entry.scheduleId),
+                  mapTimetableRequest(entry, startHour),
+                );
+                return mapTimetableResponse(updated, startHour);
+              }),
+            );
+
+            updateResults.forEach((result, index) => {
+              const scheduleId = nextEntries[index].scheduleId;
+
+              if (result.status === "fulfilled") {
+                replaceSchedule(scheduleId, [result.value]);
+              } else {
+                console.error("시간표 수정 API 호출에 실패했습니다.", result.reason);
+                replaceSchedule(scheduleId, [nextEntries[index]]);
+              }
+            });
             setIsEditSheetOpen(false);
             setSelectedEntry(null);
           }}
