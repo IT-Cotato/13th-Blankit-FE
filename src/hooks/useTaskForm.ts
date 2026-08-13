@@ -180,6 +180,50 @@ export function useTaskForm({
     taskFormRef.current?.focus();
   };
 
+  const openTaskForEdit = async (taskId: number) => {
+    const requestId = prepareEditRequestIdRef.current + 1;
+    prepareEditRequestIdRef.current = requestId;
+    preparedEditRef.current = null;
+    setPreparedEditTaskId(null);
+    setLoadingTaskDetail(true);
+
+    try {
+      const [taskDetail, formOptions] =
+        await Promise.all([
+          getTask(taskId),
+          getTaskFormOptions(),
+        ]);
+
+      if (prepareEditRequestIdRef.current !== requestId) {
+        return;
+      }
+
+      flushSync(() => {
+        clearSelectedTask();
+        setEditingTask(taskDetail);
+        setTaskFormOptions(formOptions);
+        setTaskTitle(taskDetail.title);
+        setIsComposerOpen(true);
+      });
+
+      taskFormRef.current?.focus();
+    } catch (error) {
+      if (prepareEditRequestIdRef.current !== requestId) {
+        return;
+      }
+
+      console.error(error);
+      showToast(
+        getTaskErrorMessage(error) ??
+          "과업 정보를 불러오지 못했습니다.",
+      );
+    } finally {
+      if (prepareEditRequestIdRef.current === requestId) {
+        setLoadingTaskDetail(false);
+      }
+    }
+  };
+
   const updateTask = async (
     taskId: number,
     request: TaskUpdateRequest,
@@ -215,6 +259,7 @@ export function useTaskForm({
     completeCreate,
     prepareTaskForEdit,
     editSelectedTask,
+    openTaskForEdit,
     updateTask,
   };
 }
