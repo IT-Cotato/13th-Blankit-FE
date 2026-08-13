@@ -54,6 +54,11 @@ export function DateCalendar({
     suppressClickUntil: 0,
   });
   const cells = getCalendarCells(visibleMonth);
+  const lastDateCellIndex = cells.reduce(
+    (lastIndex, cell, index) =>
+      cell.kind === "date" ? index : lastIndex,
+    -1,
+  );
 
   function moveMonth(amount: number) {
     const nextMonth = addMonths(visibleMonth, amount);
@@ -143,15 +148,17 @@ export function DateCalendar({
         </div>
 
         <div className="mt-2 grid grid-cols-7 gap-x-2 gap-y-2.5">
-          {cells.map((cell) => {
+          {cells.map((cell, index) => {
             if (cell.kind === "empty") {
               return (
                 <span
                   key={cell.key}
                   aria-hidden="true"
-                  className="flex h-[37px] w-full items-center justify-center text-black-750"
+                  className="flex h-[37px] w-full items-center justify-center"
                 >
-                  ·
+                  {index > lastDateCellIndex && (
+                    <span className="h-[5px] w-[5px] rounded-full bg-black-700" />
+                  )}
                 </span>
               );
             }
@@ -173,7 +180,7 @@ export function DateCalendar({
                 className={`flex h-[37px] w-full items-center justify-center rounded-[6px] px-2.5 text-[14px] font-medium leading-[150%] ${
                   isSameDate(selectedDate, cell.date)
                     ? "bg-green-500 text-black-900"
-                    : "bg-[rgba(60,63,67,0.5)] text-black-300 disabled:text-black-700"
+                    : "bg-black-750/50 text-black-300 disabled:text-black-700"
                 }`}
               >
                 {cell.day}

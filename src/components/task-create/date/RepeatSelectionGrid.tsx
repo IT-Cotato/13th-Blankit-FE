@@ -144,6 +144,16 @@ export function DaySelectionGrid({
             onClick={() => onToggle(day)}
           />
         ))}
+        {showWeekdays &&
+          Array.from({ length: 2 }, (_, index) => (
+            <span
+              key={`monthly-empty-${index}`}
+              aria-hidden="true"
+              className="flex h-[35px] w-full items-center justify-center"
+            >
+              <span className="h-[5px] w-[5px] rounded-full bg-black-700" />
+            </span>
+          ))}
       </div>
     </>
   );
