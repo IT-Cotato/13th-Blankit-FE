@@ -22,6 +22,7 @@ import { useTaskSession } from "@/hooks/useTaskSession";
 import { useTodayRecommendedMinutes } from "@/hooks/useTodayRecommendedMinutes";
 import { useToast } from "@/hooks/useToast";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
+import { useTaskCompletionStore } from "@/store/useTaskCompletionStore";
 import {
   getMissingTaskIdMessage,
   shouldRestoreTimerFromSession,
@@ -29,6 +30,8 @@ import {
 } from "@/utils/taskSessionTimer";
 import { formatTimer } from "@/utils/taskTimer";
 import { getTaskPlayerControls } from "@/utils/taskPlayerControls";
+
+import type { TaskFeedbackResponse } from "@/types/taskFeedbackApi";
 
 export function TaskPlaylistPage() {
   const navigate = useNavigate();
@@ -60,6 +63,10 @@ export function TaskPlaylistPage() {
 
   const pauseCurrentTask = usePlaylistStore(
     (state) => state.pauseCurrentTask,
+  );
+
+  const markTaskCompleted = useTaskCompletionStore(
+    (state) => state.markTaskCompleted,
   );
 
   const [isBottomSheetOpen, setIsBottomSheetOpen] =
@@ -239,11 +246,17 @@ export function TaskPlaylistPage() {
     }
   };
 
-  const handleCompleteFeedback = async () => {
+  const handleCompleteFeedback = async (
+    feedback: TaskFeedbackResponse,
+  ) => {
     const result = completeFeedback(task.id);
 
     if (!result) {
       return false;
+    }
+
+    if (feedback.isCompleted) {
+      markTaskCompleted(feedback.taskId);
     }
 
     setIsFeedbackOpen(false);

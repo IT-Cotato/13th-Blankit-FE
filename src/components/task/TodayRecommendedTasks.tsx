@@ -4,12 +4,14 @@ import type { RecommendedTaskItem } from "@/types/recommendationApi";
 
 interface TodayRecommendedTasksProps {
   tasks: RecommendedTaskItem[];
+  completedTaskId?: number | null;
   onViewAll?: () => void;
   onTaskClick?: (taskId: number) => void;
 }
 
 export function TodayRecommendedTasks({
   tasks,
+  completedTaskId = null,
   onViewAll,
   onTaskClick,
 }: TodayRecommendedTasksProps) {
@@ -54,7 +56,14 @@ export function TodayRecommendedTasks({
               priority={task.priority}
               categoryColor={task.categoryColor}
               categoryIconKey={task.categoryIconKey}
-              onClick={() => onTaskClick?.(task.taskId)}
+              showCompletionCheck={
+                task.taskId === completedTaskId
+              }
+              onClick={
+                task.taskId === completedTaskId
+                  ? undefined
+                  : () => onTaskClick?.(task.taskId)
+              }
             />
           </li>
         ))}
