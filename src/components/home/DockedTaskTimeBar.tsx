@@ -1,6 +1,14 @@
 import { useNavigate } from "react-router-dom";
 
-export function DockedTaskTimeBar() {
+import { formatRecommendedTaskTime } from "@/utils/homeRecommendedTask";
+
+interface DockedTaskTimeBarProps {
+  recommendedMinutes: number | null;
+}
+
+export function DockedTaskTimeBar({
+  recommendedMinutes,
+}: DockedTaskTimeBarProps) {
   const navigate = useNavigate();
 
   return (
@@ -26,7 +34,9 @@ export function DockedTaskTimeBar() {
       </span>
 
       <span className="text-[32px] font-bold text-black-100">
-        02:30:00
+        {formatRecommendedTaskTime(
+          recommendedMinutes ?? 0,
+        )}
       </span>
     </button>
   );
