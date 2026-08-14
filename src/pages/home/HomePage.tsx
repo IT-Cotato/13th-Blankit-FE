@@ -309,7 +309,7 @@ export function HomePage({
           </div>
 
           {shouldRenderDockedBar && (
-            <DockedTaskTimeBar 
+            <DockedTaskTimeBar
               recommendedMinutes={recommendedMinutes}
             />
           )}
