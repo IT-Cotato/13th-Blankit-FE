@@ -16,7 +16,7 @@ import {
 import { FeedbackProgressSlider } from "./FeedbackProgressSlider";
 import { FeedbackStepRow } from "./FeedbackStepRow";
 import { useTaskFeedback } from "@/hooks/useTaskFeedback";
-
+import type { TaskFeedbackResponse } from "@/types/taskFeedbackApi";
 import plusButtonIcon from "@/assets/icons/task-combination/plus-400-button.svg";
 import xIcon from "@/assets/icons/x-black-600.svg";
 
@@ -26,7 +26,9 @@ interface TaskFeedbackSheetProps {
   apiTaskId: number | null;
   sessionId: number | null;
   onClose: () => void;
-  onComplete: () => Promise<boolean>;
+  onComplete: (
+    feedback: TaskFeedbackResponse,
+  ) => Promise<boolean>;
   onShowToast: (message: string) => void;
 }
 
@@ -200,14 +202,14 @@ export function TaskFeedbackSheet({
       return;
     }
 
-    const submitted =
+    const submittedFeedback =
       await submitFinalFeedback();
 
-    if (!submitted) {
+    if (!submittedFeedback) {
       return;
     }
 
-    await onComplete();
+    await onComplete(submittedFeedback);
   };
 
   const handleMemoBlur = () => {

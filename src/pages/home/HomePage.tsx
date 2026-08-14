@@ -16,6 +16,7 @@ import { useStartRecommendedTasks } from "@/hooks/useStartRecommendedTasks";
 import { useToast } from "@/hooks/useToast";
 
 import { usePlaylistStore } from "@/store/usePlaylistStore";
+import { useTaskCompletionStore } from "@/store/useTaskCompletionStore";
 
 import { shouldShowDockedTaskTimeBar } from "@/utils/homeDockedTaskTimeBar";
 
@@ -81,6 +82,8 @@ export function HomePage({
 
   const [showDockedBar, setShowDockedBar] =
     useState(false);
+  const [completionRefreshKey, setCompletionRefreshKey] =
+    useState(0);
 
   const currentPlaylistTask =
     usePlaylistStore(
@@ -93,8 +96,24 @@ export function HomePage({
     loadingRecommendations,
     recommendationError,
   } = useTodayRecommendations(
-    refreshKey,
+    refreshKey + completionRefreshKey,
   );
+
+  const completedTaskId = useTaskCompletionStore(
+    (state) => state.completedTaskId,
+  );
+  const recommendedTasksSnapshot =
+    useTaskCompletionStore(
+      (state) => state.recommendedTasksSnapshot,
+    );
+  const rememberRecommendedTasks =
+    useTaskCompletionStore(
+      (state) => state.rememberRecommendedTasks,
+    );
+  const clearTaskCompletion =
+    useTaskCompletionStore(
+      (state) => state.clearTaskCompletion,
+    );
 
   const {
     message: startTaskToastMessage,
@@ -102,15 +121,74 @@ export function HomePage({
   } = useToast();
 
   const {
+    message: completionToastMessage,
+    showToast: showCompletionToast,
+  } = useToast(5000);
+
+  const hasCompletedTaskSnapshot =
+    completedTaskId !== null &&
+    recommendedTasksSnapshot.some(
+      (task) => task.taskId === completedTaskId,
+    );
+
+  const displayedRecommendedTasks =
+    hasCompletedTaskSnapshot
+      ? recommendedTasksSnapshot
+      : recommendedTasks;
+
+  const {
     startRecommendedTasks,
     isStartingRecommendedTasks,
   } = useStartRecommendedTasks({
-    recommendedTasks,
+    recommendedTasks: displayedRecommendedTasks,
     onShowToast: showStartTaskToast,
   });
 
   const hasTasks =
-    recommendedTasks.length > 0;
+    displayedRecommendedTasks.length > 0;
+
+  useEffect(() => {
+    if (
+      loadingRecommendations ||
+      recommendationError !== null ||
+      completedTaskId !== null
+    ) {
+      return;
+    }
+
+    rememberRecommendedTasks(
+      recommendedTasks.slice(0, 3),
+    );
+  }, [
+    completedTaskId,
+    loadingRecommendations,
+    recommendationError,
+    recommendedTasks,
+    rememberRecommendedTasks,
+  ]);
+
+  useEffect(() => {
+    if (completedTaskId === null) {
+      return;
+    }
+
+    showCompletionToast("과업을 완료했습니다.");
+
+    const timeoutId = window.setTimeout(() => {
+      clearTaskCompletion();
+      setCompletionRefreshKey(
+        (current) => current + 1,
+      );
+    }, 5000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [
+    clearTaskCompletion,
+    completedTaskId,
+    showCompletionToast,
+  ]);
 
   useEffect(() => {
     if (
@@ -176,14 +254,16 @@ export function HomePage({
         onAddTask={onAddTask}
       />
 
-      {loadingRecommendations ? (
+      {loadingRecommendations &&
+      !hasCompletedTaskSnapshot ? (
         <div className="flex min-h-60 items-center justify-center px-5">
           <p className="text-[14px] font-medium text-black-500">
             오늘 추천 과업을 불러오는
             중입니다.
           </p>
         </div>
-      ) : recommendationError ? (
+      ) : recommendationError &&
+        !hasCompletedTaskSnapshot ? (
         <div className="flex min-h-60 items-center justify-center px-5">
           <p className="text-center text-[14px] font-medium text-red-400">
             {recommendationError}
@@ -211,7 +291,8 @@ export function HomePage({
             </div>
 
             <TodayRecommendedTasks
-              tasks={recommendedTasks}
+              tasks={displayedRecommendedTasks}
+              completedTaskId={completedTaskId}
               onViewAll={() => {
                 navigate(
                   "/task-recommendations",
@@ -228,7 +309,9 @@ export function HomePage({
           </div>
 
           {shouldRenderDockedBar && (
-            <DockedTaskTimeBar />
+            <DockedTaskTimeBar
+              recommendedMinutes={recommendedMinutes}
+            />
           )}
         </>
       ) : (
@@ -238,6 +321,12 @@ export function HomePage({
       <Toast
         message={startTaskToastMessage}
         variant="taskCombination"
+      />
+
+      <Toast
+        message={completionToastMessage}
+        variant="taskCombination"
+        centeredWithBackdrop
       />
     </>
   );

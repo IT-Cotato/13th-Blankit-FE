@@ -12,7 +12,15 @@ import {
 import { usePlaylistStore } from "@/store/usePlaylistStore";
 
 import type { TaskFeedbackDraft } from "@/types/taskFeedback";
-import type { SubmitTaskFeedbackRequest } from "@/types/taskFeedbackApi";
+import type {
+  SubmitTaskFeedbackRequest,
+  TaskFeedbackResponse,
+} from "@/types/taskFeedbackApi";
+
+interface SaveFeedbackResult {
+  success: boolean;
+  feedback: TaskFeedbackResponse | null;
+}
 
 function createFeedbackPayload(
   draft: TaskFeedbackDraft,
@@ -193,9 +201,12 @@ export function useTaskFeedback({
     async (
       isDraft: boolean,
       skipIfMemoUnchanged = false,
-    ) => {
+    ): Promise<SaveFeedbackResult> => {
       if (!draft) {
-        return false;
+        return {
+          success: false,
+          feedback: null,
+        };
       }
 
       const currentMemo = draft.memo.trim();
@@ -218,7 +229,10 @@ export function useTaskFeedback({
         skipIfMemoUnchanged &&
         !memoChanged
       ) {
-        return isDraft;
+        return {
+          success: isDraft,
+          feedback: null,
+        };
       }
 
       if (
@@ -227,7 +241,10 @@ export function useTaskFeedback({
         !hasProgressChanged &&
         !haveStepsChanged
       ) {
-        return true;
+        return {
+          success: true,
+          feedback: null,
+        };
       }
 
       if (
@@ -237,14 +254,20 @@ export function useTaskFeedback({
         ) &&
         !memoChanged
       ) {
-        return isDraft;
+        return {
+          success: isDraft,
+          feedback: null,
+        };
       }
 
       if (
         sessionId === null ||
         saveInFlightRef.current
       ) {
-        return false;
+        return {
+          success: false,
+          feedback: null,
+        };
       }
 
       saveInFlightRef.current = true;
@@ -258,7 +281,7 @@ export function useTaskFeedback({
           hasSavedProgress,
         );
 
-        await submitTaskFeedback(
+        const feedback = await submitTaskFeedback(
           sessionId,
           payload,
         );
@@ -272,7 +295,10 @@ export function useTaskFeedback({
           progressRate: payload.progressRate,
         });
 
-        return true;
+        return {
+          success: true,
+          feedback,
+        };
       } catch {
         setFeedbackError(
           isDraft
@@ -280,7 +306,10 @@ export function useTaskFeedback({
             : "과업 피드백을 완료하지 못했습니다.",
         );
 
-        return false;
+        return {
+          success: false,
+          feedback: null,
+        };
       } finally {
         saveInFlightRef.current = false;
         setIsSavingFeedback(false);
@@ -294,20 +323,25 @@ export function useTaskFeedback({
     ],
   );
 
-  const saveDraft = useCallback(
-    () => saveFeedback(true),
-    [saveFeedback],
-  );
+  const saveDraft = useCallback(async () => {
+    const result = await saveFeedback(true);
 
-  const saveMemoDraft = useCallback(
-    () => saveFeedback(true, true),
-    [saveFeedback],
-  );
+    return result.success;
+  }, [saveFeedback]);
 
-  const submitFinalFeedback = useCallback(
-    () => saveFeedback(false),
-    [saveFeedback],
-  );
+  const saveMemoDraft = useCallback(async () => {
+    const result = await saveFeedback(true, true);
+
+    return result.success;
+  }, [saveFeedback]);
+
+  const submitFinalFeedback = useCallback(async () => {
+    const result = await saveFeedback(false);
+
+    return result.success
+      ? result.feedback
+      : null;
+  }, [saveFeedback]);
 
   const refreshFeedback = useCallback(() => {
     setRefreshKey((current) => current + 1);
