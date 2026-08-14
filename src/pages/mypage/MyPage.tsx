@@ -115,6 +115,12 @@ export function MyPage() {
                 {label}
               </span>
             </span>
+            <img
+              src="/mypage/chevron-right.svg"
+              alt=""
+              className="ml-3 h-6 w-6 shrink-0"
+              aria-hidden="true"
+            />
           </button>
         ))}
       </section>
