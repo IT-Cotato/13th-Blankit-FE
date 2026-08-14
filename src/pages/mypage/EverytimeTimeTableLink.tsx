@@ -102,7 +102,7 @@ export function EverytimeTimeTableLink() {
               setErrorMessage(null);
             }}
             placeholder="검색어 입력"
-            className="h-full min-w-0 flex-1 appearance-none border-0 bg-transparent text-left text-sm font-medium leading-[150%] tracking-[-0.21px] text-black-100 outline-none placeholder:text-black-600 [&::-webkit-search-cancel-button]:appearance-none"
+            className="h-full min-w-0 flex-1 appearance-none border-0 bg-transparent text-left text-base font-medium leading-[150%] tracking-[-0.21px] text-black-100 outline-none placeholder:text-black-600 [&::-webkit-search-cancel-button]:appearance-none"
           />
         </div>
 
