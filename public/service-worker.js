@@ -1,4 +1,4 @@
-const CACHE_NAME = 'blankit-v3';
+const CACHE_NAME = 'blankit-v4';
 
 console.log('[SW] 현재 Service Worker 실행:', CACHE_NAME);
 
@@ -332,8 +332,13 @@ self.addEventListener(
   (event) => {
     event.notification.close();
 
-    const targetUrl =
-      event.notification.data?.url ?? '/';
+    const notificationData = event.notification.data;
+    const requestedUrl =
+      notificationData?.url ??
+      notificationData?.FCM_MSG?.data?.url ??
+      notificationData?.FCM_MSG?.fcmOptions?.link ??
+      '/';
+    const targetUrl = sameOriginUrl(requestedUrl) ?? '/';
 
     event.waitUntil(
       self.clients
@@ -366,3 +371,49 @@ self.addEventListener(
     );
   },
 );
+
+/**
+ * Firebase Cloud Messaging
+ *
+ * 기존 notificationclick 리스너보다 뒤에서 Firebase SDK를 불러와야
+ * 알림 클릭 처리를 Blankit에서 제어할 수 있다.
+ */
+importScripts(
+  'https://www.gstatic.com/firebasejs/12.17.1/firebase-app-compat.js',
+);
+importScripts(
+  'https://www.gstatic.com/firebasejs/12.17.1/firebase-messaging-compat.js',
+);
+
+firebase.initializeApp({
+  apiKey: 'AIzaSyCmTMPAhXxMFjL6gG1mKY2TUzC6PPbt-dA',
+  authDomain: 'blankit-96be7.firebaseapp.com',
+  projectId: 'blankit-96be7',
+  storageBucket: 'blankit-96be7.firebasestorage.app',
+  messagingSenderId: '195901607938',
+  appId: '1:195901607938:web:25c039bd4a9768907c171b',
+});
+
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage((payload) => {
+  /**
+   * notification payload는 FCM SDK가 자동으로 표시한다.
+   * 여기서 다시 표시하면 동일 알림이 두 번 나타날 수 있다.
+   */
+  if (payload.notification) {
+    return;
+  }
+
+  const title = payload.data?.title ?? 'Blankit';
+  const options = {
+    body: payload.data?.body ?? '',
+    icon: '/icon/192x192.png',
+    badge: '/icon/192x192.png',
+    data: {
+      url: sameOriginUrl(payload.data?.url ?? '/') ?? '/',
+    },
+  };
+
+  return self.registration.showNotification(title, options);
+});

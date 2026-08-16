@@ -33,6 +33,7 @@ interface TaskActionLayerProps {
     request: TaskUpdateRequest,
   ) => void | Promise<void>;
   actionSheetOpen: boolean;
+  editingTaskReady: boolean;
   onCloseActionSheet: () => void;
   onEditTask: () => void;
   onRequestDelete: () => void;
@@ -40,6 +41,8 @@ interface TaskActionLayerProps {
   onCancelDelete: () => void;
   onConfirmDelete: () => void | Promise<void>;
   deletingTask: boolean;
+  addingToPlaylist: boolean;
+  onAddToPlaylist: () => void;
 }
 
 export function TaskActionLayer({
@@ -54,13 +57,16 @@ export function TaskActionLayer({
   onCompleteCreate,
   onUpdateTask,
   actionSheetOpen,
+  editingTaskReady,
   onCloseActionSheet,
   onEditTask,
   onRequestDelete,
   deleteModalOpen,
   deletingTask,
+  addingToPlaylist,
   onCancelDelete,
   onConfirmDelete,
+  onAddToPlaylist,
 }: TaskActionLayerProps) {
   return (
     <>
@@ -68,7 +74,9 @@ export function TaskActionLayer({
         <TaskForm
           formOptions={taskFormOptions}
           key={
-            editingTask?.taskId ?? "create"
+            `${editingTask?.taskId ?? "create"}-${
+              taskFormOptions === null ? "loading" : "ready"
+            }`
           }
           ref={taskFormRef}
           title={taskTitle}
@@ -85,7 +93,14 @@ export function TaskActionLayer({
         aboveBottomNavigation={
           aboveBottomNavigation
         }
+        addingToPlaylist={
+          addingToPlaylist
+        }
+        editingTaskReady={editingTaskReady}
         onClose={onCloseActionSheet}
+        onAddToPlaylist={
+          onAddToPlaylist
+        }
         onEdit={onEditTask}
         onDelete={onRequestDelete}
       />

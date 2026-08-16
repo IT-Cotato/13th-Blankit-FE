@@ -3,7 +3,7 @@ import { getCategoryPresentation } from "@/constants/category";
 import type { TaskHistoryItemResponse } from "@/types/taskApi";
 
 import {
-  formatElapsedMinutes,
+  formatElapsedTime,
   formatTaskDeadline,
 } from "./similarTaskUtils";
 
@@ -53,7 +53,7 @@ export function SimilarTaskCard({
       </span>
 
       <span className="shrink-0 text-[12px] font-medium text-black-500">
-        {formatElapsedMinutes(
+        {formatElapsedTime(
           task.totalElapsedTime,
         )}
       </span>

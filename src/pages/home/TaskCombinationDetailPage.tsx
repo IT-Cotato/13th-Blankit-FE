@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import arrowDownIcon from "@/assets/icons/task-combination/arrow-down.svg";
@@ -7,53 +7,60 @@ import backIcon from "@/assets/icons/header/back.svg";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { Toast } from "@/components/common/Toast";
 import { TaskChip } from "@/components/task/TaskChip";
+import { useTaskCombinationPlaylist } from "@/hooks/useTaskCombinationPlaylist";
+import { useTaskCombinations } from "@/hooks/useTaskCombinations";
 import { useToast } from "@/hooks/useToast";
-import { getTaskCombination } from "@/mocks/taskCombinations";
-import { usePlaylistStore } from "@/store/usePlaylistStore";
 import { getCombinationAccentClassName } from "@/utils/taskCombinationCategories";
 
 export function TaskCombinationDetailPage() {
   const navigate = useNavigate();
   const { modeId } = useParams();
 
-  const combination = getTaskCombination(modeId ?? "");
+  const {
+    combinations,
+    loadingCombinations,
+    combinationError,
+  } = useTaskCombinations();
+
+  const combination = combinations.find(
+    (item) => item.id === modeId?.toUpperCase(),
+  );
 
   const accentClassName = combination
     ? getCombinationAccentClassName(combination.accent)
     : "";
 
-  const playlist = usePlaylistStore(
-    (state) => state.playlist,
-  );
-
-  const addCombination = usePlaylistStore(
-    (state) => state.addCombination,
-  );
-
-  const removeCombination = usePlaylistStore(
-    (state) => state.removeCombination,
-  );
-
-  const isAdded = usePlaylistStore((state) =>
-    combination
-      ? state.isCombinationAdded(combination.id)
-      : false,
-  );
-
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] =
     useState(false);
 
-  const [isDeleting, setIsDeleting] = useState(false);
-
   const queuedToast = useToast();
+  const {
+    isCombinationAdded,
+    isAddingCombination,
+    isDeletingCombination,
+    addCombinationToPlaylist,
+    deleteCombinationFromPlaylist,
+  } = useTaskCombinationPlaylist({
+    combination,
+    onShowToast: queuedToast.showToast,
+  });
 
-  const deleteLockRef = useRef(false);
+  if (loadingCombinations) {
+    return (
+      <div className="flex min-h-[calc(100dvh-90px)] items-center justify-center px-5">
+        <p className="text-[14px] font-medium text-black-500">
+          과업 조합을 불러오는 중입니다.
+        </p>
+      </div>
+    );
+  }
 
-  if (!combination) {
+  if (combinationError || !combination) {
     return (
       <div className="flex min-h-[calc(100dvh-90px)] flex-col items-center justify-center px-5 text-center">
         <h1 className="text-[18px] font-semibold text-black-100">
-          추천 모드를 찾을 수 없습니다.
+          {combinationError ??
+            "추천 모드를 찾을 수 없습니다."}
         </h1>
 
         <button
@@ -68,44 +75,29 @@ export function TaskCombinationDetailPage() {
   }
 
   const handleCombinationAction = () => {
-    if (isAdded) {
-      deleteLockRef.current = false;
-      setIsDeleting(false);
+    if (isAddingCombination || isDeletingCombination) {
+      return;
+    }
+
+    if (isCombinationAdded) {
       setIsDeleteDialogOpen(true);
       return;
     }
 
-    const hadPlaylist = playlist.length > 0;
-
-    addCombination(combination);
-
-    if (!hadPlaylist) {
-      return;
-    }
-
-    queuedToast.showToast("할 일이 다음에 재생됩니다.");
+    void addCombinationToPlaylist();
   };
 
   const handleDeleteCancel = () => {
-    if (isDeleting) {
+    if (isDeletingCombination) {
       return;
     }
 
     setIsDeleteDialogOpen(false);
   };
 
-  const handleDelete = () => {
-    if (deleteLockRef.current) {
-      return;
-    }
-
-    deleteLockRef.current = true;
-    setIsDeleting(true);
-
-    removeCombination(combination.id);
-
+  const handleDelete = async () => {
+    await deleteCombinationFromPlaylist();
     setIsDeleteDialogOpen(false);
-    queuedToast.hideToast();
   };
 
   return (
@@ -141,22 +133,25 @@ export function TaskCombinationDetailPage() {
             {combination.name}
           </h1>
 
-          <p className="mt-1 text-[13px] font-medium text-black-600">
-            {combination.description}
-          </p>
-
           <button
             type="button"
+            disabled={
+              isAddingCombination || isDeletingCombination
+            }
             onClick={handleCombinationAction}
             aria-label={
-              isAdded
+              isCombinationAdded
                 ? `${combination.name} 과업 삭제`
                 : `${combination.name} 플레이리스트에 추가`
             }
             className="mt-5 rounded-full active:scale-95"
           >
             <img
-              src={isAdded ? checkIcon : arrowDownIcon}
+              src={
+                isCombinationAdded
+                  ? checkIcon
+                  : arrowDownIcon
+              }
               alt=""
               className="h-[42px] w-[42px]"
             />
@@ -168,6 +163,7 @@ export function TaskCombinationDetailPage() {
             <li key={task.id}>
               <TaskChip
                 title={task.title}
+                memo={task.memo}
                 progressRate={task.progressRate}
                 priority={task.priority}
                 status={task.status}
@@ -185,10 +181,14 @@ export function TaskCombinationDetailPage() {
 
       <ConfirmModal
         open={isDeleteDialogOpen}
-        title={"리스트에서 모든 과업을\n삭제하시겠습니까?"}
+        title={
+          "리스트에 추가된 모든 과업을\n삭제하시겠습니까?"
+        }
         onCancel={handleDeleteCancel}
-        onConfirm={handleDelete}
-        submitting={isDeleting}
+        onConfirm={() => {
+          void handleDelete();
+        }}
+        submitting={isDeletingCombination}
       />
     </>
   );

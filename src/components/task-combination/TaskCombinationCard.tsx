@@ -1,7 +1,7 @@
 import type { TaskCombination } from "@/types/taskCombination";
 import {
   getCombinationAccentClassName,
-  getUniqueTaskCombinationCategories,
+  getTaskCombinationCategoryIcons,
 } from "@/utils/taskCombinationCategories";
 
 interface TaskCombinationCardProps {
@@ -13,7 +13,7 @@ export function TaskCombinationCard({
   combination,
   onClick,
 }: TaskCombinationCardProps) {
-  const categories = getUniqueTaskCombinationCategories(
+  const categoryIcons = getTaskCombinationCategoryIcons(
     combination.tasks,
   );
   const accentClassName =
@@ -24,24 +24,27 @@ export function TaskCombinationCard({
       type="button"
       onClick={onClick}
       aria-label={`${combination.name} 상세 보기`}
-      className="flex min-w-0 flex-col text-left active:scale-[0.98]"
+      className="flex w-[calc((100%_-_12px)/2)] min-w-0 flex-col text-left active:scale-[0.98]"
     >
-      <span className="grid aspect-square w-full grid-cols-2 grid-rows-2 gap-2 rounded-[16px] bg-black-850 p-3 sm:gap-3 sm:p-5 md:gap-4 md:p-7">
-        {categories.map((category) => (
+      <span className="flex aspect-square w-full flex-wrap content-start items-start gap-[7.142857%] rounded-[12px] bg-black-850 p-[6.25%]">
+        {categoryIcons.map((category) => (
           <span
             key={category.id}
-            className="flex aspect-square items-center justify-center rounded-[10px] bg-black-800"
+            className="flex aspect-square w-[45.714286%] shrink-0 items-center justify-center rounded-[8px] bg-black-800"
           >
-            <img
-              src={category.icon}
-              alt=""
-              className="h-8 w-8"
+            <span
+              aria-hidden="true"
+              className="h-8 w-8 bg-black-600 [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain]"
+              style={{
+                maskImage: `url("${category.icon}")`,
+                WebkitMaskImage: `url("${category.icon}")`,
+              }}
             />
           </span>
         ))}
 
         <span
-          className={`flex aspect-square items-center justify-center rounded-[10px] ${accentClassName}`}
+          className={`flex aspect-square w-[45.714286%] shrink-0 items-center justify-center rounded-[8px] ${accentClassName}`}
         >
           <img
             src={combination.icon}

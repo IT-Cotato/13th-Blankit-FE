@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 
 import checkButtonGreenIcon from "@/assets/icons/task-combination/check-button-green.svg";
 import pauseButtonCircleIcon from "@/assets/icons/task-combination/pause-button-circle.svg";
@@ -15,13 +18,24 @@ import { TaskCompletionTooltip } from "@/components/task-playlist/TaskCompletion
 import { TaskMosaicProgress } from "@/components/task-playlist/TaskMosaicProgress";
 import { TaskPlayerHeader } from "@/components/task-playlist/TaskPlayerHeader";
 import { useCurrentTaskTimer } from "@/hooks/useCurrentTaskTimer";
+import { useTaskSession } from "@/hooks/useTaskSession";
+import { useTodayRecommendedMinutes } from "@/hooks/useTodayRecommendedMinutes";
 import { useToast } from "@/hooks/useToast";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
+import { useTaskCompletionStore } from "@/store/useTaskCompletionStore";
+import {
+  getMissingTaskIdMessage,
+  shouldRestoreTimerFromSession,
+  updateTimerWithSession,
+} from "@/utils/taskSessionTimer";
 import { formatTimer } from "@/utils/taskTimer";
 import { getTaskPlayerControls } from "@/utils/taskPlayerControls";
 
+import type { TaskFeedbackResponse } from "@/types/taskFeedbackApi";
+
 export function TaskPlaylistPage() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const task = usePlaylistStore(
     (state) => state.playlist[0],
@@ -43,48 +57,224 @@ export function TaskPlaylistPage() {
     (state) => state.dismissCompletionTooltip,
   );
 
+  const restoreTimerFromSession = usePlaylistStore(
+    (state) => state.restoreTimerFromSession,
+  );
+
+  const pauseCurrentTask = usePlaylistStore(
+    (state) => state.pauseCurrentTask,
+  );
+
+  const markTaskCompleted = useTaskCompletionStore(
+    (state) => state.markTaskCompleted,
+  );
+
   const [isBottomSheetOpen, setIsBottomSheetOpen] =
     useState(false);
 
   const [isFeedbackOpen, setIsFeedbackOpen] =
     useState(false);
 
-  const feedbackToast = useToast();
+  const {
+    message: feedbackToastMessage,
+    showToast: showFeedbackToast,
+  } = useToast();
 
   const {
-    displayedElapsedSeconds,
+    message: playlistCreatedToastMessage,
+    showToast: showPlaylistCreatedToast,
+  } = useToast();
+
+  const queuedPlaylistCreatedToastMessage = (
+    location.state as {
+      playlistCreatedToastMessage?: string;
+    } | null
+  )?.playlistCreatedToastMessage;
+
+  const {
+    session,
+    isLoadingSession,
+    isUpdatingSession,
+    sessionError,
+    changeSessionStatus,
+    retrySession,
+  } = useTaskSession(task?.taskId ?? null);
+
+  const {
+    displayedElapsedSeconds: currentTaskElapsedSeconds,
+    displayedPlaylistElapsedSeconds,
     isPlaying,
-    pauseCurrentTask,
     toggleTimer,
   } = useCurrentTaskTimer(task?.estimatedMinutes ?? 0);
+
+  const {
+    recommendedMinutes,
+    isLoadingRecommendedMinutes,
+    recommendationTimeError,
+  } = useTodayRecommendedMinutes();
+
+  const hasPlaylistStarted =
+    hasStarted || displayedPlaylistElapsedSeconds > 0;
+  const missingTaskIdMessage = task
+    ? getMissingTaskIdMessage(task.taskId)
+    : null;
 
   const controls = getTaskPlayerControls({
     isPlaying,
     hasStarted,
   });
 
+  const shouldShowCompletionTooltip =
+    !hasSeenCompletionTooltip &&
+    controls.taskAction === "complete" &&
+    !queuedPlaylistCreatedToastMessage &&
+    !playlistCreatedToastMessage;
+
   useEffect(() => {
-    pauseCurrentTask(Date.now());
-  }, [pauseCurrentTask]);
+    if (!queuedPlaylistCreatedToastMessage) {
+      return;
+    }
+
+    showPlaylistCreatedToast(
+      queuedPlaylistCreatedToastMessage,
+    );
+    navigate(location.pathname, {
+      replace: true,
+      state: null,
+    });
+  }, [
+    location.pathname,
+    navigate,
+    queuedPlaylistCreatedToastMessage,
+    showPlaylistCreatedToast,
+  ]);
+
+  useEffect(() => {
+    if (!missingTaskIdMessage) {
+      return;
+    }
+
+    showFeedbackToast(missingTaskIdMessage);
+  }, [missingTaskIdMessage, showFeedbackToast]);
+
+  useEffect(() => {
+    if (!sessionError) {
+      return;
+    }
+
+    showFeedbackToast(sessionError);
+  }, [sessionError, showFeedbackToast]);
+
+  useEffect(() => {
+    if (!recommendationTimeError) {
+      return;
+    }
+
+    showFeedbackToast(recommendationTimeError);
+  }, [recommendationTimeError, showFeedbackToast]);
+
+  useEffect(() => {
+    if (
+      !session ||
+      !shouldRestoreTimerFromSession(hasStarted)
+    ) {
+      return;
+    }
+
+    restoreTimerFromSession(
+      session.elapsedTime,
+      session.status === "PLAYING",
+    );
+  }, [hasStarted, restoreTimerFromSession, session]);
+
+  const handleToggleTimer = async () => {
+    if (
+      !session ||
+      isLoadingSession ||
+      isUpdatingSession
+    ) {
+      return;
+    }
+
+    const nextStatus = isPlaying
+      ? "PAUSED"
+      : "PLAYING";
+
+    try {
+      await updateTimerWithSession(
+        nextStatus,
+        currentTaskElapsedSeconds,
+        changeSessionStatus,
+        toggleTimer,
+      );
+    } catch {
+      return;
+    }
+  };
 
   if (!task) {
     return <EmptyPlaylistPlayer />;
   }
 
-  const handleOpenFeedback = () => {
-    pauseCurrentTask(Date.now());
-    setIsFeedbackOpen(true);
-  };
-
-  const handleCompleteFeedback = () => {
-    const result = completeFeedback(task.id);
-
-    if (!result) {
+  const handleOpenFeedback = async () => {
+    if (
+      !session ||
+      isLoadingSession ||
+      isUpdatingSession
+    ) {
       return;
     }
 
+    if (
+      session.status === "PAUSED" &&
+      !isPlaying
+    ) {
+      setIsFeedbackOpen(true);
+      return;
+    }
+
+    try {
+      const updatedSession =
+        await changeSessionStatus(
+          "PAUSED",
+          currentTaskElapsedSeconds,
+        );
+
+      if (!updatedSession) {
+        return;
+      }
+
+      pauseCurrentTask(Date.now());
+
+      setIsFeedbackOpen(true);
+    } catch {
+      return;
+    }
+  };
+
+  const handleCompleteFeedback = async (
+    feedback: TaskFeedbackResponse,
+  ) => {
+    const result = completeFeedback(task.id);
+
+    if (!result) {
+      return false;
+    }
+
+    if (feedback.isCompleted) {
+      markTaskCompleted(feedback.taskId);
+    }
+
     setIsFeedbackOpen(false);
-    feedbackToast.showToast("피드백을 완료했어요.");
+    showFeedbackToast(
+      "피드백을 완료했습니다.",
+    );
+
+    if (result === "stayed") {
+      retrySession();
+    }
+
+    return true;
   };
 
   return (
@@ -108,14 +298,24 @@ export function TaskPlaylistPage() {
 
       <div className="flex flex-col items-center pt-20">
         <TaskMosaicProgress
-          elapsedSeconds={displayedElapsedSeconds}
-          estimatedMinutes={task.estimatedMinutes}
+          elapsedSeconds={displayedPlaylistElapsedSeconds}
+          recommendedMinutes={recommendedMinutes}
+          isLoadingRecommendedMinutes={
+            isLoadingRecommendedMinutes
+          }
         />
 
         <div className="grid w-full max-w-[280px] grid-cols-[52px_1fr_52px] items-center gap-4 pt-20">
           <button
             type="button"
-            onClick={toggleTimer}
+            disabled={
+              !session ||
+              isLoadingSession ||
+              isUpdatingSession
+            }
+            onClick={() => {
+              void handleToggleTimer();
+            }}
             aria-label={
               isPlaying
                 ? "과업 일시정지"
@@ -140,10 +340,12 @@ export function TaskPlaylistPage() {
             )}
 
             <p className="whitespace-nowrap text-center text-[32px] font-bold text-black-100">
-              {hasStarted
-                ? formatTimer(displayedElapsedSeconds)
+              {hasPlaylistStarted
+                ? formatTimer(
+                    displayedPlaylistElapsedSeconds,
+                  )
                 : formatTimer(
-                    task.estimatedMinutes * 60,
+                    (recommendedMinutes ?? 0) * 60,
                   )}
             </p>
           </div>
@@ -151,9 +353,17 @@ export function TaskPlaylistPage() {
           <div className="relative ml-auto h-12 w-12">
             <button
               type="button"
+              disabled={
+                controls.taskAction === "complete" &&
+                (!session ||
+                  isLoadingSession ||
+                  isUpdatingSession)
+              }
               onClick={
                 controls.taskAction === "complete"
-                  ? handleOpenFeedback
+                  ? () => {
+                      void handleOpenFeedback();
+                    }
                   : () => navigate(-1)
               }
               aria-label={
@@ -174,12 +384,11 @@ export function TaskPlaylistPage() {
               />
             </button>
 
-            {!hasSeenCompletionTooltip &&
-              controls.taskAction === "complete" && (
-                <TaskCompletionTooltip
-                  onDismiss={dismissCompletionTooltip}
-                />
-              )}
+            {shouldShowCompletionTooltip && (
+              <TaskCompletionTooltip
+                onDismiss={dismissCompletionTooltip}
+              />
+            )}
           </div>
         </div>
       </div>
@@ -187,18 +396,28 @@ export function TaskPlaylistPage() {
       <PlaylistBottomSheet
         open={isBottomSheetOpen}
         onOpenChange={setIsBottomSheetOpen}
+        onShowToast={showFeedbackToast}
       />
 
       <TaskFeedbackSheet
         open={isFeedbackOpen}
         taskId={task.id}
+        apiTaskId={task.taskId ?? null}
+        sessionId={session?.taskSessionId ?? null}
         onClose={() => setIsFeedbackOpen(false)}
         onComplete={handleCompleteFeedback}
+        onShowToast={showFeedbackToast}
       />
 
       <Toast
-        message={feedbackToast.message}
+        message={feedbackToastMessage}
         variant="taskCombination"
+      />
+
+      <Toast
+        message={playlistCreatedToastMessage}
+        variant="taskCombination"
+        centeredWithBackdrop
       />
     </div>
   );

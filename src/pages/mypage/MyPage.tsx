@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { LogoutModal } from "@/components/mypage/LogoutModal";
 import { MyPageTopBar } from "@/components/mypage/MyPageTopBar";
 import { MemberInfoCard } from "@/components/mypage/MemberInfoCard";
+import { fetchLogout } from "@/api/mypage/logout";
+import { fetchCurrentUser } from "@/api/mypage/user";
+import { useAuthStore } from "@/store/authStore";
+import type { AuthUser } from "@/types/auth";
 
 const menuItems = [
     {
@@ -35,13 +39,65 @@ const menuItems = [
 export function MyPage() {
     const navigate = useNavigate();
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const clearAuth = useAuthStore((state) => state.clearAuth);
+    const storedUser = useAuthStore((state) => state.user);
+    const [currentUser, setCurrentUser] = useState<AuthUser | null>(storedUser);
+
+    useEffect(() => {
+        let isActive = true;
+
+        const loadCurrentUser = async () => {
+            try {
+                const currentUser = await fetchCurrentUser();
+
+                if (isActive) {
+                    setCurrentUser(currentUser);
+                }
+            } catch (error) {
+                console.error("사용자 정보를 불러오지 못했습니다.", error);
+            }
+        };
+
+        void loadCurrentUser();
+
+        return () => {
+            isActive = false;
+        };
+    }, []);
+
+    const loginProviderDescription =
+        currentUser?.socialProvider === "KAKAO"
+            ? "카카오로 로그인"
+            : currentUser?.socialProvider === "GOOGLE"
+              ? "구글로 로그인"
+              : "로그인 정보 없음";
+
+    const handleLogout = async () => {
+        if (isLoggingOut) return;
+
+        setIsLoggingOut(true);
+
+        try {
+            await fetchLogout();
+        } catch (error) {
+            console.error("서버 로그아웃 요청에 실패했습니다.", error);
+        } finally {
+            clearAuth();
+            setIsLogoutModalOpen(false);
+            navigate("/login", { replace: true });
+        }
+    };
 
     return (
         <div className="min-h-[calc(100dvh_-_90px_-_env(safe-area-inset-bottom))] bg-black-900 text-black-100">
             <MyPageTopBar />
             <div className="px-5 pt-5">
                 <div className="mb-5">
-                    <MemberInfoCard />
+                    <MemberInfoCard
+                        name={currentUser?.nickname || undefined}
+                        description={loginProviderDescription}
+                    />
                 </div>
 
                 <section
@@ -95,7 +151,8 @@ export function MyPage() {
             {isLogoutModalOpen && (
                 <LogoutModal
                     onCancel={() => setIsLogoutModalOpen(false)}
-                    onConfirm={() => setIsLogoutModalOpen(false)}
+                    onConfirm={handleLogout}
+                    isLoggingOut={isLoggingOut}
                 />
             )}
         </div>

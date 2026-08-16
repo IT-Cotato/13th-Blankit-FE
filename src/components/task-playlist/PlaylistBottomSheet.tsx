@@ -1,145 +1,39 @@
 import { useMemo, useRef, useState } from "react";
+import { DndContext, closestCenter } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 
-import checkButtonGreenIcon from "@/assets/icons/task-combination/check-button-green.svg";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
-import { taskCombinations } from "@/mocks/taskCombinations";
+import { PlaylistTaskCard } from "@/components/task-playlist/PlaylistTaskCard";
+import { ACTIVE_FILTER_CLASS_NAMES, PLAYLIST_FILTERS } from "@/components/task-playlist/playlistBottomSheetModes";
+import { usePlaylistDelete } from "@/hooks/usePlaylistDelete";
+import { usePlaylistReorder } from "@/hooks/usePlaylistReorder";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
 
-import type {
-  CombinationModeId,
-  PlaylistTask,
-} from "@/types/taskCombination";
+import type { PlaylistFilter } from "@/components/task-playlist/playlistBottomSheetModes";
 
 interface PlaylistBottomSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}
-
-type PlaylistFilter = "all" | CombinationModeId;
-
-const FILTERS: Array<{
-  id: PlaylistFilter;
-  label: string;
-}> = [
-  { id: "all", label: "전체" },
-  ...taskCombinations.map((combination) => ({
-    id: combination.id,
-    label: combination.name.replace(" 모드", ""),
-  })),
-];
-
-const ACTIVE_FILTER_CLASS_NAMES: Record<
-  PlaylistFilter,
-  string
-> = {
-  all: "bg-green-500 text-black-900",
-  fire: "bg-red-500 text-black-900",
-  balance: "bg-green-600 text-black-900",
-  "quick-try": "bg-purple-500 text-black-900",
-  "get-it-done": "bg-[#FBF965] text-black-900",
-};
-
-interface PlaylistTaskRowProps {
-  task: PlaylistTask;
-  selected: boolean;
-  onSelectTask: () => void;
-  onToggle: () => void;
-}
-
-function PlaylistTaskRow({
-  task,
-  selected,
-  onSelectTask,
-  onToggle,
-}: PlaylistTaskRowProps) {
-  return (
-    <li
-      data-playlist-task-id={task.id}
-      className="flex items-center gap-3 rounded-[10px] bg-black-800 px-3 py-3"
-    >
-      <button
-        type="button"
-        onClick={onSelectTask}
-        aria-label={`${task.title} 과업 시작`}
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-black-850"
-      >
-        <img
-          src={task.categoryIcon}
-          alt=""
-          className="h-5 w-5"
-        />
-      </button>
-
-      <button
-        type="button"
-        onClick={onSelectTask}
-        aria-label={`${task.title} 과업 시작`}
-        className="min-w-0 flex-1 text-left"
-      >
-        <span className="block truncate text-[13px] font-semibold text-black-200">
-          {task.title}
-        </span>
-
-        {task.lastMemo && (
-          <span className="mt-1 block truncate text-[10px] font-medium text-black-600">
-            {task.lastMemo}
-          </span>
-        )}
-      </button>
-
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-label={
-          selected
-            ? `${task.title} 선택 해제`
-            : `${task.title} 선택`
-        }
-        className={`flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full ${
-          selected
-            ? ""
-            : "border-3 border-black-700"
-        }`}
-      >
-        {selected && (
-          <img
-            src={checkButtonGreenIcon}
-            alt=""
-            className="h-[30px] w-[30px]"
-          />
-        )}
-      </button>
-    </li>
-  );
+  onShowToast: (message: string) => void;
 }
 
 export function PlaylistBottomSheet({
   open,
   onOpenChange,
+  onShowToast,
 }: PlaylistBottomSheetProps) {
   const playlist = usePlaylistStore(
     (state) => state.playlist,
   );
-
-  const removeTasks = usePlaylistStore(
-    (state) => state.removeTasks,
-  );
-
   const selectTask = usePlaylistStore(
     (state) => state.selectTask,
   );
 
   const [filter, setFilter] =
     useState<PlaylistFilter>("all");
-
-  const [selectedTaskIds, setSelectedTaskIds] = useState<
-    Set<string>
-  >(new Set());
-
-  const [
-    showDeleteSelectedDialog,
-    setShowDeleteSelectedDialog,
-  ] = useState(false);
+  const [deletingSelectedTasks, setDeletingSelectedTasks] =
+    useState(false);
+  const [savingOrder, setSavingOrder] = useState(false);
 
   const sheetDragStartYRef = useRef<number | null>(null);
   const ignoreNextClickRef = useRef(false);
@@ -149,60 +43,64 @@ export function PlaylistBottomSheet({
       filter === "all"
         ? playlist
         : playlist.filter(
-            (task) => task.sourceModeId === filter,
+            (task) => task.sourceMode === filter,
           ),
     [filter, playlist],
   );
 
-  const validSelectedTaskIds = useMemo(() => {
-    const playlistTaskIds = new Set(
-      playlist.map((task) => task.id),
-    );
+  const {
+    validSelectedTaskIds,
+    showDeleteSelectedDialog,
+    playlistMutationInProgress,
+    setShowDeleteSelectedDialog,
+    toggleTask,
+    selectAll,
+    resetSelection,
+    deleteSelected,
+  } = usePlaylistDelete({
+    playlist,
+    savingOrder,
+    deletingSelectedTasks,
+    setDeletingSelectedTasks,
+    onShowToast,
+  });
 
-    return new Set(
-      [...selectedTaskIds].filter((id) =>
-        playlistTaskIds.has(id),
-      ),
-    );
-  }, [playlist, selectedTaskIds]);
-
-  const handleToggleTask = (taskId: string) => {
-    setSelectedTaskIds((current) => {
-      const next = new Set(current);
-
-      if (next.has(taskId)) {
-        next.delete(taskId);
-      } else {
-        next.add(taskId);
-      }
-
-      return next;
-    });
-  };
-
-  const handleDeleteSelected = () => {
-    removeTasks([...validSelectedTaskIds]);
-    setSelectedTaskIds(new Set());
-    setShowDeleteSelectedDialog(false);
-  };
-
-  const handleSelectAll = () => {
-    setSelectedTaskIds(
-      new Set(filteredTasks.map((task) => task.id)),
-    );
-  };
+  const {
+    sensors,
+    draggingDisabled,
+    handleDragStart,
+    handleDragCancel,
+    handleDragEnd,
+    consumeIgnoredTaskClick,
+  } = usePlaylistReorder({
+    playlist,
+    draggingAllowed: filter === "all",
+    deletingSelectedTasks,
+    showDeleteSelectedDialog,
+    savingOrder,
+    setSavingOrder,
+    onShowToast,
+  });
 
   const handleFilterChange = (
     nextFilter: PlaylistFilter,
   ) => {
     setFilter(nextFilter);
-    setSelectedTaskIds(new Set());
-    setShowDeleteSelectedDialog(false);
+    resetSelection();
   };
 
   const handleSelectTask = (taskId: string) => {
+    const ignoredTaskClick = consumeIgnoredTaskClick();
+
+    if (
+      playlistMutationInProgress ||
+      ignoredTaskClick
+    ) {
+      return;
+    }
+
     selectTask(taskId);
-    setSelectedTaskIds(new Set());
+    resetSelection();
     onOpenChange(false);
   };
 
@@ -263,9 +161,9 @@ export function PlaylistBottomSheet({
   };
 
   const selectedModeName =
-    taskCombinations.find(
-      (combination) => combination.id === filter,
-    )?.name ?? "";
+    PLAYLIST_FILTERS.find(
+      (playlistFilter) => playlistFilter.id === filter,
+    )?.label ?? "";
 
   const allFilteredTasksSelected =
     filteredTasks.length > 0 &&
@@ -315,13 +213,14 @@ export function PlaylistBottomSheet({
         {open && (
           <div className="flex h-[calc(100%-34px)] flex-col px-5 pb-5">
             <div className="flex shrink-0 gap-2 overflow-x-auto pb-3">
-              {FILTERS.map((item) => {
+              {PLAYLIST_FILTERS.map((item) => {
                 const active = filter === item.id;
 
                 return (
                   <button
                     key={item.id}
                     type="button"
+                    disabled={playlistMutationInProgress}
                     aria-pressed={active}
                     onClick={() =>
                       handleFilterChange(item.id)
@@ -348,10 +247,11 @@ export function PlaylistBottomSheet({
               {validSelectedTaskIds.size > 0 ? (
                 <button
                   type="button"
+                  disabled={playlistMutationInProgress}
                   onClick={() =>
                     setShowDeleteSelectedDialog(true)
                   }
-                  className="rounded-[6px] bg-green-500 px-2.5 py-1.5 text-[14px] font-semibold text-black-900"
+                  className="rounded-[6px] bg-green-500 px-2.5 py-1.5 text-[14px] font-semibold text-black-900 disabled:opacity-50"
                 >
                   {allFilteredTasksSelected
                     ? "전체 삭제"
@@ -360,8 +260,11 @@ export function PlaylistBottomSheet({
               ) : (
                 <button
                   type="button"
-                  onClick={handleSelectAll}
-                  disabled={filteredTasks.length === 0}
+                  onClick={() => selectAll(filteredTasks)}
+                  disabled={
+                    filteredTasks.length === 0 ||
+                    playlistMutationInProgress
+                  }
                   className="rounded-[6px] bg-black-800 px-2.5 py-1.5 text-[14px] font-medium text-black-900 disabled:opacity-40"
                 >
                   전체 선택
@@ -371,23 +274,46 @@ export function PlaylistBottomSheet({
 
             <div className="min-h-0 flex-1 overflow-y-auto pt-2">
               {filteredTasks.length > 0 ? (
-                <ul className="flex flex-col gap-3">
-                  {filteredTasks.map((task) => (
-                    <PlaylistTaskRow
-                      key={task.id}
-                      task={task}
-                      selected={validSelectedTaskIds.has(
-                        task.id,
-                      )}
-                      onSelectTask={() =>
-                        handleSelectTask(task.id)
-                      }
-                      onToggle={() =>
-                        handleToggleTask(task.id)
-                      }
-                    />
-                  ))}
-                </ul>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={handleDragStart}
+                  onDragCancel={handleDragCancel}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={filteredTasks.map(
+                      (task) => task.id,
+                    )}
+                    strategy={
+                      verticalListSortingStrategy
+                    }
+                  >
+                    <ul className="flex flex-col gap-3">
+                      {filteredTasks.map((task) => (
+                        <PlaylistTaskCard
+                          key={task.id}
+                          task={task}
+                          selected={validSelectedTaskIds.has(
+                            task.id,
+                          )}
+                          draggingDisabled={
+                            draggingDisabled
+                          }
+                          interactionDisabled={
+                            playlistMutationInProgress
+                          }
+                          onSelectTask={() =>
+                            handleSelectTask(task.id)
+                          }
+                          onToggle={() =>
+                            toggleTask(task.id)
+                          }
+                        />
+                      ))}
+                    </ul>
+                  </SortableContext>
+                </DndContext>
               ) : (
                 <div className="flex h-full items-center justify-center px-5 text-center">
                   <p className="text-[14px] font-semibold text-black-100">
@@ -406,10 +332,13 @@ export function PlaylistBottomSheet({
         open={showDeleteSelectedDialog}
         title="과업을 진짜 삭제하시겠습니까?"
         confirmLabel="확인"
-        onCancel={() =>
-          setShowDeleteSelectedDialog(false)
-        }
-        onConfirm={handleDeleteSelected}
+        submitting={deletingSelectedTasks}
+        onCancel={() => {
+          if (!deletingSelectedTasks) {
+            setShowDeleteSelectedDialog(false);
+          }
+        }}
+        onConfirm={deleteSelected}
       />
     </>
   );

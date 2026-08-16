@@ -45,6 +45,9 @@ export function TaskCategoryPicker({
     const frameId = requestAnimationFrame(() => {
       const firstFocusableElement =
         containerRef.current?.querySelector<HTMLElement>(
+          "[data-autofocus]",
+        ) ??
+        containerRef.current?.querySelector<HTMLElement>(
           "button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])",
         );
 

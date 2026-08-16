@@ -67,8 +67,10 @@ export interface RepeatRuleResponse {
 export interface TaskDetailResponse {
   taskId: number;
   title: string;
+  memo: string | null;
   category: Category;
   priority: TaskPriority | null;
+  progressRate: number;
   starred: boolean;
   estimatedTime: number | null;
   status: TaskStatus;
@@ -87,8 +89,10 @@ export interface TaskDetailResponse {
 export interface TaskListResponse {
   taskId: number;
   title: string;
+  memo: string | null;
   category: Category;
   priority: TaskPriority | null;
+  progressRate: number;
   starred: boolean;
   estimatedTime: number | null;
   recommendedMinutes: number | null;

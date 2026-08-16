@@ -16,9 +16,11 @@ import type {
 
 interface TaskChipBaseProps {
   title: string;
+  memo?: string | null;
   priority: TaskPriority;
-  progressRate?: number;
+  progressRate: number;
   status?: TaskStatus;
+  showCompletionCheck?: boolean;
   onClick?: () => void;
 }
 
@@ -77,11 +79,15 @@ export function TaskChip(
 ) {
   const {
     title,
+    memo,
     priority,
     progressRate,
     status = "TODO",
+    showCompletionCheck = false,
     onClick,
   } = props;
+
+  const trimmedMemo = memo?.trim();
 
   const categoryPresentation =
     props.category !== undefined
@@ -96,12 +102,9 @@ export function TaskChip(
             ],
         };
 
-  const hasProgressRate =
-    progressRate !== undefined;
-
   const clampedProgressRate = Math.min(
     100,
-    Math.max(0, progressRate ?? 0),
+    Math.max(0, progressRate),
   );
 
   const progressLevel = Math.floor(
@@ -117,11 +120,9 @@ export function TaskChip(
 
   const isDone = status === "DONE";
 
-  const ariaLabel = isDone
-    ? `${title}, 완료`
-    : hasProgressRate
-      ? `${title}, 진행도 ${progressLevel}`
-      : `${title}, 우선순위 ${priority}`;
+  const ariaLabel = isDone || showCompletionCheck
+  ? `${title}, 완료`
+  : `${title}, 진행도 ${progressLevel}`;
 
   const content = (
     <>
@@ -140,9 +141,18 @@ export function TaskChip(
         >
           {title}
         </p>
+
+        {trimmedMemo && (
+          <p
+            data-task-memo
+            className="truncate text-[12px] font-medium leading-[150%] tracking-[-0.015em] text-black-650"
+          >
+            {trimmedMemo}
+          </p>
+        )}
       </div>
 
-      {isDone ? (
+      {isDone || showCompletionCheck ? (
         <div
           aria-hidden="true"
           className="
@@ -151,6 +161,14 @@ export function TaskChip(
             justify-center rounded-full
             bg-lime-500
           "
+          style={
+            showCompletionCheck
+              ? {
+                  backgroundColor:
+                    priorityStyle.color,
+                }
+              : undefined
+          }
         >
           <svg
             width="20"
@@ -167,7 +185,7 @@ export function TaskChip(
             />
           </svg>
         </div>
-      ) : hasProgressRate ? (
+      ) : (
         <div
           aria-hidden="true"
           className="
@@ -228,7 +246,7 @@ export function TaskChip(
             {progressLevel}
           </span>
         </div>
-      ) : null}
+      )}
     </>
   );
 

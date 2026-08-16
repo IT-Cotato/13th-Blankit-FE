@@ -18,6 +18,25 @@ interface WheelColumnProps {
 
 const ITEM_HEIGHT = 32;
 const SETTLE_DELAY_MS = 80;
+const ROTATION_BY_DISTANCE = [0, 24.967, 30.205, 33.409];
+const TEXT_HEIGHT_BY_DISTANCE = [30, 23, 17, 11];
+const CELL_HEIGHT_BY_DISTANCE = [32, 27, 24, 23];
+const CENTER_OFFSET_BY_DISTANCE = [0, 2.5, 9, 17.5];
+
+function interpolateByDistance(values: number[], distance: number) {
+  const absoluteDistance = Math.min(Math.abs(distance), 3);
+  const lowerDistance = Math.floor(absoluteDistance);
+  const upperDistance = Math.ceil(absoluteDistance);
+  const progress = absoluteDistance - lowerDistance;
+  const lowerValue = values[lowerDistance] ?? values[0] ?? 0;
+  const upperValue = values[upperDistance] ?? lowerValue;
+
+  return lowerValue + (upperValue - lowerValue) * progress;
+}
+
+function getRotation(distance: number) {
+  return Math.sign(distance) * interpolateByDistance(ROTATION_BY_DISTANCE, distance);
+}
 
 function WheelColumn({
   ariaLabel,
@@ -119,15 +138,25 @@ function WheelColumn({
           SETTLE_DELAY_MS,
         );
       }}
-      className="h-[128px] select-none snap-y snap-mandatory overflow-y-auto overscroll-contain py-12 [mask-image:linear-gradient(to_bottom,transparent_0%,black_28%,black_72%,transparent_100%)] [perspective:180px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="h-[224px] select-none snap-y snap-mandatory overflow-y-auto overscroll-contain py-24 [mask-image:linear-gradient(to_bottom,transparent_0%,black_8%,black_92%,transparent_100%)] [perspective:260px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       {values.map((value, index) => {
         const selected = value === selectedValue;
         const distance = index - scrollIndex;
-        const absoluteDistance = Math.min(Math.abs(distance), 3);
-        const rotation = Math.max(-68, Math.min(68, distance * -26));
-        const scale = Math.max(0.72, 1 - absoluteDistance * 0.1);
-        const opacity = Math.max(0.18, 1 - absoluteDistance * 0.28);
+        const rotation = getRotation(distance);
+        const textHeight = interpolateByDistance(
+          TEXT_HEIGHT_BY_DISTANCE,
+          distance,
+        );
+        const cellHeight = interpolateByDistance(
+          CELL_HEIGHT_BY_DISTANCE,
+          distance,
+        );
+        const centerOffset = interpolateByDistance(
+          CENTER_OFFSET_BY_DISTANCE,
+          distance,
+        );
+        const translateY = -Math.sign(distance) * centerOffset;
 
         return (
           <div
@@ -137,16 +166,21 @@ function WheelColumn({
             aria-selected={selected}
             onClick={() => onSelect(value)}
             style={{
-              opacity,
-              transform: `rotateX(${rotation}deg) scale(${scale})`,
+              transform: `translateY(${translateY}px) rotateX(${rotation}deg)`,
             }}
-            className={`flex h-8 w-full cursor-pointer snap-center items-center justify-center text-[16px] [backface-visibility:hidden] [transform-style:preserve-3d] ${
-              selected
-                ? "text-[20px] font-semibold text-black-100"
-                : "font-medium text-black-700"
-            }`}
+            className="flex h-8 w-full cursor-pointer snap-center items-center justify-center [backface-visibility:hidden] [transform-style:preserve-3d]"
           >
-            {formatValue(value)}
+            <span
+              style={{
+                height: `${cellHeight}px`,
+                transform: `scaleY(${textHeight / 30})`,
+              }}
+              className={`flex w-full items-center justify-center text-center font-sans text-[20px] font-medium leading-[150%] tracking-[-0.3px] ${
+                selected ? "text-black-200" : "text-black-750"
+              }`}
+            >
+              {formatValue(value)}
+            </span>
           </div>
         );
       })}
@@ -198,11 +232,11 @@ export function MonthYearPicker({
     <div
       role="group"
       aria-label="연도와 월 선택"
-      className="relative grid h-[128px] grid-cols-2 overflow-hidden"
+      className="relative grid h-[224px] grid-cols-2 overflow-hidden"
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-2 top-12 z-0 h-8 rounded-[6px] bg-black-800"
+        className="pointer-events-none absolute inset-x-2 top-24 z-0 h-8 rounded-[8px] bg-black-800"
       />
       <div className="relative z-10">
         <WheelColumn

@@ -1,11 +1,22 @@
 import { useNavigate } from "react-router-dom";
 
-import { taskCombinations } from "@/mocks/taskCombinations";
+import { useTaskCombinations } from "@/hooks/useTaskCombinations";
 
 import { TaskCombinationCard } from "./TaskCombinationCard";
 
-export function TaskCombinationSection() {
+interface TaskCombinationSectionProps {
+  refreshKey: number;
+}
+
+export function TaskCombinationSection({
+  refreshKey,
+}: TaskCombinationSectionProps) {
   const navigate = useNavigate();
+  const {
+    combinations,
+    loadingCombinations,
+    combinationError,
+  } = useTaskCombinations(refreshKey);
 
   return (
     <section>
@@ -13,8 +24,21 @@ export function TaskCombinationSection() {
         과업 조합 추천
       </h2>
 
-      <div className="mt-5 grid grid-cols-2 gap-3">
-        {taskCombinations.map((combination) => (
+      {loadingCombinations ? (
+        <p className="mt-5 text-[13px] font-medium text-black-600">
+          과업 조합을 불러오는 중입니다.
+        </p>
+      ) : combinationError ? (
+        <p className="mt-5 text-[13px] font-medium text-red-400">
+          {combinationError}
+        </p>
+      ) : combinations.length === 0 ? (
+        <p className="mt-5 text-[13px] font-medium text-black-600">
+          추천할 과업 조합이 없습니다.
+        </p>
+      ) : (
+        <div className="mt-5 flex flex-wrap items-start justify-between gap-y-5">
+        {combinations.map((combination) => (
           <TaskCombinationCard
             key={combination.id}
             combination={combination}
@@ -25,7 +49,8 @@ export function TaskCombinationSection() {
             }
           />
         ))}
-      </div>
+        </div>
+      )}
     </section>
   );
 }
