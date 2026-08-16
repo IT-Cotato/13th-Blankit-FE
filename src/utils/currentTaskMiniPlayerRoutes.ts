@@ -3,6 +3,8 @@ export function shouldShowCurrentTaskMiniPlayer(
 ) {
   return (
     pathname === "/" ||
+    pathname === "/calendar" ||
+    pathname === "/mypage" ||
     pathname.startsWith("/task-combinations/")
   );
 }
