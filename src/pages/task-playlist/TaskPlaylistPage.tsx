@@ -335,9 +335,10 @@ export function TaskPlaylistPage() {
           </button>
 
           <div className="relative flex items-center justify-center">
-            {hasSeenCompletionTooltip && (
-              <RecommendedTimeGuide />
-            )}
+            {hasSeenCompletionTooltip &&
+              !hasPlaylistStarted && (
+                <RecommendedTimeGuide />
+              )}
 
             <p className="whitespace-nowrap text-center text-[32px] font-bold text-black-100">
               {hasPlaylistStarted
