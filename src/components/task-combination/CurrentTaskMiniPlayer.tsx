@@ -4,13 +4,17 @@ import { useNavigate } from "react-router-dom";
 import { CategoryIconBadge } from "@/components/category/CategoryIconBadge";
 import { useCurrentTaskTimer } from "@/hooks/useCurrentTaskTimer";
 import { useTaskSession } from "@/hooks/useTaskSession";
+import { useTodayRecommendedMinutes } from "@/hooks/useTodayRecommendedMinutes";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
 import {
   getMissingTaskIdMessage,
   shouldRestoreTimerFromSession,
   updateTimerWithSession,
 } from "@/utils/taskSessionTimer";
-import { formatTimer } from "@/utils/taskTimer";
+import {
+  formatTimer,
+  getTaskProgress,
+} from "@/utils/taskTimer";
 
 import type { PlaylistTask } from "@/types/taskCombination";
 
@@ -34,12 +38,16 @@ export function CurrentTaskMiniPlayer({
   );
   const {
     displayedElapsedSeconds,
-    progress,
+    displayedPlaylistElapsedSeconds,
     isPlaying,
     toggleTimer,
   } = useCurrentTaskTimer(
     task.estimatedMinutes,
   );
+  const {
+    recommendedMinutes,
+    recommendationTimeError,
+  } = useTodayRecommendedMinutes();
   const {
     session,
     isLoadingSession,
@@ -48,6 +56,10 @@ export function CurrentTaskMiniPlayer({
   } = useTaskSession(task.taskId ?? null);
   const missingTaskIdMessage =
     getMissingTaskIdMessage(task.taskId);
+  const progress = getTaskProgress(
+    displayedPlaylistElapsedSeconds,
+    recommendedMinutes ?? 0,
+  );
 
   useEffect(() => {
     if (!missingTaskIdMessage) {
@@ -56,6 +68,14 @@ export function CurrentTaskMiniPlayer({
 
     onShowToast(missingTaskIdMessage);
   }, [missingTaskIdMessage, onShowToast]);
+
+  useEffect(() => {
+    if (!recommendationTimeError) {
+      return;
+    }
+
+    onShowToast(recommendationTimeError);
+  }, [onShowToast, recommendationTimeError]);
 
   useEffect(() => {
     if (
@@ -145,7 +165,7 @@ export function CurrentTaskMiniPlayer({
 
           <span className="min-w-0 flex-1">
             <span className="block text-[15px] font-semibold text-black-300">
-              {formatTimer(task.estimatedMinutes * 60)}
+              {formatTimer(displayedPlaylistElapsedSeconds)}
             </span>
             <span className="mt-1 block truncate text-[12px] font-medium text-black-600">
               {task.title}
