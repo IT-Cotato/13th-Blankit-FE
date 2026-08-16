@@ -135,7 +135,7 @@ export const OnboardingCarousel = ({
                     ))}
                 </div>
             </div>
-            <div className="grow max-h-16" />
+            <div className="grow max-h-16 min-h-16" />
             <div
                 className="flex gap-2 pb-5"
                 role="tablist"

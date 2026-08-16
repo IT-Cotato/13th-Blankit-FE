@@ -180,7 +180,7 @@ export const useBottomSheetSnap = ({
         if (!dragStart || event.pointerId !== dragStart.pointerId) return;
 
         const deltaY = dragStart.startY - event.clientY;
-        if (Math.abs(deltaY) > 4) {
+        if (Math.abs(deltaY) >= 1) {
             didDragRef.current = true;
         }
         setDragHeight(clampHeight(dragStart.startHeight + deltaY));
@@ -207,6 +207,11 @@ export const useBottomSheetSnap = ({
     const handlePointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
         const dragStart = dragStartRef.current;
         if (!dragStart || event.pointerId !== dragStart.pointerId) return;
+
+        if (!didDragRef.current) {
+            finishDrag();
+            return;
+        }
 
         const finalHeight = dragHeight ?? dragStart.startHeight;
         const distance = finalHeight - dragStart.startHeight;

@@ -8,7 +8,7 @@ interface CalendarDateBadgeProps {
 
 const formatDisplayDate = (date: string | null) => {
     if (!date) return "";
-    const parsedDate = new Date(date);
+    const parsedDate = new Date(`${date}T00:00:00`);
     if (Number.isNaN(parsedDate.getTime())) return date;
     const day = parsedDate.getDate();
     const weekday = parsedDate.toLocaleDateString("ko-KR", { weekday: "long" });
@@ -21,7 +21,7 @@ export const CalendarDateBadge = ({
     recommendedMinutes,
 }: CalendarDateBadgeProps) => {
     return (
-        <div className="flex items-center gap-2 rounded-xl bg-black-800 px-3 py-2">
+        <div className="flex select-none items-center gap-2 rounded-xl bg-black-800 px-3 py-2 [-webkit-user-select:none]">
             <CalendarFillIndicator
                 actualMinutes={actualMinutes}
                 recommendedMinutes={recommendedMinutes}
