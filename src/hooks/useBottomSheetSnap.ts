@@ -1,5 +1,6 @@
 import {
     useEffect,
+    useMemo,
     useRef,
     useState,
     type PointerEvent as ReactPointerEvent,
@@ -9,9 +10,9 @@ import { useElementRectValue } from "./useElementRectValue";
 import { useVisualViewport } from "./useVisualViewport";
 
 const NAV_BAR_HEIGHT_PX = 90; // BottomNavigation은 border-box라 항상 이 값으로 고정
-const HEADER_HEIGHT_FALLBACK_PX = 76;
 const COLLAPSED_HEIGHT_FALLBACK_PX = 357;
 const MIN_COLLAPSED_HEIGHT_PX = 96;
+const COLLAPSED_GAP_ABOVE_PX = 20; // 최소화 상태일 때 CalendarGrid와 띄울 간격
 
 const BIG_DRAG_DISTANCE_PX = 220; // 이 이상 드래그하면 중간 단계를 건너뜁니다
 const BIG_DRAG_VELOCITY = 0.8; // px/ms — 빠르게 스와이프해도 건너뜁니다
@@ -29,25 +30,67 @@ const clampIndex = (index: number) => {
     return Math.min(Math.max(index, 0), SNAP_ORDER.length - 1);
 };
 
+// env(safe-area-inset-top) 값을 실제 px로 읽어옵니다.
+// (CSS 변수라 JS에서 직접 값을 못 읽기 때문에 숨김 엘리먼트로 측정)
+const readSafeAreaInsetTop = () => {
+    if (typeof document === "undefined") return 0;
+
+    const probe = document.createElement("div");
+    probe.style.position = "fixed";
+    probe.style.top = "0";
+    probe.style.left = "0";
+    probe.style.height = "env(safe-area-inset-top, 0px)";
+    probe.style.visibility = "hidden";
+    probe.style.pointerEvents = "none";
+
+    document.body.appendChild(probe);
+    const value = probe.getBoundingClientRect().height;
+    document.body.removeChild(probe);
+
+    return value;
+};
+
+const useSafeAreaInsetTop = () => {
+    const [safeAreaTop, setSafeAreaTop] = useState(0);
+
+    useEffect(() => {
+        const update = () => setSafeAreaTop(readSafeAreaInsetTop());
+        update();
+
+        window.addEventListener("resize", update);
+        window.addEventListener("orientationchange", update);
+        return () => {
+            window.removeEventListener("resize", update);
+            window.removeEventListener("orientationchange", update);
+        };
+    }, []);
+
+    return safeAreaTop;
+};
+
 const computeSnapHeights = ({
     viewportHeight,
     navBarHeight,
-    headerHeight,
+    safeAreaTop,
     calendarBottom,
 }: {
     viewportHeight: number;
     navBarHeight: number;
-    headerHeight: number;
+    safeAreaTop: number;
     calendarBottom: number;
 }): SnapHeights => {
-    const fullHeight = viewportHeight - headerHeight - navBarHeight;
+    // full 상태: 상단은 safe area만큼만 남기고 나머지는 시트가 다 채웁니다.
+    const fullHeight = viewportHeight - safeAreaTop - navBarHeight;
     const halfHeight = viewportHeight * 0.5 - navBarHeight;
 
-    // 캘린더 그리드 바로 아래부터 네비게이션 바 상단까지의 여백.
-    // collapsed 상태에서 시트 높이가 이 여백을 넘지 않으면 캘린더를 가리지 않습니다.
+    // 캘린더 그리드 바로 아래부터 네비게이션 바 상단까지의 여백에서
+    // 최소화 상태일 때 그리드와 띄울 간격(20px)을 뺍니다.
     const spaceBelowCalendar =
         calendarBottom > 0
-            ? viewportHeight - navBarHeight - calendarBottom
+            ? viewportHeight -
+              navBarHeight -
+              calendarBottom -
+              COLLAPSED_GAP_ABOVE_PX
             : COLLAPSED_HEIGHT_FALLBACK_PX; // 아직 측정 전이면 기존 고정값 사용
 
     const collapsedHeight = Math.max(
@@ -63,14 +106,13 @@ const computeSnapHeights = ({
 };
 
 interface UseBottomSheetSnapOptions {
-    headerSelector: string;
     contentBottomSelector: string;
 }
 
 // 하단 시트의 스냅포인트(collapsed/half/full) 전환과 드래그 제스처를 관리하는 훅.
-// 헤더/콘텐츠 하단 위치를 측정해 캘린더를 가리지 않는 높이를 계산합니다.
+// 콘텐츠 하단 위치와 safe area를 측정해 캘린더를 가리지 않고,
+// full 상태에서는 상단 safe area만큼만 여백을 남기도록 높이를 계산합니다.
 export const useBottomSheetSnap = ({
-    headerSelector,
     contentBottomSelector,
 }: UseBottomSheetSnapOptions) => {
     const [currentSnapPoint, setCurrentSnapPoint] =
@@ -79,12 +121,8 @@ export const useBottomSheetSnap = ({
     const [isDragging, setIsDragging] = useState(false);
 
     const { height: viewportHeight, keyboardInset } = useVisualViewport();
+    const safeAreaTop = useSafeAreaInsetTop();
 
-    const headerHeight = useElementRectValue(
-        headerSelector,
-        (rect) => rect.height,
-        HEADER_HEIGHT_FALLBACK_PX,
-    );
     const contentBottom = useElementRectValue(
         contentBottomSelector,
         (rect) => rect.bottom,
@@ -92,25 +130,16 @@ export const useBottomSheetSnap = ({
     );
     const effectiveNavBarHeight = NAV_BAR_HEIGHT_PX + keyboardInset;
 
-    const [snapHeights, setSnapHeights] = useState<SnapHeights>(() =>
-        computeSnapHeights({
-            viewportHeight,
-            navBarHeight: effectiveNavBarHeight,
-            headerHeight,
-            calendarBottom: contentBottom,
-        }),
-    );
-
-    useEffect(() => {
-        setSnapHeights(
+    const snapHeights = useMemo(
+        () =>
             computeSnapHeights({
                 viewportHeight,
                 navBarHeight: effectiveNavBarHeight,
-                headerHeight,
+                safeAreaTop,
                 calendarBottom: contentBottom,
             }),
-        );
-    }, [viewportHeight, effectiveNavBarHeight, headerHeight, contentBottom]);
+        [viewportHeight, effectiveNavBarHeight, safeAreaTop, contentBottom],
+    );
 
     const dragStartRef = useRef<{
         pointerId: number;
@@ -214,14 +243,14 @@ export const useBottomSheetSnap = ({
         finishDrag();
     };
 
+    // 드래그 없이 짧게 탭했을 때: 핸들(상단 스크롤바) 영역을 누르면 최소화됩니다.
     const handleHandleClick = () => {
         if (isDragging || didDragRef.current) {
             didDragRef.current = false;
             return;
         }
 
-        const currentIndex = SNAP_ORDER.indexOf(currentSnapPoint);
-        setCurrentSnapPoint(SNAP_ORDER[clampIndex(currentIndex + 1)]);
+        setCurrentSnapPoint("collapsed");
     };
 
     return {

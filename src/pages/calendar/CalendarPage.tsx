@@ -215,7 +215,6 @@ export const CalendarPage = () => {
                 viewMode={viewMode}
                 dailyFeedback={selectedDailyFeedback}
                 dailyStat={selectedDailyStat}
-                onClose={() => setSelectedDate(null)}
             />
         </div>
     );

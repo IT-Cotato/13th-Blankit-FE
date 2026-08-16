@@ -20,7 +20,6 @@ interface CalendarTaskSheetProps {
     // viewMode와 무관하게 항상 존재할 수 있는 데이터라, 날짜 뱃지 채움 비율은
     // 이 값을 기준으로 계산합니다. 데이터가 아직 없으면 null.
     dailyStat: DailyStat | null;
-    onClose: () => void;
     onTaskClick?: (taskId: string) => void;
 }
 
@@ -34,7 +33,6 @@ export const CalendarTaskSheet = ({
 }: CalendarTaskSheetProps) => {
     const { navBarHeight, sheetHeight, isDragging, isFull, dragHandleProps } =
         useBottomSheetSnap({
-            headerSelector: "#calendar-header",
             contentBottomSelector: "#calendar-grid",
         });
 
@@ -54,19 +52,14 @@ export const CalendarTaskSheet = ({
 
     const isListScrollable = isFull && !isDragging;
 
-    // 3.6.1: 통계 모드에서 선택한 날짜(과거/현재 무관)에 기록이 없음 → "아직 기록이 없어요"
     const hasNoFeedback =
         viewMode === "stats" &&
         (dailyFeedback === null || dailyFeedback.feedbackTasks.length === 0);
 
-    // 기본 모드에서 선택한 날짜에 마감인 과업이 없음
     const hasNoTasks = viewMode === "default" && displayTasks.length === 0;
 
-    // 위 두 경우 모두 동일한 "예상 시간" 빈 상태 UI를 보여줍니다.
     const showEmptyState = hasNoFeedback || hasNoTasks;
 
-    // 날짜 뱃지 채움 비율: viewMode와 무관하게 dailyStat(월별 요약 통계) 기준.
-    // 데이터가 없는 날은 0/0으로 넘겨 CalendarFillIndicator가 빈 상태(outline)를 그리게 합니다.
     const fillMinutes = {
         actualMinutes: displayStat?.actualMinutes ?? 0,
         recommendedMinutes: displayStat?.recommendedMinutes ?? 0,
@@ -78,7 +71,7 @@ export const CalendarTaskSheet = ({
             style={{ bottom: navBarHeight }}
         >
             <div
-                className={`flex w-full max-w-[430px] flex-col overflow-hidden rounded-t-[20px] border border-black-800 bg-black-850 px-5 pt-3 ${
+                className={`flex w-full flex-col overflow-hidden rounded-t-[20px] border border-black-800 bg-black-850 px-5 pt-3 ${
                     isDragging
                         ? ""
                         : "transition-[height] duration-300 ease-out"

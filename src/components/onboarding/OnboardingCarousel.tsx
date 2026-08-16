@@ -135,9 +135,9 @@ export const OnboardingCarousel = ({
                     ))}
                 </div>
             </div>
-
+            <div className="grow max-h-16" />
             <div
-                className="mt-16 flex gap-2 pb-5"
+                className="flex gap-2 pb-5"
                 role="tablist"
                 aria-label="온보딩 진행 상태"
             >
