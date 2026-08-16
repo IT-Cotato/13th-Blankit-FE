@@ -91,7 +91,6 @@ export const CalendarGrid = ({
                             key={day.key}
                             day={day}
                             isSelected={day.key === selectedDate}
-                            viewMode={viewMode}
                             onSelect={onSelectDate}
                         />
                     );

@@ -6,6 +6,15 @@ interface CalendarTaskCardProps {
     task: Task;
 }
 
+function formatEstimatedTime(minutes: number) {
+    if (minutes < 60) return `${minutes}분 소요`;
+    const hours = Math.floor(minutes / 60);
+    const restMinutes = minutes % 60;
+    return restMinutes === 0
+        ? `${hours}시간 소요`
+        : `${hours}시간 ${restMinutes}분 소요`;
+}
+
 export function CalendarTaskCard({ task }: CalendarTaskCardProps) {
     const icon = CATEGORY_ICON_MAP[task.category.iconKey] ?? "";
 
@@ -27,9 +36,7 @@ export function CalendarTaskCard({ task }: CalendarTaskCardProps) {
                     </p>
 
                     <p className="text-[12px] font-medium text-black-500">
-                        {task.estimatedTime >= 60
-                            ? `${Math.floor(task.estimatedTime / 60)}시간 소요`
-                            : `${task.estimatedTime}분 소요`}
+                        {formatEstimatedTime(task.estimatedTime)}
                     </p>
                 </div>
             </div>

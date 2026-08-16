@@ -120,6 +120,7 @@ export const useBottomSheetSnap = ({
     } | null>(null);
     const lastMoveRef = useRef<{ y: number; time: number } | null>(null);
     const velocityRef = useRef(0);
+    const didDragRef = useRef(false);
 
     const clampHeight = (height: number) => {
         return Math.min(
@@ -130,6 +131,7 @@ export const useBottomSheetSnap = ({
 
     const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
         const startHeight = dragHeight ?? snapHeights[currentSnapPoint];
+        didDragRef.current = false;
 
         dragStartRef.current = {
             pointerId: event.pointerId,
@@ -149,6 +151,9 @@ export const useBottomSheetSnap = ({
         if (!dragStart || event.pointerId !== dragStart.pointerId) return;
 
         const deltaY = dragStart.startY - event.clientY;
+        if (Math.abs(deltaY) > 4) {
+            didDragRef.current = true;
+        }
         setDragHeight(clampHeight(dragStart.startHeight + deltaY));
 
         const now = performance.now();
@@ -210,7 +215,10 @@ export const useBottomSheetSnap = ({
     };
 
     const handleHandleClick = () => {
-        if (isDragging) return;
+        if (isDragging || didDragRef.current) {
+            didDragRef.current = false;
+            return;
+        }
 
         const currentIndex = SNAP_ORDER.indexOf(currentSnapPoint);
         setCurrentSnapPoint(SNAP_ORDER[clampIndex(currentIndex + 1)]);

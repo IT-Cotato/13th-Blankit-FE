@@ -1,11 +1,15 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
-import { mockTasks } from "@/mocks/tasks";
-import { mockDailyStatsByDate } from "@/mocks/calendarStats";
+import { mockCalendarTasks as mockTasks } from "@/mocks/calendarTasks";
+import {
+    mockDailyStatsByDate,
+    mockDailyFeedbackByDate,
+} from "@/mocks/calendarStats";
 
 import {
     CalendarGrid,
     type CalendarDayCell,
+    type CalendarDateStatus,
     type CalendarViewMode,
 } from "@/components/calendar/CalendarGrid";
 import { CalendarTopBar } from "@/components/calendar/CalendarTopBar";
@@ -25,6 +29,9 @@ const MONTH_LABELS = [
     "Nov",
     "Dec",
 ];
+
+// 스와이프로 월 전환을 트리거할 최소 드래그 거리(px).
+const SWIPE_THRESHOLD_PX = 50;
 
 const getDateStatus = (cellDate: Date, todayDate: Date): CalendarDateStatus => {
     const cellDay = new Date(
@@ -88,7 +95,16 @@ export const CalendarPage = () => {
         defaultDateKey,
     );
     const [viewMode, setViewMode] = useState<CalendarViewMode>("default");
-    const monthDays = useMemo(() => getDaysInMonth(new Date()), []);
+
+    // 현재 화면에 보여줄 월(1일 기준). 스와이프/버튼으로 이동합니다.
+    const [currentMonth, setCurrentMonth] = useState<Date>(
+        () => new Date(today.getFullYear(), today.getMonth(), 1),
+    );
+
+    const monthDays = useMemo(
+        () => getDaysInMonth(currentMonth),
+        [currentMonth],
+    );
 
     const selectedTasks = useMemo(() => {
         if (!selectedDate) {
@@ -96,6 +112,18 @@ export const CalendarPage = () => {
         }
 
         return mockTasks.filter((task) => task.deadline === selectedDate);
+    }, [selectedDate]);
+
+    const selectedDailyFeedback = useMemo(() => {
+        if (!selectedDate) return null;
+        return mockDailyFeedbackByDate[selectedDate] ?? null;
+    }, [selectedDate]);
+
+    // 날짜 뱃지 채움 비율 계산용 월별 요약 통계.
+    // viewMode와 무관하게 항상 조회해서 CalendarTaskSheet에 넘깁니다.
+    const selectedDailyStat = useMemo(() => {
+        if (!selectedDate) return null;
+        return mockDailyStatsByDate[selectedDate] ?? null;
     }, [selectedDate]);
 
     const handleSelectDate = (dateKey: string) => {
@@ -106,25 +134,87 @@ export const CalendarPage = () => {
         setViewMode((prev) => (prev === "default" ? "stats" : "default"));
     };
 
-    return (
-        <div className="h-dvh bg-black-900 px-5 pt-5 text-black-100">
-            <CalendarTopBar
-                monthLabel={MONTH_LABELS[today.getMonth()]}
-                year={today.getFullYear()}
-                onStatsClick={handleToggleViewMode}
-            />
+    const goToMonth = (offset: 1 | -1) => {
+        setCurrentMonth(
+            (prev) => new Date(prev.getFullYear(), prev.getMonth() + offset, 1),
+        );
+        // 이전/다음 달로 넘어가면 선택 상태를 비웁니다.
+        // (선택했던 날짜가 새 달엔 존재하지 않을 수 있어서요.)
+        setSelectedDate(null);
+    };
 
-            <CalendarGrid
-                monthDays={monthDays}
-                selectedDate={selectedDate}
-                viewMode={viewMode}
-                onSelectDate={handleSelectDate}
-            />
+    // ---- 스와이프 감지 (Pointer Events, 별도 라이브러리 없이) ----
+    const touchStartX = useRef<number | null>(null);
+    const touchStartY = useRef<number | null>(null);
+
+    const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+        touchStartX.current = event.clientX;
+        touchStartY.current = event.clientY;
+    };
+
+    const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+        if (touchStartX.current === null || touchStartY.current === null) {
+            return;
+        }
+
+        const deltaX = event.clientX - touchStartX.current;
+        const deltaY = event.clientY - touchStartY.current;
+
+        touchStartX.current = null;
+        touchStartY.current = null;
+
+        // 세로 스크롤/드래그와 헷갈리지 않도록, 가로 이동이 세로 이동보다
+        // 뚜렷하게 클 때만 스와이프로 인정합니다.
+        if (
+            Math.abs(deltaX) < SWIPE_THRESHOLD_PX ||
+            Math.abs(deltaX) < Math.abs(deltaY)
+        ) {
+            return;
+        }
+
+        if (deltaX < 0) {
+            goToMonth(1); // 왼쪽으로 스와이프 → 다음 달
+        } else {
+            goToMonth(-1); // 오른쪽으로 스와이프 → 이전 달
+        }
+    };
+
+    const handlePointerCancel = () => {
+        touchStartX.current = null;
+        touchStartY.current = null;
+    };
+
+    return (
+        <div className="flex-1 bg-black-900 px-5 pt-5 text-black-100">
+            <div className="flex flex-col gap-5">
+                <CalendarTopBar
+                    monthLabel={MONTH_LABELS[currentMonth.getMonth()]}
+                    year={currentMonth.getFullYear()}
+                    viewMode={viewMode}
+                    onStatsClick={handleToggleViewMode}
+                />
+
+                <div
+                    className="touch-pan-y"
+                    onPointerDown={handlePointerDown}
+                    onPointerUp={handlePointerUp}
+                    onPointerCancel={handlePointerCancel}
+                >
+                    <CalendarGrid
+                        monthDays={monthDays}
+                        selectedDate={selectedDate}
+                        viewMode={viewMode}
+                        onSelectDate={handleSelectDate}
+                    />
+                </div>
+            </div>
 
             <CalendarTaskSheet
                 selectedDate={selectedDate}
                 tasks={selectedTasks}
                 viewMode={viewMode}
+                dailyFeedback={selectedDailyFeedback}
+                dailyStat={selectedDailyStat}
                 onClose={() => setSelectedDate(null)}
             />
         </div>

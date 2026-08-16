@@ -1,11 +1,13 @@
 import { useState } from "react";
 
+import { CalendarDateBadge } from "@/components/calendar/CalendarDateBadge";
+import { CalendarEmptyState } from "@/components/calendar/CalendarEmptyState";
 import { CalendarTaskCard } from "@/components/calendar/CalendarTaskCard";
 import { TaskChip } from "@/components/task/TaskChip";
 import { useBottomSheetSnap } from "@/hooks/useBottomSheetSnap";
 import type { CalendarViewMode } from "@/components/calendar/CalendarGrid";
-import type { DailyFeedbackData } from "@/types/calendarStats";
-import type { Category, CategoryIconKey } from "@/types/category";
+import type { DailyFeedbackData, DailyStat } from "@/types/calendarStats";
+import type { CategoryIconKey } from "@/types/category";
 import type { Task } from "@/types/task";
 
 interface CalendarTaskSheetProps {
@@ -14,24 +16,20 @@ interface CalendarTaskSheetProps {
     viewMode: CalendarViewMode;
     // 통계 모드에서 선택 날짜의 상세 데이터. 아직 fetch 전이거나 로딩 중이면 null.
     dailyFeedback: DailyFeedbackData | null;
+    // 선택 날짜의 월별 요약 통계 (actualMinutes/recommendedMinutes).
+    // viewMode와 무관하게 항상 존재할 수 있는 데이터라, 날짜 뱃지 채움 비율은
+    // 이 값을 기준으로 계산합니다. 데이터가 아직 없으면 null.
+    dailyStat: DailyStat | null;
     onClose: () => void;
     onTaskClick?: (taskId: string) => void;
 }
-
-const formatDisplayDate = (date: string | null) => {
-    if (!date) return "";
-    const parsedDate = new Date(date);
-    if (Number.isNaN(parsedDate.getTime())) return date;
-    const day = parsedDate.getDate();
-    const weekday = parsedDate.toLocaleDateString("ko-KR", { weekday: "long" });
-    return `${parsedDate.getMonth() + 1}월 ${day}일 ${weekday}`;
-};
 
 export const CalendarTaskSheet = ({
     selectedDate,
     tasks,
     viewMode,
     dailyFeedback,
+    dailyStat,
     onTaskClick,
 }: CalendarTaskSheetProps) => {
     const { navBarHeight, sheetHeight, isDragging, isFull, dragHandleProps } =
@@ -42,6 +40,7 @@ export const CalendarTaskSheet = ({
 
     const [displayDate, setDisplayDate] = useState<string | null>(selectedDate);
     const [displayTasks, setDisplayTasks] = useState<Task[]>(tasks);
+    const [displayStat, setDisplayStat] = useState<DailyStat | null>(dailyStat);
     const [prevSelectedDate, setPrevSelectedDate] = useState(selectedDate);
 
     if (selectedDate !== prevSelectedDate) {
@@ -49,21 +48,33 @@ export const CalendarTaskSheet = ({
         if (selectedDate) {
             setDisplayDate(selectedDate);
             setDisplayTasks(tasks);
+            setDisplayStat(dailyStat);
         }
     }
 
     const isListScrollable = isFull && !isDragging;
-    const sheetTitle = formatDisplayDate(displayDate);
 
-    // 3.6.1: 오늘인데 피드백 없음 / 미래 날짜 선택 → "아직 기록이 없어요"
-    // feedbackTasks가 비어있는 모든 경우로 일반화했습니다 (과거인데 기록 없는 경우도 동일 문구가 자연스러워서요).
+    // 3.6.1: 통계 모드에서 선택한 날짜(과거/현재 무관)에 기록이 없음 → "아직 기록이 없어요"
     const hasNoFeedback =
         viewMode === "stats" &&
         (dailyFeedback === null || dailyFeedback.feedbackTasks.length === 0);
 
+    // 기본 모드에서 선택한 날짜에 마감인 과업이 없음
+    const hasNoTasks = viewMode === "default" && displayTasks.length === 0;
+
+    // 위 두 경우 모두 동일한 "예상 시간" 빈 상태 UI를 보여줍니다.
+    const showEmptyState = hasNoFeedback || hasNoTasks;
+
+    // 날짜 뱃지 채움 비율: viewMode와 무관하게 dailyStat(월별 요약 통계) 기준.
+    // 데이터가 없는 날은 0/0으로 넘겨 CalendarFillIndicator가 빈 상태(outline)를 그리게 합니다.
+    const fillMinutes = {
+        actualMinutes: displayStat?.actualMinutes ?? 0,
+        recommendedMinutes: displayStat?.recommendedMinutes ?? 0,
+    };
+
     return (
         <div
-            className="fixed inset-x-0 z-60 flex justify-center px-5"
+            className="fixed inset-x-0 z-60 flex justify-center"
             style={{ bottom: navBarHeight }}
         >
             <div
@@ -81,19 +92,11 @@ export const CalendarTaskSheet = ({
                     <span className="h-1 w-9 rounded-full bg-black-700" />
 
                     <div className="flex w-full items-center">
-                        <div className="flex items-center gap-2 rounded-xl bg-black-800 px-3 py-2">
-                            <span className="h-4 w-4 flex-shrink-0 rounded-[4px] bg-green-500" />
-                            <span
-                                className="text-[14px] font-medium text-black-100"
-                                style={{
-                                    fontFamily: "Pretendard",
-                                    lineHeight: "150%",
-                                    letterSpacing: "-0.21px",
-                                }}
-                            >
-                                {sheetTitle}
-                            </span>
-                        </div>
+                        <CalendarDateBadge
+                            date={displayDate}
+                            actualMinutes={fillMinutes.actualMinutes}
+                            recommendedMinutes={fillMinutes.recommendedMinutes}
+                        />
                     </div>
                 </div>
 
@@ -102,48 +105,39 @@ export const CalendarTaskSheet = ({
                         isListScrollable ? "overflow-y-auto" : "overflow-hidden"
                     }`}
                 >
-                    {viewMode === "stats" ? (
-                        hasNoFeedback ? (
-                            <div className="flex w-full items-center justify-center rounded-2xl border border-dashed border-black-800 bg-black-800/70 px-4 py-6 text-[14px] font-medium text-black-500">
-                                아직 기록이 없어요
-                            </div>
-                        ) : (
-                            <ul className="flex w-full flex-col gap-3">
-                                {dailyFeedback!.feedbackTasks.map((task) => (
-                                    <li key={task.taskId}>
-                                        <TaskChip
-                                            title={task.title}
-                                            lastMemo={task.categoryName}
-                                            progressRate={task.progressRate}
-                                            priority="MEDIUM"
-                                            status={
-                                                task.isCompleted
-                                                    ? "DONE"
-                                                    : "IN_PROGRESS"
-                                            }
-                                            category={{
-                                                // feedbackTasks엔 categoryId가 없어서 taskId로 임시 대체합니다.
-                                                // getCategoryPresentation이 categoryId로 다른 조회/조건 분기를 하지 않는다면 문제없어요.
-                                                categoryId: task.taskId,
-                                                categoryName: task.categoryName,
-                                                color: task.categoryColor,
-                                                iconKey:
-                                                    task.categoryIconKey as CategoryIconKey,
-                                            }}
-                                            onClick={() =>
-                                                onTaskClick?.(
-                                                    String(task.taskId),
-                                                )
-                                            }
-                                        />
-                                    </li>
-                                ))}
-                            </ul>
-                        )
-                    ) : displayTasks.length === 0 ? (
-                        <div className="flex w-full items-center justify-center rounded-2xl border border-dashed border-black-800 bg-black-800/70 px-4 py-6 text-[14px] font-medium text-black-500">
-                            해당 날짜에는 등록된 과업이 없어요.
-                        </div>
+                    {showEmptyState ? (
+                        <CalendarEmptyState
+                            recommendedMinutes={fillMinutes.recommendedMinutes}
+                        />
+                    ) : viewMode === "stats" ? (
+                        <ul className="flex w-full flex-col gap-3">
+                            {dailyFeedback!.feedbackTasks.map((task) => (
+                                <li key={task.taskId}>
+                                    <TaskChip
+                                        title={task.title}
+                                        memo={task.categoryName}
+                                        progressRate={task.progressRate}
+                                        priority="MEDIUM"
+                                        status={
+                                            task.isCompleted
+                                                ? "DONE"
+                                                : "IN_PROGRESS"
+                                        }
+                                        backgroundClassName="bg-black-800"
+                                        category={{
+                                            categoryId: task.taskId,
+                                            categoryName: task.categoryName,
+                                            color: task.categoryColor,
+                                            iconKey:
+                                                task.categoryIconKey as CategoryIconKey,
+                                        }}
+                                        onClick={() =>
+                                            onTaskClick?.(String(task.taskId))
+                                        }
+                                    />
+                                </li>
+                            ))}
+                        </ul>
                     ) : (
                         displayTasks.map((task) => (
                             <CalendarTaskCard key={task.taskId} task={task} />

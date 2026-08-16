@@ -1,18 +1,7 @@
 import type { CalendarDateStatus } from "@/components/calendar/CalendarGrid";
-
-const GRID_SIZE = 5;
-const TOTAL_CELLS = GRID_SIZE * GRID_SIZE; // 25칸, 칸당 4%
-
-const computeFilledLevel = (
-    actualMinutes: number,
-    recommendedMinutes: number,
-) => {
-    if (recommendedMinutes <= 0) {
-        return actualMinutes > 0 ? TOTAL_CELLS : 0;
-    }
-    const ratio = actualMinutes / recommendedMinutes;
-    return Math.min(TOTAL_CELLS, Math.floor(ratio * TOTAL_CELLS));
-};
+import { CalendarDayCellShell } from "@/components/calendar/CalendarDayCellShell";
+import { CalendarFillIndicator } from "@/components/calendar/CalendarFillIndicator";
+import { computeFilledLevel, TOTAL_CELLS } from "@/utils/calendarFillLevel";
 
 // 분 단위 값을 "HH:MM" 형태로 변환합니다 (예: 210분 -> "03:30").
 const formatMinutesAsClock = (minutes: number) => {
@@ -38,20 +27,11 @@ export const CalendarStatsFillCell = ({
     isSelected,
     onSelect,
 }: CalendarStatsFillCellProps) => {
-    // 오늘/미래: 아직 수행 데이터가 의미 없으니 채움 그래프 대신
-    // 권장 시간을 라벨로만 보여줍니다. 오늘은 초록, 미래는 흐리게.
-    if (dateStatus !== "past") {
-        const isToday = dateStatus === "today";
+    const isToday = dateStatus === "today";
 
+    if (dateStatus !== "past") {
         return (
-            <button
-                type="button"
-                onClick={onSelect}
-                aria-pressed={isSelected}
-                className={`flex h-10.5 w-full flex-col items-center justify-center rounded-[10px] bg-black-800 ${
-                    isToday ? "border border-green-500" : ""
-                }`}
-            >
+            <CalendarDayCellShell isSelected={isSelected} onSelect={onSelect}>
                 <span
                     className={`font-['Pretendard'] text-[14px] font-medium leading-[150%] tracking-[-0.21px] ${
                         isToday ? "text-green-500" : "text-black-600"
@@ -66,56 +46,43 @@ export const CalendarStatsFillCell = ({
                 >
                     {formatMinutesAsClock(recommendedMinutes)}
                 </span>
-            </button>
+            </CalendarDayCellShell>
         );
     }
 
     const filledLevel = computeFilledLevel(actualMinutes, recommendedMinutes);
     const isFullyAchieved = filledLevel >= TOTAL_CELLS;
-    const cellIndexes = Array.from({ length: TOTAL_CELLS }, (_, i) => i);
-
-    if (isFullyAchieved) {
-        return (
-            <button
-                type="button"
-                onClick={onSelect}
-                aria-pressed={isSelected}
-                className="flex h-10.5 w-full items-center justify-center rounded-[10px] bg-green-500"
-            >
-                <span className="font-['Pretendard'] text-[14px] font-medium leading-[150%] tracking-[-0.21px] text-black-900">
-                    {day}
-                </span>
-            </button>
-        );
-    }
 
     return (
-        <button
-            type="button"
-            onClick={onSelect}
-            aria-pressed={isSelected}
-            className="relative h-10.5 w-full overflow-hidden rounded-[10px] bg-black-800"
+        <CalendarDayCellShell
+            isSelected={isSelected}
+            onSelect={onSelect}
+            dimBackgroundWhenSelected={isFullyAchieved}
+            background={
+                <CalendarFillIndicator
+                    actualMinutes={actualMinutes}
+                    recommendedMinutes={recommendedMinutes}
+                    fillOpacity="half"
+                    emptyVariant="muted"
+                    className="h-full w-full"
+                />
+            }
         >
-            <div className="absolute inset-0 grid grid-cols-5 grid-rows-5">
-                {cellIndexes.map((index) => {
-                    const isFilled = index < filledLevel;
-
-                    return (
-                        <span
-                            key={index}
-                            className={isFilled ? "bg-green-600/50" : ""}
-                        />
-                    );
-                })}
-            </div>
-
             <span
-                className={`relative z-10 flex h-full w-full items-center justify-center font-['Pretendard'] text-[14px] font-medium leading-[150%] tracking-[-0.21px] ${
-                    isSelected ? "text-white" : "text-black-100"
+                className={`font-['Pretendard'] text-[14px] font-medium leading-[150%] tracking-[-0.21px] ${
+                    isToday
+                        ? "text-green-500"
+                        : isFullyAchieved && isSelected
+                          ? "text-white"
+                          : isFullyAchieved
+                            ? "text-black-900"
+                            : isSelected
+                              ? "text-white"
+                              : "text-black-100"
                 }`}
             >
                 {day}
             </span>
-        </button>
+        </CalendarDayCellShell>
     );
 };
