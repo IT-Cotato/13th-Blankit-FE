@@ -1,10 +1,11 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { mockCalendarTasks as mockTasks } from "@/mocks/calendarTasks";
 import {
-    mockDailyStatsByDate,
-    mockDailyFeedbackByDate,
-} from "@/mocks/calendarStats";
+    fetchMonthlyCalendarStats,
+    fetchDailyFeedback,
+} from "@/api/calendar/stats";
+import type { DailyStat, DailyFeedbackData } from "@/types/calendarStats";
 
 import {
     CalendarGrid,
@@ -30,7 +31,6 @@ const MONTH_LABELS = [
     "Dec",
 ];
 
-// 스와이프로 월 전환을 트리거할 최소 드래그 거리(px).
 const SWIPE_THRESHOLD_PX = 50;
 
 const getDateStatus = (cellDate: Date, todayDate: Date): CalendarDateStatus => {
@@ -49,7 +49,10 @@ const getDateStatus = (cellDate: Date, todayDate: Date): CalendarDateStatus => {
     return cellDay < today ? "past" : "future";
 };
 
-const getDaysInMonth = (date: Date): CalendarDayCell[] => {
+const getDaysInMonth = (
+    date: Date,
+    dailyStatsByDate: Record<string, DailyStat>,
+): CalendarDayCell[] => {
     const year = date.getFullYear();
     const month = date.getMonth();
     const firstDay = new Date(year, month, 1);
@@ -69,7 +72,7 @@ const getDaysInMonth = (date: Date): CalendarDayCell[] => {
         const tasksForDay = mockTasks.filter(
             (task) => task.deadline === dateKey,
         );
-        const dailyStat = mockDailyStatsByDate[dateKey];
+        const dailyStat = dailyStatsByDate[dateKey];
 
         return {
             key: dateKey,
@@ -78,6 +81,7 @@ const getDaysInMonth = (date: Date): CalendarDayCell[] => {
             isToday: cellDate.toDateString() === today.toDateString(),
             dateStatus: getDateStatus(cellDate, today),
             tasks: tasksForDay,
+            // 미래 날짜는 API가 actualMinutes: null을 내려줌 → 그리드 렌더링용으로는 0 처리
             actualMinutes: dailyStat?.actualMinutes ?? 0,
             recommendedMinutes: dailyStat?.recommendedMinutes ?? 0,
         };
@@ -96,14 +100,124 @@ export const CalendarPage = () => {
     );
     const [viewMode, setViewMode] = useState<CalendarViewMode>("default");
 
-    // 현재 화면에 보여줄 월(1일 기준). 스와이프/버튼으로 이동합니다.
     const [currentMonth, setCurrentMonth] = useState<Date>(
         () => new Date(today.getFullYear(), today.getMonth(), 1),
     );
 
+    // 월별 통계 (날짜별 actualMinutes/recommendedMinutes)
+    const [dailyStatsByDate, setDailyStatsByDate] = useState<
+        Record<string, DailyStat>
+    >({});
+
+    // 선택한 날짜의 피드백(완료된 과업 목록 + 소요/권장 시간)
+    const [dailyFeedbackResult, setDailyFeedbackResult] = useState<{
+        date: string;
+        data: DailyFeedbackData;
+    } | null>(null);
+    // currentMonth가 바뀔 때마다 월별 통계 재조회
+    useEffect(() => {
+        let isCancelled = false;
+
+        const loadMonthlyStats = async () => {
+            try {
+                const result = await fetchMonthlyCalendarStats(
+                    currentMonth.getFullYear(),
+                    currentMonth.getMonth() + 1,
+                );
+
+                if (isCancelled) return;
+
+                //====테스트 코드=====
+                if (import.meta.env.DEV) {
+                    console.log(
+                        "[CalendarPage] monthly stats 전체 응답:",
+                        result,
+                    );
+
+                    const todayStat = result.dailyStats.find(
+                        (stat) => stat.date === defaultDateKey,
+                    );
+                    console.log(
+                        "[CalendarPage] 오늘(",
+                        defaultDateKey,
+                        ") actualMinutes:",
+                        todayStat?.actualMinutes,
+                        "/ recommendedMinutes:",
+                        todayStat?.recommendedMinutes,
+                    );
+                }
+                //====테스트 코드=====
+
+                const statsByDate = result.dailyStats.reduce<
+                    Record<string, DailyStat>
+                >((accumulator, stat) => {
+                    accumulator[stat.date] = stat;
+                    return accumulator;
+                }, {});
+
+                setDailyStatsByDate(statsByDate);
+            } catch {
+                if (!isCancelled) {
+                    setDailyStatsByDate({});
+                }
+            }
+        };
+
+        loadMonthlyStats();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [currentMonth]);
+
+    // selectedDate가 바뀔 때마다 일별 피드백 재조회
+    useEffect(() => {
+        if (!selectedDate) return;
+
+        let isCancelled = false;
+
+        const loadDailyFeedback = async () => {
+            try {
+                const result = await fetchDailyFeedback(selectedDate);
+
+                //======테스트용 코드======
+                if (import.meta.env.DEV) {
+                    console.log(
+                        "[CalendarPage] daily stats 응답:",
+                        selectedDate,
+                        result,
+                    );
+                }
+                ///======테스트용 코드======
+
+                if (!isCancelled) {
+                    setDailyFeedbackResult({
+                        date: selectedDate,
+                        data: result,
+                    });
+                }
+            } catch {
+                if (!isCancelled) {
+                    setDailyFeedbackResult(null);
+                }
+            }
+        };
+
+        loadDailyFeedback();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [selectedDate]);
+
+    const selectedDailyFeedback =
+        dailyFeedbackResult && dailyFeedbackResult.date === selectedDate
+            ? dailyFeedbackResult.data
+            : null;
+
     const monthDays = useMemo(
-        () => getDaysInMonth(currentMonth),
-        [currentMonth],
+        () => getDaysInMonth(currentMonth, dailyStatsByDate),
+        [currentMonth, dailyStatsByDate],
     );
 
     const selectedTasks = useMemo(() => {
@@ -114,17 +228,11 @@ export const CalendarPage = () => {
         return mockTasks.filter((task) => task.deadline === selectedDate);
     }, [selectedDate]);
 
-    const selectedDailyFeedback = useMemo(() => {
-        if (!selectedDate) return null;
-        return mockDailyFeedbackByDate[selectedDate] ?? null;
-    }, [selectedDate]);
-
-    // 날짜 뱃지 채움 비율 계산용 월별 요약 통계.
-    // viewMode와 무관하게 항상 조회해서 CalendarTaskSheet에 넘깁니다.
+    // CalendarTaskSheet에는 원본 dailyStat(actualMinutes가 null일 수 있음)을 그대로 전달
     const selectedDailyStat = useMemo(() => {
         if (!selectedDate) return null;
-        return mockDailyStatsByDate[selectedDate] ?? null;
-    }, [selectedDate]);
+        return dailyStatsByDate[selectedDate] ?? null;
+    }, [selectedDate, dailyStatsByDate]);
 
     const handleSelectDate = (dateKey: string) => {
         setSelectedDate(dateKey);
@@ -138,12 +246,9 @@ export const CalendarPage = () => {
         setCurrentMonth(
             (prev) => new Date(prev.getFullYear(), prev.getMonth() + offset, 1),
         );
-        // 이전/다음 달로 넘어가면 선택 상태를 비웁니다.
-        // (선택했던 날짜가 새 달엔 존재하지 않을 수 있어서요.)
         setSelectedDate(null);
     };
 
-    // ---- 스와이프 감지 (Pointer Events, 별도 라이브러리 없이) ----
     const touchStartX = useRef<number | null>(null);
     const touchStartY = useRef<number | null>(null);
 
@@ -163,8 +268,6 @@ export const CalendarPage = () => {
         touchStartX.current = null;
         touchStartY.current = null;
 
-        // 세로 스크롤/드래그와 헷갈리지 않도록, 가로 이동이 세로 이동보다
-        // 뚜렷하게 클 때만 스와이프로 인정합니다.
         if (
             Math.abs(deltaX) < SWIPE_THRESHOLD_PX ||
             Math.abs(deltaX) < Math.abs(deltaY)
@@ -173,9 +276,9 @@ export const CalendarPage = () => {
         }
 
         if (deltaX < 0) {
-            goToMonth(1); // 왼쪽으로 스와이프 → 다음 달
+            goToMonth(1);
         } else {
-            goToMonth(-1); // 오른쪽으로 스와이프 → 이전 달
+            goToMonth(-1);
         }
     };
 

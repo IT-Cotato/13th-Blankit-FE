@@ -29,27 +29,21 @@ export const CalendarStatsFillCell = ({
 }: CalendarStatsFillCellProps) => {
     const isToday = dateStatus === "today";
 
-    if (dateStatus !== "past") {
+    // 미래: 채움 배경 없음, 권장 시간만 텍스트로 표시
+    if (dateStatus === "future") {
         return (
             <CalendarDayCellShell isSelected={isSelected} onSelect={onSelect}>
-                <span
-                    className={`font-['Pretendard'] text-[14px] font-medium leading-[150%] tracking-[-0.21px] ${
-                        isToday ? "text-green-500" : "text-black-600"
-                    }`}
-                >
+                <span className="font-['Pretendard'] text-[14px] font-medium leading-[150%] tracking-[-0.21px] text-black-600">
                     {day}
                 </span>
-                <span
-                    className={`mt-0.5 font-['Pretendard'] text-[9px] font-medium leading-none ${
-                        isToday ? "text-green-500" : "text-black-600"
-                    }`}
-                >
+                <span className="mt-0.5 font-['Pretendard'] text-[9px] font-medium leading-none text-black-600">
                     {formatMinutesAsClock(recommendedMinutes)}
                 </span>
             </CalendarDayCellShell>
         );
     }
 
+    // 오늘 & 과거: 채움 배경 있음 (실제 수행 시간 / 권장 시간 비율)
     const filledLevel = computeFilledLevel(actualMinutes, recommendedMinutes);
     const isFullyAchieved = filledLevel >= TOTAL_CELLS;
 
@@ -83,6 +77,11 @@ export const CalendarStatsFillCell = ({
             >
                 {day}
             </span>
+            {isToday && (
+                <span className="mt-0.5 font-['Pretendard'] text-[9px] font-medium leading-none text-green-500">
+                    {formatMinutesAsClock(actualMinutes)}
+                </span>
+            )}
         </CalendarDayCellShell>
     );
 };

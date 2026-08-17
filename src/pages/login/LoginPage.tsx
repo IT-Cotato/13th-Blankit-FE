@@ -83,7 +83,7 @@ export const LoginPage = () => {
         return <Navigate to="/" replace />;
     }
     return (
-        <div className="flex h-dvh min-h-dvh flex-col items-center bg-black-900 mb-8">
+        <div className="flex h-dvh min-h-dvh flex-col items-center bg-black-900">
             <main className="flex w-full min-h-0 flex-1 flex-col items-center ">
                 <div className="flex min-h-0 w-full flex-1 items-center justify-center">
                     <img
@@ -96,7 +96,7 @@ export const LoginPage = () => {
                 {/* nav: 남는 공간의 나머지를 흡수, 버튼은 nav 하단 정렬 */}
                 <nav
                     aria-label="소셜 로그인"
-                    className="flex min-h-0 w-[163px] max-h-[220px] flex-1 flex-col items-center justify-content gap-5"
+                    className="flex min-h-0 w-[163px] max-h-[220px] flex-1 flex-col items-center justify-center gap-5 pb-8"
                 >
                     <SocialLoginButton
                         icon={
