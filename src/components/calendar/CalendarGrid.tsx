@@ -1,4 +1,4 @@
-import type { Task } from "@/types/task";
+import type { CalendarTaskDot } from "@/types/calendarMonthlyTasks";
 import { CalendarDayButton } from "@/components/calendar/CalendarDayButton";
 import { CalendarStatsFillCell } from "./CalendarStatsFillCell";
 
@@ -11,7 +11,7 @@ export interface CalendarDayCell {
     isCurrentMonth: boolean;
     isToday: boolean;
     dateStatus: CalendarDateStatus;
-    tasks: Task[];
+    tasks: CalendarTaskDot[];
     actualMinutes: number;
     recommendedMinutes: number;
 }

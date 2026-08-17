@@ -6,6 +6,7 @@ export interface CalendarTaskDot {
     categoryColor: string;
     categoryIconKey: string;
     status: TaskStatus;
+    estimatedTime: number;
 }
 
 export interface CalendarMonthlyTasksByDate {

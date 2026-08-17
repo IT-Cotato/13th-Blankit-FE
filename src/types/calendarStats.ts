@@ -19,6 +19,7 @@ export interface FeedbackTask {
     categoryIconKey: string;
     progressRate: number;
     isCompleted: boolean;
+    memo: string | null;
 }
 
 export interface DailyFeedbackData {

@@ -108,7 +108,7 @@ export const CalendarTaskSheet = ({
                                 <li key={task.taskId}>
                                     <TaskChip
                                         title={task.title}
-                                        memo={task.categoryName} // API 수정 후 memo 값으로 수정
+                                        memo={task.memo ?? ""}
                                         progressRate={task.progressRate}
                                         priority="MEDIUM"
                                         status={

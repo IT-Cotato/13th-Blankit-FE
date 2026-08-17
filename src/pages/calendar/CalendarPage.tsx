@@ -5,7 +5,9 @@ import {
     fetchMonthlyCalendarStats,
     fetchDailyFeedback,
 } from "@/api/calendar/stats";
+import { fetchMonthlyCalendarTasks } from "@/api/calendar/dots";
 import type { DailyStat, DailyFeedbackData } from "@/types/calendarStats";
+import type { CalendarTaskDot } from "@/types/calendarMonthlyTasks";
 
 import {
     CalendarGrid,
@@ -52,6 +54,7 @@ const getDateStatus = (cellDate: Date, todayDate: Date): CalendarDateStatus => {
 const getDaysInMonth = (
     date: Date,
     dailyStatsByDate: Record<string, DailyStat>,
+    monthlyTasksByDate: Record<string, CalendarTaskDot[]>,
 ): CalendarDayCell[] => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -69,9 +72,6 @@ const getDaysInMonth = (
         const mm = String(cellDate.getMonth() + 1).padStart(2, "0");
         const dd = String(cellDate.getDate()).padStart(2, "0");
         const dateKey = `${yyyy}-${mm}-${dd}`;
-        const tasksForDay = mockTasks.filter(
-            (task) => task.deadline === dateKey,
-        );
         const dailyStat = dailyStatsByDate[dateKey];
 
         return {
@@ -80,7 +80,8 @@ const getDaysInMonth = (
             isCurrentMonth: cellDate.getMonth() === month,
             isToday: cellDate.toDateString() === today.toDateString(),
             dateStatus: getDateStatus(cellDate, today),
-            tasks: tasksForDay,
+            // 그리드 점(●) 렌더링 전용 데이터 — GET /api/tasks/calendar 결과
+            tasks: monthlyTasksByDate[dateKey] ?? [],
             // 미래 날짜는 API가 actualMinutes: null을 내려줌 → 그리드 렌더링용으로는 0 처리
             actualMinutes: dailyStat?.actualMinutes ?? 0,
             recommendedMinutes: dailyStat?.recommendedMinutes ?? 0,
@@ -109,11 +110,17 @@ export const CalendarPage = () => {
         Record<string, DailyStat>
     >({});
 
+    // 월별 과업 (날짜별 그리드 점(●) 렌더링용, GET /api/tasks/calendar)
+    const [monthlyTasksByDate, setMonthlyTasksByDate] = useState<
+        Record<string, CalendarTaskDot[]>
+    >({});
+
     // 선택한 날짜의 피드백(완료된 과업 목록 + 소요/권장 시간)
     const [dailyFeedbackResult, setDailyFeedbackResult] = useState<{
         date: string;
         data: DailyFeedbackData;
     } | null>(null);
+
     // currentMonth가 바뀔 때마다 월별 통계 재조회
     useEffect(() => {
         let isCancelled = false;
@@ -126,27 +133,6 @@ export const CalendarPage = () => {
                 );
 
                 if (isCancelled) return;
-
-                //====테스트 코드=====
-                if (import.meta.env.DEV) {
-                    console.log(
-                        "[CalendarPage] monthly stats 전체 응답:",
-                        result,
-                    );
-
-                    const todayStat = result.dailyStats.find(
-                        (stat) => stat.date === defaultDateKey,
-                    );
-                    console.log(
-                        "[CalendarPage] 오늘(",
-                        defaultDateKey,
-                        ") actualMinutes:",
-                        todayStat?.actualMinutes,
-                        "/ recommendedMinutes:",
-                        todayStat?.recommendedMinutes,
-                    );
-                }
-                //====테스트 코드=====
 
                 const statsByDate = result.dailyStats.reduce<
                     Record<string, DailyStat>
@@ -170,6 +156,41 @@ export const CalendarPage = () => {
         };
     }, [currentMonth]);
 
+    // currentMonth가 바뀔 때마다 월별 과업(그리드 점 렌더링용) 재조회
+    useEffect(() => {
+        let isCancelled = false;
+
+        const loadMonthlyTasks = async () => {
+            try {
+                const result = await fetchMonthlyCalendarTasks(
+                    currentMonth.getFullYear(),
+                    currentMonth.getMonth() + 1,
+                );
+
+                if (isCancelled) return;
+
+                const tasksByDate = result.reduce<
+                    Record<string, CalendarTaskDot[]>
+                >((accumulator, monthlyTasks) => {
+                    accumulator[monthlyTasks.date] = monthlyTasks.tasks;
+                    return accumulator;
+                }, {});
+
+                setMonthlyTasksByDate(tasksByDate);
+            } catch {
+                if (!isCancelled) {
+                    setMonthlyTasksByDate({});
+                }
+            }
+        };
+
+        loadMonthlyTasks();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [currentMonth]);
+
     // selectedDate가 바뀔 때마다 일별 피드백 재조회
     useEffect(() => {
         if (!selectedDate) return;
@@ -179,16 +200,6 @@ export const CalendarPage = () => {
         const loadDailyFeedback = async () => {
             try {
                 const result = await fetchDailyFeedback(selectedDate);
-
-                //======테스트용 코드======
-                if (import.meta.env.DEV) {
-                    console.log(
-                        "[CalendarPage] daily stats 응답:",
-                        selectedDate,
-                        result,
-                    );
-                }
-                ///======테스트용 코드======
 
                 if (!isCancelled) {
                     setDailyFeedbackResult({
@@ -216,10 +227,12 @@ export const CalendarPage = () => {
             : null;
 
     const monthDays = useMemo(
-        () => getDaysInMonth(currentMonth, dailyStatsByDate),
-        [currentMonth, dailyStatsByDate],
+        () =>
+            getDaysInMonth(currentMonth, dailyStatsByDate, monthlyTasksByDate),
+        [currentMonth, dailyStatsByDate, monthlyTasksByDate],
     );
 
+    // 바텀시트 상세 목록(default 모드)은 별도 상세 API 전까지 mock 유지
     const selectedTasks = useMemo(() => {
         if (!selectedDate) {
             return [];

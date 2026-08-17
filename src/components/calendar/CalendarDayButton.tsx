@@ -31,7 +31,7 @@ export const CalendarDayButton = ({
                         key={`${day.key}-${task.taskId}`}
                         className="h-1.5 w-1.5 rounded-full"
                         style={{
-                            backgroundColor: task.category.color,
+                            backgroundColor: task.categoryColor,
                         }}
                     />
                 ))}
