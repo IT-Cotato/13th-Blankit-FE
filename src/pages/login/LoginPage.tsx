@@ -82,21 +82,21 @@ export const LoginPage = () => {
     if (isAuthenticated) {
         return <Navigate to="/" replace />;
     }
-
     return (
-        <div className="flex flex-1 justify-center min-h-screen flex-col items-center bg-black-900 pb-[31.875px] pt-[57.84px]">
-            <main className="flex flex-1 justify-center max-h-150 flex-col">
-                <div className="flex flex-col items-center mb-[200px]">
+        <div className="flex h-dvh min-h-dvh flex-col items-center bg-black-900 mb-8">
+            <main className="flex w-full min-h-0 flex-1 flex-col items-center ">
+                <div className="flex min-h-0 w-full flex-1 items-center justify-center">
                     <img
                         src={logoImage}
                         alt="Blankit 로고"
-                        className="h-[81.85px] w-[81.66px]"
+                        className="h-[81.85px] w-[81.66px] shrink-0"
                     />
                 </div>
 
+                {/* nav: 남는 공간의 나머지를 흡수, 버튼은 nav 하단 정렬 */}
                 <nav
                     aria-label="소셜 로그인"
-                    className="flex w-[163px] flex-col items-start gap-5 pb-10"
+                    className="flex min-h-0 w-[163px] max-h-[220px] flex-1 flex-col items-center justify-content gap-5"
                 >
                     <SocialLoginButton
                         icon={
@@ -107,7 +107,6 @@ export const LoginPage = () => {
                         textColor="var(--color-black-850)"
                         onClick={handleGoogleLogin}
                     />
-
                     <SocialLoginButton
                         icon={
                             <img src={kakaoIcon} alt="" className="h-5 w-5" />

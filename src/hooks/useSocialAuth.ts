@@ -22,13 +22,6 @@ export const useSocialAuth = () => {
 
             setAuth(loginData);
 
-            // ========== TEST CODE START ==========
-            // 로그인 성공 시 사용자명 / 소셜 provider / 이메일을 알림창으로 확인
-            alert(
-                `[로그인 성공]\n닉네임: ${loginData.user.nickname}\n소셜: ${loginData.user.socialProvider}\n이메일: ${loginData.user.email}`,
-            );
-            // ========== TEST CODE END ==========
-
             navigate("/");
             return;
         } catch (error) {
@@ -48,13 +41,6 @@ export const useSocialAuth = () => {
         });
 
         setAuth(signupData);
-
-        // ========== TEST CODE START ==========
-        // 회원가입(최초 로그인) 성공 시 사용자명 / 소셜 provider / 이메일을 알림창으로 확인
-        alert(
-            `[회원가입 성공]\n닉네임: ${signupData.user.nickname}\n소셜: ${signupData.user.socialProvider}\n이메일: ${signupData.user.email}`,
-        );
-        // ========== TEST CODE END ==========
 
         navigate("/");
     };
