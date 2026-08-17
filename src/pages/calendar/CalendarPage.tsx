@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { mockCalendarTasks as mockTasks } from "@/mocks/calendarTasks";
 import {
     fetchMonthlyCalendarStats,
     fetchDailyFeedback,
 } from "@/api/calendar/stats";
 import { fetchMonthlyCalendarTasks } from "@/api/calendar/dots";
+import { getTasks } from "@/api/tasks";
 import type { DailyStat, DailyFeedbackData } from "@/types/calendarStats";
 import type { CalendarTaskDot } from "@/types/calendarMonthlyTasks";
+import type { TaskListResponse } from "@/types/taskApi";
 
 import {
     CalendarGrid,
@@ -115,6 +116,11 @@ export const CalendarPage = () => {
         Record<string, CalendarTaskDot[]>
     >({});
 
+    // 선택한 날짜가 마감일인 과업 목록 (default 모드 바텀시트, GET /api/tasks?date=)
+    const [fetchedDateTasks, setFetchedDateTasks] = useState<
+        TaskListResponse[]
+    >([]);
+
     // 선택한 날짜의 피드백(완료된 과업 목록 + 소요/권장 시간)
     const [dailyFeedbackResult, setDailyFeedbackResult] = useState<{
         date: string;
@@ -191,6 +197,33 @@ export const CalendarPage = () => {
         };
     }, [currentMonth]);
 
+    // selectedDate가 바뀔 때마다 해당 날짜 마감 과업 목록 재조회 (바텀시트 default 모드)
+    useEffect(() => {
+        if (!selectedDate) return; // 동기 setState 제거 - 아래 파생값에서 처리
+
+        let isCancelled = false;
+
+        const loadSelectedDateTasks = async () => {
+            try {
+                const result = await getTasks({ date: selectedDate });
+
+                if (!isCancelled) {
+                    setFetchedDateTasks(result.content);
+                }
+            } catch {
+                if (!isCancelled) {
+                    setFetchedDateTasks([]);
+                }
+            }
+        };
+
+        loadSelectedDateTasks();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [selectedDate]);
+
     // selectedDate가 바뀔 때마다 일별 피드백 재조회
     useEffect(() => {
         if (!selectedDate) return;
@@ -226,20 +259,14 @@ export const CalendarPage = () => {
             ? dailyFeedbackResult.data
             : null;
 
+    // selectedDate가 없으면 빈 배열, 있으면 fetch된 값을 렌더링 시점에 파생
+    const selectedDateTasks = selectedDate ? fetchedDateTasks : [];
+
     const monthDays = useMemo(
         () =>
             getDaysInMonth(currentMonth, dailyStatsByDate, monthlyTasksByDate),
         [currentMonth, dailyStatsByDate, monthlyTasksByDate],
     );
-
-    // 바텀시트 상세 목록(default 모드)은 별도 상세 API 전까지 mock 유지
-    const selectedTasks = useMemo(() => {
-        if (!selectedDate) {
-            return [];
-        }
-
-        return mockTasks.filter((task) => task.deadline === selectedDate);
-    }, [selectedDate]);
 
     // CalendarTaskSheet에는 원본 dailyStat(actualMinutes가 null일 수 있음)을 그대로 전달
     const selectedDailyStat = useMemo(() => {
@@ -327,7 +354,7 @@ export const CalendarPage = () => {
 
             <CalendarTaskSheet
                 selectedDate={selectedDate}
-                tasks={selectedTasks}
+                tasks={selectedDateTasks}
                 viewMode={viewMode}
                 dailyFeedback={selectedDailyFeedback}
                 dailyStat={selectedDailyStat}
