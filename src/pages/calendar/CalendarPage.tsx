@@ -127,7 +127,6 @@ export const CalendarPage = () => {
         data: DailyFeedbackData;
     } | null>(null);
 
-    // currentMonth가 바뀔 때마다 월별 통계 재조회
     useEffect(() => {
         let isCancelled = false;
 
@@ -147,10 +146,12 @@ export const CalendarPage = () => {
                     return accumulator;
                 }, {});
 
-                setDailyStatsByDate(statsByDate);
+                // 기존에 로드해둔 다른 달 데이터는 유지하고, 이번 달 데이터만 추가/갱신
+                setDailyStatsByDate((prev) => ({ ...prev, ...statsByDate }));
             } catch {
+                // 실패 시에도 기존에 로드해둔 데이터는 지우지 않음
                 if (!isCancelled) {
-                    setDailyStatsByDate({});
+                    // 필요하다면 에러 상태만 별도로 관리하고, 여기서 굳이 초기화하지 않음
                 }
             }
         };
@@ -286,7 +287,6 @@ export const CalendarPage = () => {
         setCurrentMonth(
             (prev) => new Date(prev.getFullYear(), prev.getMonth() + offset, 1),
         );
-        setSelectedDate(null);
     };
 
     const touchStartX = useRef<number | null>(null);
