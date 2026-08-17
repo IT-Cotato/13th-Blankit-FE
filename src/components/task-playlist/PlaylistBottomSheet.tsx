@@ -15,12 +15,14 @@ interface PlaylistBottomSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onShowToast: (message: string) => void;
+  onBeforeCurrentTaskChange: () => Promise<boolean>;
 }
 
 export function PlaylistBottomSheet({
   open,
   onOpenChange,
   onShowToast,
+  onBeforeCurrentTaskChange,
 }: PlaylistBottomSheetProps) {
   const playlist = usePlaylistStore(
     (state) => state.playlist,
@@ -34,6 +36,8 @@ export function PlaylistBottomSheet({
   const [deletingSelectedTasks, setDeletingSelectedTasks] =
     useState(false);
   const [savingOrder, setSavingOrder] = useState(false);
+  const [switchingCurrentTask, setSwitchingCurrentTask] =
+    useState(false);
 
   const sheetDragStartYRef = useRef<number | null>(null);
   const ignoreNextClickRef = useRef(false);
@@ -63,7 +67,11 @@ export function PlaylistBottomSheet({
     deletingSelectedTasks,
     setDeletingSelectedTasks,
     onShowToast,
+    onBeforeCurrentTaskChange,
   });
+
+  const playlistInteractionInProgress =
+    playlistMutationInProgress || switchingCurrentTask;
 
   const {
     sensors,
@@ -89,14 +97,29 @@ export function PlaylistBottomSheet({
     resetSelection();
   };
 
-  const handleSelectTask = (taskId: string) => {
+  const handleSelectTask = async (taskId: string) => {
     const ignoredTaskClick = consumeIgnoredTaskClick();
 
     if (
-      playlistMutationInProgress ||
+      playlistInteractionInProgress ||
       ignoredTaskClick
     ) {
       return;
+    }
+
+    if (playlist[0]?.id !== taskId) {
+      setSwitchingCurrentTask(true);
+
+      try {
+        const paused =
+          await onBeforeCurrentTaskChange();
+
+        if (!paused) {
+          return;
+        }
+      } finally {
+        setSwitchingCurrentTask(false);
+      }
     }
 
     selectTask(taskId);
@@ -220,7 +243,7 @@ export function PlaylistBottomSheet({
                   <button
                     key={item.id}
                     type="button"
-                    disabled={playlistMutationInProgress}
+                    disabled={playlistInteractionInProgress}
                     aria-pressed={active}
                     onClick={() =>
                       handleFilterChange(item.id)
@@ -247,7 +270,7 @@ export function PlaylistBottomSheet({
               {validSelectedTaskIds.size > 0 ? (
                 <button
                   type="button"
-                  disabled={playlistMutationInProgress}
+                  disabled={playlistInteractionInProgress}
                   onClick={() =>
                     setShowDeleteSelectedDialog(true)
                   }
@@ -263,7 +286,7 @@ export function PlaylistBottomSheet({
                   onClick={() => selectAll(filteredTasks)}
                   disabled={
                     filteredTasks.length === 0 ||
-                    playlistMutationInProgress
+                    playlistInteractionInProgress
                   }
                   className="rounded-[6px] bg-black-800 px-2.5 py-1.5 text-[14px] font-medium text-black-900 disabled:opacity-40"
                 >
@@ -301,11 +324,11 @@ export function PlaylistBottomSheet({
                             draggingDisabled
                           }
                           interactionDisabled={
-                            playlistMutationInProgress
+                            playlistInteractionInProgress
                           }
-                          onSelectTask={() =>
-                            handleSelectTask(task.id)
-                          }
+                          onSelectTask={() => {
+                            void handleSelectTask(task.id);
+                          }}
                           onToggle={() =>
                             toggleTask(task.id)
                           }

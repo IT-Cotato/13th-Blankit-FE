@@ -212,6 +212,31 @@ export function TaskPlaylistPage() {
     }
   };
 
+  const pauseCurrentSessionBeforePlaylistChange = async () => {
+    if (!isPlaying) {
+      return true;
+    }
+
+    if (
+      !session ||
+      isLoadingSession ||
+      isUpdatingSession
+    ) {
+      return false;
+    }
+
+    try {
+      return await updateTimerWithSession(
+        "PAUSED",
+        currentTaskElapsedSeconds,
+        changeSessionStatus,
+        toggleTimer,
+      );
+    } catch {
+      return false;
+    }
+  };
+
   if (!task) {
     return <EmptyPlaylistPlayer />;
   }
@@ -398,6 +423,9 @@ export function TaskPlaylistPage() {
         open={isBottomSheetOpen}
         onOpenChange={setIsBottomSheetOpen}
         onShowToast={showFeedbackToast}
+        onBeforeCurrentTaskChange={
+          pauseCurrentSessionBeforePlaylistChange
+        }
       />
 
       <TaskFeedbackSheet

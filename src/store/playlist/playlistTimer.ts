@@ -34,13 +34,17 @@ export const createPlaylistTimer: PlaylistStoreCreator<
       ? Math.max(0, Math.floor(elapsedSeconds))
       : 0;
 
-    set({
+    set((state) => ({
       elapsedSeconds: safeElapsedSeconds,
+      accumulatedElapsedSeconds:
+        state.accumulatedElapsedSeconds === 0
+          ? safeElapsedSeconds
+          : state.accumulatedElapsedSeconds,
       startedAt: isPlaying ? now : null,
       isPlaying,
       hasStarted:
         isPlaying || safeElapsedSeconds > 0,
-    });
+    }));
   },
 
   playCurrentTask: (now = Date.now()) => {
@@ -67,6 +71,13 @@ export const createPlaylistTimer: PlaylistStoreCreator<
       return;
     }
 
+    const runningSeconds = getElapsedSeconds(
+      0,
+      state.startedAt,
+      true,
+      now,
+    );
+
     set({
       elapsedSeconds: getElapsedSeconds(
         state.elapsedSeconds,
@@ -74,6 +85,8 @@ export const createPlaylistTimer: PlaylistStoreCreator<
         true,
         now,
       ),
+      accumulatedElapsedSeconds:
+        state.accumulatedElapsedSeconds + runningSeconds,
       startedAt: null,
       isPlaying: false,
     });

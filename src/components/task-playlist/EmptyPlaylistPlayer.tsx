@@ -80,6 +80,9 @@ export function EmptyPlaylistPlayer() {
         open={isBottomSheetOpen}
         onOpenChange={setIsBottomSheetOpen}
         onShowToast={() => undefined}
+        onBeforeCurrentTaskChange={() =>
+          Promise.resolve(true)
+        }
       />
     </div>
   );

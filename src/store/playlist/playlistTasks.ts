@@ -65,9 +65,9 @@ export const createPlaylistTasks: PlaylistStoreCreator<
   completeCurrentTask: (now = Date.now()) => {
     set((state) => {
       const playlist = state.playlist.slice(1);
-      const completedTaskElapsedSeconds =
+      const runningSeconds =
         getElapsedSeconds(
-          state.elapsedSeconds,
+          0,
           state.startedAt,
           state.isPlaying,
           now,
@@ -78,7 +78,7 @@ export const createPlaylistTasks: PlaylistStoreCreator<
         accumulatedElapsedSeconds:
           playlist.length > 0
             ? state.accumulatedElapsedSeconds +
-              completedTaskElapsedSeconds
+              runningSeconds
             : 0,
         ...EMPTY_CURRENT_TASK_TIMER_STATE,
       };
