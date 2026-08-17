@@ -64,12 +64,12 @@ export const CalendarStatsFillCell = ({
         >
             <span
                 className={`font-['Pretendard'] text-[14px] font-medium leading-[150%] tracking-[-0.21px] ${
-                    isToday
-                        ? "text-green-500"
-                        : isFullyAchieved && isSelected
-                          ? "text-white"
-                          : isFullyAchieved
-                            ? "text-black-900"
+                    isFullyAchieved && isSelected
+                        ? "text-white"
+                        : isFullyAchieved
+                          ? "text-black-900"
+                          : isToday
+                            ? "text-green-500"
                             : isSelected
                               ? "text-white"
                               : "text-black-100"
@@ -77,7 +77,7 @@ export const CalendarStatsFillCell = ({
             >
                 {day}
             </span>
-            {isToday && (
+            {isToday && !isFullyAchieved && (
                 <span className="mt-0.5 font-['Pretendard'] text-[9px] font-medium leading-none text-green-500">
                     {formatMinutesAsClock(actualMinutes)}
                 </span>
