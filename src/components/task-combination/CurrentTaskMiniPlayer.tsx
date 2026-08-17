@@ -23,11 +23,13 @@ import { TaskTimerToggleIcon } from "./TaskTimerToggleIcon";
 interface CurrentTaskMiniPlayerProps {
   task: PlaylistTask;
   onShowToast: (message: string) => void;
+  dailyRecommendationRefreshKey: number;
 }
 
 export function CurrentTaskMiniPlayer({
   task,
   onShowToast,
+  dailyRecommendationRefreshKey,
 }: CurrentTaskMiniPlayerProps) {
   const navigate = useNavigate();
   const hasStarted = usePlaylistStore(
@@ -47,7 +49,9 @@ export function CurrentTaskMiniPlayer({
   const {
     recommendedMinutes,
     recommendationTimeError,
-  } = useTodayRecommendedMinutes();
+  } = useTodayRecommendedMinutes(
+    dailyRecommendationRefreshKey,
+  );
   const {
     session,
     isLoadingSession,

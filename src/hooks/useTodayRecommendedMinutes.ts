@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { getTodayRecommendation } from "@/api/recommendations";
 
-export function useTodayRecommendedMinutes() {
+export function useTodayRecommendedMinutes(refreshKey = 0) {
   const [recommendedMinutes, setRecommendedMinutes] =
     useState<number | null>(null);
   const [
@@ -55,7 +55,7 @@ export function useTodayRecommendedMinutes() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshKey]);
 
   return {
     recommendedMinutes,

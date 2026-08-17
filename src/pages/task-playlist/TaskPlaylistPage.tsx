@@ -33,7 +33,13 @@ import { getTaskPlayerControls } from "@/utils/taskPlayerControls";
 
 import type { TaskFeedbackResponse } from "@/types/taskFeedbackApi";
 
-export function TaskPlaylistPage() {
+interface TaskPlaylistPageProps {
+  dailyRecommendationRefreshKey: number;
+}
+
+export function TaskPlaylistPage({
+  dailyRecommendationRefreshKey,
+}: TaskPlaylistPageProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -111,7 +117,9 @@ export function TaskPlaylistPage() {
     recommendedMinutes,
     isLoadingRecommendedMinutes,
     recommendationTimeError,
-  } = useTodayRecommendedMinutes();
+  } = useTodayRecommendedMinutes(
+    dailyRecommendationRefreshKey,
+  );
 
   const hasPlaylistStarted =
     hasStarted || displayedPlaylistElapsedSeconds > 0;
