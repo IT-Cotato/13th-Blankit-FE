@@ -128,14 +128,9 @@ export function TimeTableTimeWheel({
   initialEntry,
 }: TimeTableTimeWheelProps) {
   const startHour = useTimeTableStore((state) => state.startHour);
-  const endHour = useTimeTableStore((state) => state.endHour);
-  const maxSelectableMinutes = Math.min(
-    endHour * 60,
-    LAST_SELECTABLE_MINUTES,
-  );
-  const lastPickerHour = Math.min(LAST_PICKER_HOUR, endHour);
+  const maxSelectableMinutes = LAST_SELECTABLE_MINUTES;
   const hours = Array.from(
-    { length: Math.max(1, lastPickerHour - startHour + 1) },
+    { length: Math.max(1, LAST_PICKER_HOUR - startHour + 1) },
     (_, index) => index + startHour,
   ).filter((hour) => hour <= LAST_PICKER_HOUR);
   const initialStartMinutes = Math.min(

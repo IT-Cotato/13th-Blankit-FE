@@ -8,21 +8,24 @@ import {
   updateTimetableSettings,
 } from "@/api/mypage/timetable";
 import { MyPageDetailTopBar } from "@/components/mypage/MyPageDetailTopBar";
-import { EVERYTIME_TIMETABLE_COLORS } from "@/constants/timetable";
+import { TIMETABLE_COLORS } from "@/constants/timetable";
 import { useTimeTableStore } from "@/store/useTimeTableStore";
 import type { ApiEnvelope } from "@/types/auth";
 import { mapTimetableResponse } from "@/utils/timetableApiMapper";
 
 const EVERYTIME_START_HOUR = 8;
-const EVERYTIME_END_HOUR = 24;
+
+function parseMinutes(time: string): number {
+  const [hour = 0, minute = 0] = time.split(":").map(Number);
+  return hour * 60 + minute;
+}
 
 export function EverytimeTimeTableLink() {
   const navigate = useNavigate();
   const [sharedUrl, setSharedUrl] = useState("");
   const [isImporting, setIsImporting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const applyTimeRange = useTimeTableStore((state) => state.applyTimeRange);
-  const setEntries = useTimeTableStore((state) => state.setEntries);
+  const replaceTimetable = useTimeTableStore((state) => state.replaceTimetable);
   const hasSharedUrl = sharedUrl.trim().length > 0;
 
   const handleImport = async () => {
@@ -39,11 +42,6 @@ export function EverytimeTimeTableLink() {
         return;
       }
 
-      await updateTimetableSettings({
-        startTime: "08:00:00",
-        endTime: "00:00:00",
-      });
-
       const colorBySubject = new Map<string, string>();
       const savedEntries = await createTimetableEntries(
         importedEntries.map((entry) => {
@@ -51,8 +49,8 @@ export function EverytimeTimeTableLink() {
           let subjectColor = colorBySubject.get(subjectKey);
 
           if (!subjectColor) {
-            subjectColor = EVERYTIME_TIMETABLE_COLORS[
-              colorBySubject.size % EVERYTIME_TIMETABLE_COLORS.length
+            subjectColor = TIMETABLE_COLORS[
+              colorBySubject.size % TIMETABLE_COLORS.length
             ];
             colorBySubject.set(subjectKey, subjectColor);
           }
@@ -73,11 +71,28 @@ export function EverytimeTimeTableLink() {
         return;
       }
 
-      applyTimeRange(EVERYTIME_START_HOUR, EVERYTIME_END_HOUR);
-      setEntries(
+      const latestEndMinutes = Math.max(
+        ...savedEntries.map((entry) => parseMinutes(entry.endTime)),
+      );
+      const everytimeEndHour = Math.min(
+        24,
+        Math.max(EVERYTIME_START_HOUR + 1, Math.ceil(latestEndMinutes / 60)),
+      );
+
+      await updateTimetableSettings({
+        startTime: "08:00:00",
+        endTime:
+          everytimeEndHour === 24
+            ? "00:00:00"
+            : `${String(everytimeEndHour).padStart(2, "0")}:00:00`,
+      });
+
+      replaceTimetable(
         savedEntries.map((entry) =>
           mapTimetableResponse(entry, EVERYTIME_START_HOUR),
         ),
+        EVERYTIME_START_HOUR,
+        everytimeEndHour,
       );
       navigate("/mypage/timetable", {
         replace: true,

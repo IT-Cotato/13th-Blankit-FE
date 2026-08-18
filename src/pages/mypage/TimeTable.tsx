@@ -12,8 +12,10 @@ import {
   deleteTimetableEntry,
   getTimetable,
   updateTimetableEntry,
+  updateTimetableSettings,
 } from "@/api/mypage/timetable";
 import {
+  formatTimetableSettingHour,
   mapTimetableRequest,
   mapTimetableResponse,
 } from "@/utils/timetableApiMapper";
@@ -52,6 +54,8 @@ export function TimeTable() {
   const location = useLocation();
   const entries = useTimeTableStore((state) => state.entries);
   const startHour = useTimeTableStore((state) => state.startHour);
+  const endHour = useTimeTableStore((state) => state.endHour);
+  const applyTimeRange = useTimeTableStore((state) => state.applyTimeRange);
   const removeSchedule = useTimeTableStore((state) => state.removeSchedule);
   const replaceSchedule = useTimeTableStore((state) => state.replaceSchedule);
   const setEntries = useTimeTableStore((state) => state.setEntries);
@@ -173,12 +177,45 @@ export function TimeTable() {
           onCancel={() => setIsDeleteModalOpen(false)}
           onConfirm={async () => {
             if (selectedScheduleId) {
+              const remainingEntries = entries.filter(
+                (entry) =>
+                  (entry.scheduleId ?? entry.id) !== selectedScheduleId,
+              );
+
               try {
                 await deleteTimetableEntry(Number(selectedScheduleId));
               } catch (error) {
                 console.error("시간표 삭제 API 호출에 실패했습니다.", error);
               }
               removeSchedule(selectedScheduleId);
+
+              if (remainingEntries.length > 0) {
+                const latestEndMinutes = Math.max(
+                  ...remainingEntries.map(
+                    (entry) =>
+                      startHour * 60 + (entry.endSlot + 1) * 5,
+                  ),
+                );
+                const nextEndHour = Math.min(
+                  24,
+                  Math.max(startHour + 1, Math.ceil(latestEndMinutes / 60)),
+                );
+
+                if (nextEndHour !== endHour) {
+                  try {
+                    await updateTimetableSettings({
+                      startTime: formatTimetableSettingHour(startHour),
+                      endTime: formatTimetableSettingHour(nextEndHour),
+                    });
+                  } catch (error) {
+                    console.error(
+                      "시간표 삭제 후 표시 범위를 변경하지 못했습니다.",
+                      error,
+                    );
+                  }
+                  applyTimeRange(startHour, nextEndHour);
+                }
+              }
             }
             setIsDeleteModalOpen(false);
             setSelectedEntry(null);

@@ -6,11 +6,3 @@ export const TIMETABLE_COLORS = [
   "#B3BBFA",
   "#ACB1B6",
 ] as const;
-
-export const EVERYTIME_TIMETABLE_COLORS = [
-  ...TIMETABLE_COLORS,
-  "#F2B3FA",
-  "#6FD4FF",
-  "#5BE4CB",
-  "#FBF965",
-] as const;
