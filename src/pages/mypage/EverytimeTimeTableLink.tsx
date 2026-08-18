@@ -5,19 +5,23 @@ import axios from "axios";
 import {
   createTimetableEntries,
   importEverytimeTimetable,
+  updateTimetableSettings,
 } from "@/api/mypage/timetable";
 import { MyPageDetailTopBar } from "@/components/mypage/MyPageDetailTopBar";
-import { TIMETABLE_COLORS } from "@/constants/timetable";
+import { EVERYTIME_TIMETABLE_COLORS } from "@/constants/timetable";
 import { useTimeTableStore } from "@/store/useTimeTableStore";
 import type { ApiEnvelope } from "@/types/auth";
 import { mapTimetableResponse } from "@/utils/timetableApiMapper";
+
+const EVERYTIME_START_HOUR = 8;
+const EVERYTIME_END_HOUR = 24;
 
 export function EverytimeTimeTableLink() {
   const navigate = useNavigate();
   const [sharedUrl, setSharedUrl] = useState("");
   const [isImporting, setIsImporting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const startHour = useTimeTableStore((state) => state.startHour);
+  const applyTimeRange = useTimeTableStore((state) => state.applyTimeRange);
   const setEntries = useTimeTableStore((state) => state.setEntries);
   const hasSharedUrl = sharedUrl.trim().length > 0;
 
@@ -35,6 +39,11 @@ export function EverytimeTimeTableLink() {
         return;
       }
 
+      await updateTimetableSettings({
+        startTime: "08:00:00",
+        endTime: "00:00:00",
+      });
+
       const colorBySubject = new Map<string, string>();
       const savedEntries = await createTimetableEntries(
         importedEntries.map((entry) => {
@@ -42,8 +51,8 @@ export function EverytimeTimeTableLink() {
           let subjectColor = colorBySubject.get(subjectKey);
 
           if (!subjectColor) {
-            subjectColor = TIMETABLE_COLORS[
-              colorBySubject.size % TIMETABLE_COLORS.length
+            subjectColor = EVERYTIME_TIMETABLE_COLORS[
+              colorBySubject.size % EVERYTIME_TIMETABLE_COLORS.length
             ];
             colorBySubject.set(subjectKey, subjectColor);
           }
@@ -64,8 +73,11 @@ export function EverytimeTimeTableLink() {
         return;
       }
 
+      applyTimeRange(EVERYTIME_START_HOUR, EVERYTIME_END_HOUR);
       setEntries(
-        savedEntries.map((entry) => mapTimetableResponse(entry, startHour)),
+        savedEntries.map((entry) =>
+          mapTimetableResponse(entry, EVERYTIME_START_HOUR),
+        ),
       );
       navigate("/mypage/timetable", {
         replace: true,

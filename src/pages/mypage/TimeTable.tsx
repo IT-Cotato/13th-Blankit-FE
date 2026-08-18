@@ -36,9 +36,7 @@ function ActionIcon({ src }: ActionIconProps) {
 function normalizeSubjectTitle(title?: string): string {
   return (title ?? "")
     .normalize("NFKC")
-    .replace(/[[（][^\])）]*[\])）]/g, "")
-    .replace(/[-_·ㆍ]\s*\d+\s*분반$/u, "")
-    .replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+    .trim()
     .toLocaleLowerCase("ko-KR");
 }
 
@@ -46,13 +44,7 @@ function isSameSubject(first: TimeTableEntry, second: TimeTableEntry): boolean {
   const firstTitle = normalizeSubjectTitle(first.title);
   const secondTitle = normalizeSubjectTitle(second.title);
 
-  return (
-    (firstTitle.length > 0 &&
-      (firstTitle === secondTitle ||
-        firstTitle.includes(secondTitle) ||
-        secondTitle.includes(firstTitle))) ||
-    (Boolean(first.color) && first.color === second.color)
-  );
+  return firstTitle.length > 0 && firstTitle === secondTitle;
 }
 
 export function TimeTable() {
