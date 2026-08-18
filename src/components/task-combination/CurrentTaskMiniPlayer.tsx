@@ -16,6 +16,7 @@ import { formatTimer, getTaskProgress } from "@/utils/taskTimer";
 import type { PlaylistTask } from "@/types/taskCombination";
 
 import { TaskTimerToggleIcon } from "./TaskTimerToggleIcon";
+import { FixedBottomLayout } from "../layout/MobileViewPort/FixedBottomLayout";
 
 interface CurrentTaskMiniPlayerProps {
     task: PlaylistTask;
@@ -102,72 +103,79 @@ export function CurrentTaskMiniPlayer({
     };
 
     return (
-        <section
-            aria-label="현재 과업"
-            className="fixed sm:max-w-[375px] mx-auto bottom-[90px] left-0 right-0 z-40 h-[80px] border-t border-black-800 bg-black-850"
+        <FixedBottomLayout
+            zIndexClassName="z-40"
+            bottomClassName="bottom-[90px]"
         >
-            <span
-                aria-hidden="true"
-                className="absolute left-0 right-0 top-0 h-1 bg-black-750"
-            />
-
-            <span
-                aria-hidden="true"
-                className="pointer-events-none absolute bottom-0 left-0 top-0 transition-[width] duration-300"
-                style={{ width: `${progress}%` }}
+            <section
+                aria-label="현재 과업"
+                className="relative left-0 right-0 z-40 h-[80px] border-t border-black-800 bg-black-850"
             >
-                <span className="block h-1 bg-green-500" />
                 <span
-                    className="absolute bottom-0 left-0 right-0 top-1"
-                    style={{
-                        background:
-                            "linear-gradient(180deg, rgba(50, 222, 86, 0.2) 0%, rgba(50, 222, 86, 0) 37.79%)",
-                    }}
+                    aria-hidden="true"
+                    className="absolute left-0 right-0 top-0 h-1 bg-black-750"
                 />
-            </span>
 
-            <div className="flex h-full items-center px-7 pt-1">
-                <button
-                    type="button"
-                    onClick={handleOpenPlayer}
-                    className="flex min-w-0 flex-1 items-center gap-4 text-left"
-                    aria-label={`${task.title} 플레이 화면으로 이동`}
+                <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute bottom-0 left-0 top-0 transition-[width] duration-300"
+                    style={{ width: `${progress}%` }}
                 >
-                    {task.categoryIcon ? (
-                        <CategoryIconBadge
-                            icon={task.categoryIcon}
-                            color={task.category.color}
-                            size={40}
-                        />
-                    ) : (
-                        <span
-                            aria-hidden="true"
-                            className="h-12 w-12 shrink-0 rounded-[4px] bg-black-300"
-                        />
-                    )}
+                    <span className="block h-1 bg-green-500" />
+                    <span
+                        className="absolute bottom-0 left-0 right-0 top-1"
+                        style={{
+                            background:
+                                "linear-gradient(180deg, rgba(50, 222, 86, 0.2) 0%, rgba(50, 222, 86, 0) 37.79%)",
+                        }}
+                    />
+                </span>
 
-                    <span className="min-w-0 flex-1">
-                        <span className="block text-[15px] font-semibold text-black-300">
-                            {formatTimer(displayedPlaylistElapsedSeconds)}
-                        </span>
-                        <span className="mt-1 block truncate text-[12px] font-medium text-black-600">
-                            {task.title}
-                        </span>
-                    </span>
-                </button>
+                <div className="flex h-full items-center px-7 pt-1">
+                    <button
+                        type="button"
+                        onClick={handleOpenPlayer}
+                        className="flex min-w-0 flex-1 items-center gap-4 text-left"
+                        aria-label={`${task.title} 플레이 화면으로 이동`}
+                    >
+                        {task.categoryIcon ? (
+                            <CategoryIconBadge
+                                icon={task.categoryIcon}
+                                color={task.category.color}
+                                size={40}
+                            />
+                        ) : (
+                            <span
+                                aria-hidden="true"
+                                className="h-12 w-12 shrink-0 rounded-[4px] bg-black-300"
+                            />
+                        )}
 
-                <button
-                    type="button"
-                    disabled={!session || isLoadingSession || isUpdatingSession}
-                    onClick={() => {
-                        void handleToggleTimer();
-                    }}
-                    aria-label={isPlaying ? "과업 일시정지" : "과업 재생"}
-                    className="ml-4 flex h-12 w-12 shrink-0 items-center justify-center"
-                >
-                    <TaskTimerToggleIcon isPlaying={isPlaying} />
-                </button>
-            </div>
-        </section>
+                        <span className="min-w-0 flex-1">
+                            <span className="block text-[15px] font-semibold text-black-300">
+                                {formatTimer(displayedPlaylistElapsedSeconds)}
+                            </span>
+                            <span className="mt-1 block truncate text-[12px] font-medium text-black-600">
+                                {task.title}
+                            </span>
+                        </span>
+                    </button>
+
+                    <button
+                        type="button"
+                        disabled={
+                            !session || isLoadingSession || isUpdatingSession
+                        }
+                        onClick={() => {
+                            void handleToggleTimer();
+                        }}
+                        aria-label={isPlaying ? "과업 일시정지" : "과업 재생"}
+                        className="ml-4 flex h-12 w-12 shrink-0 items-center justify-center"
+                    >
+                        <TaskTimerToggleIcon isPlaying={isPlaying} />
+                    </button>
+                </div>
+            </section>
+        </FixedBottomLayout>
     );
 }

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { FixedBottomLayout } from "@/components/layout/FixedBottomLayout";
+import { FixedBottomLayout } from "@/components/layout/MobileViewPort/FixedBottomLayout";
 
 interface BottomSheetContainerProps {
     visible: boolean;

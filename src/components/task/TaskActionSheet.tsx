@@ -1,6 +1,7 @@
 import addPlaylistIcon from "@/assets/icons/task-menu/add-playlist.svg";
 import deleteIcon from "@/assets/icons/task-menu/delete.svg";
 import editIcon from "@/assets/icons/task-menu/edit.svg";
+import { FixedBottomLayout } from "../layout/MobileViewPort/FixedBottomLayout";
 
 interface TaskActionSheetProps {
     open: boolean;
@@ -59,21 +60,24 @@ export function TaskActionSheet({
                 onClick={onClose}
                 className={`fixed inset-x-0 top-0 z-[51] cursor-default bg-transparent ${bottomClassName}`}
             />
-
-            <section
-                role="dialog"
-                aria-modal="false"
-                aria-label="과업 메뉴"
-                className={`fixed sm:max-w-[375px] mx-auto inset-x-0 z-[52] h-[90px] bg-green-500 px-6 ${bottomClassName}`}
+            <FixedBottomLayout
+                zIndexClassName="z-[52]"
+                bottomClassName={bottomClassName}
             >
-                <div className="flex h-full items-center gap-2.5">
-                    {actions.map((action) => (
-                        <button
-                            key={action.label}
-                            type="button"
-                            disabled={action.disabled}
-                            onClick={action.onClick}
-                            className="
+                <section
+                    role="dialog"
+                    aria-modal="false"
+                    aria-label="과업 메뉴"
+                    className={`w-full inset-x-0 h-[90px] bg-green-500 px-6 `}
+                >
+                    <div className="flex h-full items-center gap-2.5">
+                        {actions.map((action) => (
+                            <button
+                                key={action.label}
+                                type="button"
+                                disabled={action.disabled}
+                                onClick={action.onClick}
+                                className="
                 flex h-[67px] min-w-0 flex-1
                 items-center justify-center
                 rounded-[6px]
@@ -82,19 +86,20 @@ export function TaskActionSheet({
                 active:bg-green-600
                 disabled:opacity-50
               "
-                        >
-                            <div className="flex h-[47px] w-full flex-col items-center justify-center gap-[5px]">
-                                <img
-                                    src={action.icon}
-                                    alt=""
-                                    className="h-5 w-5"
-                                />
-                                <span>{action.label}</span>
-                            </div>
-                        </button>
-                    ))}
-                </div>
-            </section>
+                            >
+                                <div className="flex h-[47px] w-full flex-col items-center justify-center gap-[5px]">
+                                    <img
+                                        src={action.icon}
+                                        alt=""
+                                        className="h-5 w-5"
+                                    />
+                                    <span>{action.label}</span>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </section>
+            </FixedBottomLayout>
         </>
     );
 }

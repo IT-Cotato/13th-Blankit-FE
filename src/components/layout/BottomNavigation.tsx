@@ -7,6 +7,8 @@ import calendarGreenIcon from "@/assets/icons/bottom-nav/calendar-green.svg";
 import mypageBlackIcon from "@/assets/icons/bottom-nav/mypage-black.svg";
 import mypageGreenIcon from "@/assets/icons/bottom-nav/mypage-green.svg";
 
+import { FixedBottomLayout } from "@/components/layout/MobileViewPort/FixedBottomLayout";
+
 const bottomNavItems = [
     {
         label: "home",
@@ -40,8 +42,8 @@ export function BottomNavigation() {
     const { pathname } = useLocation();
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 h-[90px] bg-black-900 pb-[env(safe-area-inset-bottom)]">
-            <div className="flex h-full w-full sm:max-w-[375px] mx-auto">
+        <FixedBottomLayout zIndexClassName="z-50">
+            <nav className="flex h-[90px] w-full bg-black-900 pb-[env(safe-area-inset-bottom)]">
                 {bottomNavItems.map((item) => {
                     const isItemActive = item.activePaths.some(
                         (path) =>
@@ -64,7 +66,7 @@ export function BottomNavigation() {
                         </NavLink>
                     );
                 })}
-            </div>
-        </nav>
+            </nav>
+        </FixedBottomLayout>
     );
 }

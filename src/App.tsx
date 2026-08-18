@@ -55,6 +55,8 @@ const PAGES_WITHOUT_BOTTOM_NAVIGATION = [
     "/login",
 ];
 
+const BASE_MAIN_CLASSNAME = "sm:max-w-app mx-auto min-h-dvh";
+
 function App() {
     const location = useLocation();
 
@@ -178,21 +180,19 @@ function App() {
         setIsAppReady(true);
     };
 
+    const mainClassName = hasCurrentTaskMiniPlayer
+        ? `${BASE_MAIN_CLASSNAME} pb-[calc(170px+env(safe-area-inset-bottom))]`
+        : hasBottomNavigation
+          ? `${BASE_MAIN_CLASSNAME} pb-[calc(90px+env(safe-area-inset-bottom))]`
+          : BASE_MAIN_CLASSNAME;
+
     if (!isAppReady) {
         return <SplashScreen onFinish={handleSplashFinish} />;
     }
 
     return (
         <>
-            <main
-                className={
-                    hasCurrentTaskMiniPlayer
-                        ? "sm:max-w-[375px] mx-auto min-h-dvh pb-[calc(170px+env(safe-area-inset-bottom))]"
-                        : hasBottomNavigation
-                          ? "sm:max-w-[375px] mx-auto min-h-dvh pb-[calc(90px+env(safe-area-inset-bottom))]"
-                          : "sm:max-w-[375px] mx-auto min-h-dvh"
-                }
-            >
+            <main className={mainClassName}>
                 <Routes>
                     <Route
                         path="/"
