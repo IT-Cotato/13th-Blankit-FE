@@ -3,7 +3,10 @@ import { useState } from "react";
 import { addPlaylistItems } from "@/api/playlist";
 import { deleteTask } from "@/api/tasks";
 import { usePlaylistRefresh } from "@/hooks/usePlaylistRefresh";
-import { getTaskErrorMessage } from "@/utils/taskError";
+import {
+  getTaskErrorCode,
+  getTaskErrorMessage,
+} from "@/utils/taskError";
 
 interface UseTaskActionsOptions {
   selectedTaskId: number | null;
@@ -94,9 +97,29 @@ export function useTaskActions({
 
       setTaskPendingDelete(null);
       notifyTaskChanged();
+
+      try {
+        await refreshPlaylist();
+      } catch (refreshError) {
+        console.error(refreshError);
+        showToast(
+          "과업은 삭제되었지만 플레이리스트를 새로고침하지 못했습니다.",
+        );
+        return;
+      }
+
       showToast("삭제가 완료되었습니다.");
     } catch (error) {
       console.error(error);
+
+      if (getTaskErrorCode(error) === "TASK_SESSION_ACTIVE") {
+        setTaskPendingDelete(null);
+        showToast(
+          getTaskErrorMessage(error) ??
+            "재생 중인 과업은 삭제할 수 없습니다.",
+        );
+        return;
+      }
 
       showToast(
         getTaskErrorMessage(error) ??
