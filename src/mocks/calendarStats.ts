@@ -47,6 +47,7 @@ export const mockDailyFeedbacks: DailyFeedbackData[] = [
                 categoryIconKey: "work",
                 progressRate: 100,
                 isCompleted: true,
+                memo: "캘린더 그리드 컴포넌트 마무리",
             },
             {
                 taskId: 202,
@@ -56,6 +57,7 @@ export const mockDailyFeedbacks: DailyFeedbackData[] = [
                 categoryIconKey: "study",
                 progressRate: 60,
                 isCompleted: false,
+                memo: null,
             },
         ],
     },
@@ -73,6 +75,7 @@ export const mockDailyFeedbacks: DailyFeedbackData[] = [
                 categoryIconKey: "hobby",
                 progressRate: 100,
                 isCompleted: true,
+                memo: "발표 자료 최종본 공유 완료",
             },
             {
                 taskId: 204,
@@ -82,6 +85,7 @@ export const mockDailyFeedbacks: DailyFeedbackData[] = [
                 categoryIconKey: "work",
                 progressRate: 40,
                 isCompleted: false,
+                memo: "리다이렉트 URI 이슈 확인 중",
             },
             {
                 taskId: 205,
@@ -91,6 +95,7 @@ export const mockDailyFeedbacks: DailyFeedbackData[] = [
                 categoryIconKey: "note",
                 progressRate: 20,
                 isCompleted: false,
+                memo: null,
             },
         ],
     },
@@ -108,6 +113,7 @@ export const mockDailyFeedbacks: DailyFeedbackData[] = [
                 categoryIconKey: "work",
                 progressRate: 100,
                 isCompleted: true,
+                memo: "스테이징/프로덕션 분리 완료",
             },
             {
                 taskId: 207,
@@ -117,6 +123,7 @@ export const mockDailyFeedbacks: DailyFeedbackData[] = [
                 categoryIconKey: "work",
                 progressRate: 100,
                 isCompleted: true,
+                memo: null,
             },
         ],
     },
@@ -134,6 +141,7 @@ export const mockDailyFeedbacks: DailyFeedbackData[] = [
                 categoryIconKey: "goal",
                 progressRate: 100,
                 isCompleted: true,
+                memo: "전처리 스크립트 리팩터링 완료",
             },
             {
                 taskId: 209,
@@ -143,6 +151,7 @@ export const mockDailyFeedbacks: DailyFeedbackData[] = [
                 categoryIconKey: "checklist",
                 progressRate: 100,
                 isCompleted: true,
+                memo: null,
             },
             {
                 taskId: 210,
@@ -152,6 +161,7 @@ export const mockDailyFeedbacks: DailyFeedbackData[] = [
                 categoryIconKey: "hobby",
                 progressRate: 80,
                 isCompleted: false,
+                memo: "다음 회의에서 예산안 최종 확정 필요",
             },
         ],
     },
