@@ -13,7 +13,10 @@ import {
 import { requestFcmRegistration } from "@/firebase/messaging";
 import { useAuthStore } from "@/store/authStore";
 
-import { consumeInitialNotificationPermission } from "./notificationPermissionStorage";
+import {
+  clearInitialNotificationPermission,
+  hasInitialNotificationPermission,
+} from "./notificationPermissionStorage";
 
 const SUBSCRIPTION_ID_STORAGE_KEY =
   "blankit-push-subscription-id";
@@ -57,21 +60,24 @@ export function useInitialNotificationPermission({
     (state) => state.user?.userId ?? null,
   );
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(() => {
+    if (userId === null) {
+      return false;
+    }
+
+    return hasInitialNotificationPermission(userId);
+  });
+
   const [isSubmitting, setIsSubmitting] =
     useState(false);
 
   useEffect(() => {
-    if (userId === null) {
+    if (!open) {
       return;
     }
 
-    if (
-      consumeInitialNotificationPermission(userId)
-    ) {
-      setOpen(true);
-    }
-  }, [userId]);
+    clearInitialNotificationPermission();
+  }, [open]);
 
   const close = useCallback(() => {
     if (!isSubmitting) {

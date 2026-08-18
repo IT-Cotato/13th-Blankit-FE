@@ -17,24 +17,15 @@ export function markInitialNotificationPermission(
   }
 }
 
-export function consumeInitialNotificationPermission(
+export function hasInitialNotificationPermission(
   userId: number,
 ) {
   try {
-    const pendingUserId =
+    return (
       window.localStorage.getItem(
         INITIAL_NOTIFICATION_USER_ID_KEY,
-      );
-
-    if (pendingUserId !== String(userId)) {
-      return false;
-    }
-
-    window.localStorage.removeItem(
-      INITIAL_NOTIFICATION_USER_ID_KEY,
+      ) === String(userId)
     );
-
-    return true;
   } catch (error) {
     console.error(
       "최초 알림 권한 상태를 확인하지 못했습니다.",
@@ -42,5 +33,18 @@ export function consumeInitialNotificationPermission(
     );
 
     return false;
+  }
+}
+
+export function clearInitialNotificationPermission() {
+  try {
+    window.localStorage.removeItem(
+      INITIAL_NOTIFICATION_USER_ID_KEY,
+    );
+  } catch (error) {
+    console.error(
+      "최초 알림 권한 상태를 삭제하지 못했습니다.",
+      error,
+    );
   }
 }
