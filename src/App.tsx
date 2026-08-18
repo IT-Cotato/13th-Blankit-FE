@@ -63,6 +63,8 @@ function App() {
         (state) => state.user?.userId ?? null,
     );
 
+    const [toastBottom, setToastBottom] = useState<number | null>(null);
+
     const currentPlaylistTask = usePlaylistStore((state) => state.playlist[0]);
 
     const clearPlaylist = usePlaylistStore((state) => state.clearPlaylist);
@@ -239,7 +241,12 @@ function App() {
 
                     <Route
                         path="/login"
-                        element={<LoginPage onShowToast={showToast} />}
+                        element={
+                            <LoginPage
+                                onShowToast={showToast}
+                                onSetToastBottom={setToastBottom}
+                            />
+                        }
                     />
                 </Routes>
             </main>
@@ -286,7 +293,9 @@ function App() {
 
             <Toast
                 message={toastMessage}
+                variant={location.pathname === "/login" ? "login" : "default"}
                 aboveBottomNavigation={pageHasBottomNavigation}
+                bottom={toastBottom}
             />
         </>
     );

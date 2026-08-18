@@ -23,13 +23,38 @@ import {
 
 interface LoginPageProps {
     onShowToast: (message: string) => void;
+    onSetToastBottom: (bottom: number | null) => void;
 }
 
-export const LoginPage = ({ onShowToast }: LoginPageProps) => {
+export const LoginPage = ({
+    onShowToast,
+    onSetToastBottom,
+}: LoginPageProps) => {
+    const navRef = useRef<HTMLElement>(null);
+
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
     const { processSocialAuthResult } = useSocialAuth();
     const hasRunCallbackRef = useRef(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const updateToastPosition = () => {
+            if (!navRef.current) return;
+
+            const navTop = navRef.current.getBoundingClientRect().top;
+            const bottom = window.innerHeight - navTop + 20;
+
+            onSetToastBottom(bottom);
+        };
+
+        updateToastPosition();
+        window.addEventListener("resize", updateToastPosition);
+
+        return () => {
+            window.removeEventListener("resize", updateToastPosition);
+            onSetToastBottom(null);
+        };
+    }, [onSetToastBottom]);
 
     useEffect(() => {
         if (hasRunCallbackRef.current) return;
@@ -100,6 +125,7 @@ export const LoginPage = ({ onShowToast }: LoginPageProps) => {
 
                 {/* nav: 남는 공간의 나머지를 흡수, 버튼은 nav 하단 정렬 */}
                 <nav
+                    ref={navRef}
                     aria-label="소셜 로그인"
                     className="flex min-h-0 w-[163px] max-h-[220px] flex-1 flex-col items-center justify-center gap-5 pb-8"
                 >
