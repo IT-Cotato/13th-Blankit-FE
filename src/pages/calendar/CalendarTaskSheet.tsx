@@ -51,7 +51,7 @@ export const CalendarTaskSheet = ({
 
     return (
         <div
-            className="fixed inset-x-0 z-60 flex justify-center"
+            className="fixed sm:max-w-[375px] mx-auto inset-x-0 z-60 flex justify-center"
             style={{ bottom: navBarHeight }}
         >
             <div
