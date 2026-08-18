@@ -187,10 +187,10 @@ function App() {
             <main
                 className={
                     hasCurrentTaskMiniPlayer
-                        ? "min-h-dvh pb-[calc(170px+env(safe-area-inset-bottom))]"
+                        ? "sm:max-w-[375px] mx-auto min-h-dvh pb-[calc(170px+env(safe-area-inset-bottom))]"
                         : hasBottomNavigation
-                          ? "min-h-dvh pb-[calc(90px+env(safe-area-inset-bottom))]"
-                          : "min-h-dvh"
+                          ? "sm:max-w-[375px] mx-auto min-h-dvh pb-[calc(90px+env(safe-area-inset-bottom))]"
+                          : "sm:max-w-[375px] mx-auto min-h-dvh"
                 }
             >
                 <Routes>
