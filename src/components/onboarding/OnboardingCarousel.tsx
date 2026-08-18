@@ -3,7 +3,7 @@ import type { OnboardingCard } from "@/types/onboarding";
 
 import { OnboardingCarouselCard } from "./OnboardingCarouselCard";
 
-const CARD_WIDTH_PX = 355;
+const MAX_CARD_WIDTH_PX = 355;
 const SWIPE_THRESHOLD_PX = 50;
 
 const clampIndex = (index: number, maxIndex: number) => {
@@ -11,12 +11,14 @@ const clampIndex = (index: number, maxIndex: number) => {
 };
 
 interface OnboardingCarouselProps {
+    className?: string;
     cards: OnboardingCard[];
     currentIndex: number;
     onIndexChange: (index: number) => void;
 }
 
 export const OnboardingCarousel = ({
+    className,
     cards,
     currentIndex,
     onIndexChange,
@@ -26,6 +28,34 @@ export const OnboardingCarousel = ({
     const [dragOffsetPx, setDragOffsetPx] = useState(0);
     const [isMouseDragging, setIsMouseDragging] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+
+    // 뷰포트 실측 너비 (355px을 넘지 않는 선에서 화면에 맞춤)
+    const viewportRef = useRef<HTMLDivElement>(null);
+    const [cardWidthPx, setCardWidthPx] = useState(MAX_CARD_WIDTH_PX);
+
+    useEffect(() => {
+        const el = viewportRef.current?.parentElement; // 컨테이너(className 적용된 최상위) 기준으로 측정
+        if (!el) return;
+
+        const updateWidth = (containerWidth: number) => {
+            setCardWidthPx(Math.min(MAX_CARD_WIDTH_PX, containerWidth));
+        };
+
+        updateWidth(el.clientWidth);
+
+        const resizeObserver = new ResizeObserver((entries) => {
+            const entry = entries[0];
+            if (!entry) return;
+            const width = entry.contentRect.width;
+            updateWidth(width);
+        });
+
+        resizeObserver.observe(el);
+
+        return () => {
+            resizeObserver.disconnect();
+        };
+    }, []);
 
     const finishDrag = useCallback(
         (diffX: number) => {
@@ -97,31 +127,31 @@ export const OnboardingCarousel = ({
         };
     }, [isMouseDragging, finishDrag]);
 
-    const translateXPx = -(currentIndex * CARD_WIDTH_PX) + dragOffsetPx;
+    const translateXPx = -(currentIndex * cardWidthPx) + dragOffsetPx;
 
     return (
         <div
-            className="flex flex-col items-center"
+            className={`flex h-full min-h-0 w-full flex-col items-center overflow-hidden ${className ?? ""}`}
             role="group"
             aria-roledescription="carousel"
             aria-label="소개 슬라이드"
         >
             <div
-                className="select-none overflow-hidden"
-                style={{ width: `${CARD_WIDTH_PX}px` }}
+                ref={viewportRef}
+                className="min-h-0 w-full max-w-[355px] flex-1 select-none overflow-hidden"
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
                 onMouseDown={handleMouseDown}
             >
                 <div
-                    className={`flex ${
+                    className={`flex h-full min-h-0 ${
                         isDragging
                             ? ""
                             : "transition-transform duration-300 ease-in-out"
                     }`}
                     style={{
-                        width: `${CARD_WIDTH_PX * cards.length}px`,
+                        width: `${cardWidthPx * cards.length}px`,
                         transform: `translateX(${translateXPx}px)`,
                     }}
                 >
@@ -129,15 +159,14 @@ export const OnboardingCarousel = ({
                         <OnboardingCarouselCard
                             key={card.id}
                             card={card}
-                            cardWidthPx={CARD_WIDTH_PX}
+                            cardWidthPx={cardWidthPx}
                             isCurrent={index === currentIndex}
                         />
                     ))}
                 </div>
             </div>
-
             <div
-                className="mt-16 flex gap-2 pb-5"
+                className="flex gap-2 pb-5 pt-5"
                 role="tablist"
                 aria-label="온보딩 진행 상태"
             >
