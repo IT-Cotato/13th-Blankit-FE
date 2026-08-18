@@ -8,6 +8,7 @@ import {
     isRefreshTokenConflictError,
     isUserNotFoundError,
 } from "@/lib/isUserNotFoundError";
+import { markInitialNotificationPermission } from "@/components/notification/notificationPermissionStorage";
 import type { SocialAuthResult, SocialProvider } from "@/types/auth";
 
 export const useSocialAuth = () => {
@@ -59,6 +60,12 @@ export const useSocialAuth = () => {
         });
 
         setAuth(signupData);
+
+        // 회원가입 직후 최초 홈 진입에서만
+        // 알림 권한 안내 모달을 표시하기 위한 플래그
+        markInitialNotificationPermission(
+            signupData.user.userId,
+        );
 
         navigate("/");
     };
