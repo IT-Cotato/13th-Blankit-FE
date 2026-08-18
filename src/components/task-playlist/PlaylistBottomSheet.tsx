@@ -10,7 +10,10 @@ import { usePlaylistReorder } from "@/hooks/usePlaylistReorder";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
 
 import type { PlaylistFilter } from "@/components/task-playlist/playlistBottomSheetModes";
-import type { CombinationModeId } from "@/types/taskCombination";
+import type {
+  CombinationModeId,
+  TaskCombination,
+} from "@/types/taskCombination";
 
 interface PlaylistBottomSheetProps {
   open: boolean;
@@ -18,6 +21,7 @@ interface PlaylistBottomSheetProps {
   onShowToast: (message: string) => void;
   onBeforeCurrentTaskChange: () => Promise<boolean>;
   hiddenDuplicateModeIds?: CombinationModeId[];
+  modeCombinations?: TaskCombination[];
 }
 
 export function PlaylistBottomSheet({
@@ -26,6 +30,7 @@ export function PlaylistBottomSheet({
   onShowToast,
   onBeforeCurrentTaskChange,
   hiddenDuplicateModeIds = [],
+  modeCombinations = [],
 }: PlaylistBottomSheetProps) {
   const playlist = usePlaylistStore(
     (state) => state.playlist,
@@ -45,17 +50,38 @@ export function PlaylistBottomSheet({
   const sheetDragStartYRef = useRef<number | null>(null);
   const ignoreNextClickRef = useRef(false);
 
-  const filteredTasks = useMemo(
-    () =>
-      filter === "all"
-        ? playlist
-        : hiddenDuplicateModeIds.includes(filter)
-          ? []
-        : playlist.filter(
-            (task) => task.sourceMode === filter,
-          ),
-    [filter, hiddenDuplicateModeIds, playlist],
-  );
+  const filteredTasks = useMemo(() => {
+    if (filter === "all") {
+      return playlist;
+    }
+
+    if (hiddenDuplicateModeIds.includes(filter)) {
+      return [];
+    }
+
+    const selectedMode = modeCombinations.find(
+      (combination) => combination.id === filter,
+    );
+
+    if (!selectedMode) {
+      return [];
+    }
+
+    const modeTaskIds = new Set(
+      selectedMode.tasks.map((task) => task.taskId),
+    );
+
+    return playlist.filter(
+      (task) =>
+        task.taskId !== undefined &&
+        modeTaskIds.has(task.taskId),
+    );
+  }, [
+    filter,
+    hiddenDuplicateModeIds,
+    modeCombinations,
+    playlist,
+  ]);
 
   const {
     validSelectedTaskIds,

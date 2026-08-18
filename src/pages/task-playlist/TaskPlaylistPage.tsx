@@ -121,9 +121,10 @@ export function TaskPlaylistPage({
   } = useTodayRecommendedMinutes(
     dailyRecommendationRefreshKey,
   );
-  const { hiddenDuplicateModeIds } = useTaskCombinations(
-    dailyRecommendationRefreshKey,
-  );
+  const {
+    combinations: recommendationModeCombinations,
+    hiddenDuplicateModeIds,
+  } = useTaskCombinations(dailyRecommendationRefreshKey);
 
   const hasPlaylistStarted =
     hasStarted || displayedPlaylistElapsedSeconds > 0;
@@ -439,6 +440,7 @@ export function TaskPlaylistPage({
           pauseCurrentSessionBeforePlaylistChange
         }
         hiddenDuplicateModeIds={hiddenDuplicateModeIds}
+        modeCombinations={recommendationModeCombinations}
       />
 
       <TaskFeedbackSheet
