@@ -22,6 +22,13 @@ interface CombinationModePresentation {
   icon: string;
 }
 
+const COMBINATION_MODE_PRIORITY: CombinationModeId[] = [
+  "FIRE",
+  "BALANCE",
+  "TASTE",
+  "CLEAR",
+];
+
 const COMBINATION_MODE_PRESENTATIONS: Record<
   CombinationModeId,
   CombinationModePresentation
@@ -118,9 +125,53 @@ function mapRecommendationMode(
 export function mapRecommendationModes(
   response: RecommendationModesResponse,
 ) {
-  return response.modes.flatMap((modeResponse) => {
-    const combination = mapRecommendationMode(modeResponse);
+  return mapRecommendationModesWithVisibility(response)
+    .combinations;
+}
 
-    return combination ? [combination] : [];
+export function mapRecommendationModesWithVisibility(
+  response: RecommendationModesResponse,
+) {
+  const combinations = response.modes
+    .flatMap((modeResponse) => {
+      const combination = mapRecommendationMode(modeResponse);
+
+      return combination ? [combination] : [];
+    })
+    .sort(
+      (first, second) =>
+        COMBINATION_MODE_PRIORITY.indexOf(first.id) -
+        COMBINATION_MODE_PRIORITY.indexOf(second.id),
+    );
+
+  const visibleCombinations: TaskCombination[] = [];
+  const hiddenDuplicateModeIds: CombinationModeId[] = [];
+  const seenTaskCombinations = new Set<string>();
+
+  combinations.forEach((combination) => {
+    if (combination.tasks.length === 0) {
+      return;
+    }
+
+    const taskCombinationKey = [
+      ...new Set(
+        combination.tasks.map((task) => task.taskId),
+      ),
+    ]
+      .sort((first, second) => first - second)
+      .join(",");
+
+    if (seenTaskCombinations.has(taskCombinationKey)) {
+      hiddenDuplicateModeIds.push(combination.id);
+      return;
+    }
+
+    seenTaskCombinations.add(taskCombinationKey);
+    visibleCombinations.push(combination);
   });
+
+  return {
+    combinations: visibleCombinations,
+    hiddenDuplicateModeIds,
+  };
 }

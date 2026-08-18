@@ -8,6 +8,7 @@ export type NotificationSettings = {
 
 type PushSubscriptionRequest = {
   installationId: string;
+  fcmToken: string;
   deviceName: string;
   browser: string;
 };

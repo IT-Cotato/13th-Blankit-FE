@@ -5,7 +5,10 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { SplashScreen } from "@/components/splash/SplashScreen";
 import { ExpiredTaskToast } from "@/components/task/ExpiredTaskToast";
 import { useExpiredTasks } from "@/hooks/useExpiredTasks";
+import { useDailyRecommendationRefresh } from "@/hooks/useDailyRecommendationRefresh";
+import { useDailyElapsedTimeSync } from "@/hooks/useDailyElapsedTimeSync";
 import { usePlaylistRefresh } from "@/hooks/usePlaylistRefresh";
+import { listenForForegroundMessages } from "@/firebase/messaging";
 import { useAuthStore } from "@/store/authStore";
 import { useTaskCompletionStore } from "@/store/useTaskCompletionStore";
 
@@ -59,13 +62,7 @@ function App() {
 
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-    const authenticatedUserId = useAuthStore(
-        (state) => state.user?.userId ?? null,
-    );
-
     const [toastBottom, setToastBottom] = useState<number | null>(null);
-
-    const currentPlaylistTask = usePlaylistStore((state) => state.playlist[0]);
 
     const clearPlaylist = usePlaylistStore((state) => state.clearPlaylist);
 
@@ -74,6 +71,51 @@ function App() {
     );
 
     const { message: toastMessage, showToast } = useToast();
+    useEffect(() => {
+        let unsubscribe: () => void = () => undefined;
+        let cancelled = false;
+
+        void listenForForegroundMessages(async (payload) => {
+            if (Notification.permission !== "granted") return;
+
+            const registration = await navigator.serviceWorker.ready;
+            const title =
+                payload.notification?.title ?? payload.data?.title ?? "Blankit";
+
+            await registration.showNotification(title, {
+                body: payload.notification?.body ?? payload.data?.body ?? "",
+                icon: "/icon/192x192.png",
+                badge: "/icon/192x192.png",
+                data: {
+                    url: payload.data?.url ?? "/",
+                },
+            });
+        }).then((stopListening) => {
+            if (cancelled) {
+                stopListening();
+                return;
+            }
+
+            unsubscribe = stopListening;
+        });
+
+        return () => {
+            cancelled = true;
+            unsubscribe();
+        };
+    }, []);
+
+    const authenticatedUserId = useAuthStore(
+        (state) => state.user?.userId ?? null,
+    );
+
+    const dailyRecommendationRefreshKey = useDailyRecommendationRefresh(
+        isAppReady && isAuthenticated,
+    );
+
+    useDailyElapsedTimeSync(isAppReady && isAuthenticated);
+
+    const currentPlaylistTask = usePlaylistStore((state) => state.playlist[0]);
 
     const taskManager = useTaskManager({
         showToast,
@@ -158,6 +200,9 @@ function App() {
                             isAuthenticated ? (
                                 <HomePage
                                     refreshKey={taskManager.taskDataVersion}
+                                    dailyRecommendationRefreshKey={
+                                        dailyRecommendationRefreshKey
+                                    }
                                     onAddTask={taskManager.openComposer}
                                     onTaskClick={taskManager.selectTask}
                                 />
@@ -188,7 +233,13 @@ function App() {
 
                         <Route
                             path="/task-playlist"
-                            element={<TaskPlaylistPage />}
+                            element={
+                                <TaskPlaylistPage
+                                    dailyRecommendationRefreshKey={
+                                        dailyRecommendationRefreshKey
+                                    }
+                                />
+                            }
                         />
 
                         <Route
@@ -234,7 +285,13 @@ function App() {
 
                     <Route
                         path="/task-combinations/:modeId"
-                        element={<TaskCombinationDetailPage />}
+                        element={
+                            <TaskCombinationDetailPage
+                                dailyRecommendationRefreshKey={
+                                    dailyRecommendationRefreshKey
+                                }
+                            />
+                        }
                     />
 
                     <Route path="/onboarding" element={<OnboardingPage />} />
@@ -257,6 +314,9 @@ function App() {
                 <CurrentTaskMiniPlayer
                     task={currentPlaylistTask}
                     onShowToast={showToast}
+                    dailyRecommendationRefreshKey={
+                        dailyRecommendationRefreshKey
+                    }
                 />
             )}
 

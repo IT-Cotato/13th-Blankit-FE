@@ -51,7 +51,7 @@ export function AlarmSelectionSheet({
                     : "font-medium text-black-650"
                 }`}
               >
-                {alarm}
+                {alarm} (AM 9:00)
               </button>
             );
           })}

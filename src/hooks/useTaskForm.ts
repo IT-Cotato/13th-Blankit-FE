@@ -7,6 +7,7 @@ import {
   getTaskFormOptions,
   updateTask as updateTaskApi,
 } from "@/api/tasks";
+import { usePlaylistRefresh } from "@/hooks/usePlaylistRefresh";
 import { getTaskErrorMessage } from "@/utils/taskError";
 import { openTaskComposerWithOptions } from "@/hooks/taskComposerOpening";
 
@@ -31,6 +32,7 @@ export function useTaskForm({
   notifyTaskChanged,
   showToast,
 }: UseTaskFormOptions) {
+  const { refreshPlaylist } = usePlaylistRefresh();
   const taskFormRef = useRef<TaskFormHandle>(null);
   const preparedEditRef = useRef<{
     taskId: number;
@@ -237,6 +239,17 @@ export function useTaskForm({
 
       closeComposer();
       notifyTaskChanged();
+
+      try {
+        await refreshPlaylist();
+      } catch (refreshError) {
+        console.error(refreshError);
+        showToast(
+          "과업은 수정되었지만 플레이리스트를 새로고침하지 못했습니다.",
+        );
+        return;
+      }
+
       showToast("수정이 완료되었습니다.");
     } catch (error) {
       console.error(error);

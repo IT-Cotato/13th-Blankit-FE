@@ -34,6 +34,11 @@ export interface PlaylistTimerState {
     isPlaying: boolean,
     now?: number,
   ) => void;
+  syncDailyElapsedSeconds: (
+    elapsedSeconds: number,
+    resetRunningSegment?: boolean,
+    now?: number,
+  ) => void;
   playCurrentTask: (now?: number) => void;
   pauseCurrentTask: (now?: number) => void;
   dismissCompletionTooltip: () => void;

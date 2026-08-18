@@ -8,8 +8,12 @@ import {
   useTimeTableStore,
   type TimeTableEntry,
 } from "@/store/useTimeTableStore";
-import { createTimetableEntries } from "@/api/mypage/timetable";
 import {
+  createTimetableEntries,
+  updateTimetableSettings,
+} from "@/api/mypage/timetable";
+import {
+  formatTimetableSettingHour,
   mapTimetableRequest,
   mapTimetableResponse,
 } from "@/utils/timetableApiMapper";
@@ -21,6 +25,8 @@ export function TimeTableCreate() {
   const addEntries = useTimeTableStore((state) => state.addEntries);
   const savedEntries = useTimeTableStore((state) => state.entries);
   const startHour = useTimeTableStore((state) => state.startHour);
+  const endHour = useTimeTableStore((state) => state.endHour);
+  const applyTimeRange = useTimeTableStore((state) => state.applyTimeRange);
   const [draftEntries, setDraftEntries] = useState<DraftEntry[]>([]);
   const [isEntrySheetOpen, setIsEntrySheetOpen] = useState(false);
 
@@ -40,20 +46,45 @@ export function TimeTableCreate() {
       };
     });
 
+    let entriesToAdd: TimeTableEntry[] = localEntries;
+
     try {
       const createdEntries = await createTimetableEntries(
         localEntries.map((entry) => mapTimetableRequest(entry, startHour)),
       );
-      addEntries(
-        createdEntries.map((entry) => mapTimetableResponse(entry, startHour)),
+      entriesToAdd = createdEntries.map((entry) =>
+        mapTimetableResponse(entry, startHour),
       );
     } catch (error) {
       console.error(
         "시간표 추가 API 호출에 실패해 로컬 데이터를 표시합니다.",
         error,
       );
-      addEntries(localEntries);
     }
+
+    const latestEndMinutes = Math.max(
+      ...localEntries.map(
+        (entry) => startHour * 60 + (entry.endSlot + 1) * 5,
+      ),
+    );
+    const expandedEndHour = Math.min(
+      24,
+      Math.max(endHour, Math.ceil(latestEndMinutes / 60)),
+    );
+
+    if (expandedEndHour > endHour) {
+      try {
+        await updateTimetableSettings({
+          startTime: formatTimetableSettingHour(startHour),
+          endTime: formatTimetableSettingHour(expandedEndHour),
+        });
+        applyTimeRange(startHour, expandedEndHour);
+      } catch (error) {
+        console.error("시간표 종료 시간을 확장하지 못했습니다.", error);
+      }
+    }
+
+    addEntries(entriesToAdd);
     navigate("/mypage/timetable");
   };
 

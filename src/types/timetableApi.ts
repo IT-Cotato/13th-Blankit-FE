@@ -19,6 +19,18 @@ export interface TimetableResponse {
   color: string;
 }
 
+export interface TimetablesWithDisplayResponse {
+  timetables: TimetableResponse[];
+  displayStartTime: string;
+  displayEndTime: string;
+}
+
+export interface TimetableWithDisplayResponse {
+  timetable: TimetableResponse;
+  displayStartTime: string;
+  displayEndTime: string;
+}
+
 export interface TimetableSettingsRequest {
   startTime: string;
   endTime: string;

@@ -1,10 +1,8 @@
 import { useState } from "react";
 
+import { TimeTableOverlapModal } from "@/components/mypage/timetable/TimeTableOverlapModal";
 import { useTimeTableStore } from "@/store/useTimeTableStore";
-import {
-  deleteTimetableEntry,
-  updateTimetableSettings,
-} from "@/api/mypage/timetable";
+import { updateTimetableSettings } from "@/api/mypage/timetable";
 import { formatTimetableSettingHour } from "@/utils/timetableApiMapper";
 
 const TIME_OPTIONS = Array.from(
@@ -96,9 +94,9 @@ export function TimeTableTimeSetting() {
   const endHour = useTimeTableStore((state) => state.endHour);
   const applyTimeRange = useTimeTableStore((state) => state.applyTimeRange);
   const entries = useTimeTableStore((state) => state.entries);
-  const removeSchedule = useTimeTableStore((state) => state.removeSchedule);
   const [openPicker, setOpenPicker] = useState<OpenPicker>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isOverlapModalOpen, setIsOverlapModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const startTime = `${String(startHour).padStart(2, "0")}:00`;
   const endTime = `${String(endHour).padStart(2, "0")}:00`;
@@ -106,54 +104,32 @@ export function TimeTableTimeSetting() {
   const saveTimeRange = async (nextStartHour: number, nextEndHour: number) => {
     if (isSaving) return;
 
+    const nextStartMinutes = nextStartHour * 60;
+    const nextEndMinutes = nextEndHour * 60;
+    const hasScheduleOutsideRange = entries.some((entry) => {
+      const entryStartMinutes = startHour * 60 + entry.startSlot * 5;
+      const entryEndMinutes = startHour * 60 + (entry.endSlot + 1) * 5;
+      return (
+        entryStartMinutes < nextStartMinutes ||
+        entryEndMinutes > nextEndMinutes
+      );
+    });
+
+    if (hasScheduleOutsideRange) {
+      setIsOverlapModalOpen(true);
+      return;
+    }
+
     setIsSaving(true);
     setErrorMessage(null);
 
     try {
-      const nextStartMinutes = nextStartHour * 60;
-      const nextEndMinutes = nextEndHour * 60;
-      const schedulesOutsideRange = entries.filter((entry) => {
-        const entryStartMinutes = startHour * 60 + entry.startSlot * 5;
-        const entryEndMinutes = startHour * 60 + (entry.endSlot + 1) * 5;
-        return (
-          entryStartMinutes < nextStartMinutes ||
-          entryEndMinutes > nextEndMinutes
-        );
-      });
-      const schedulesById = new Map(
-        schedulesOutsideRange.map((entry) => [
-          entry.scheduleId ?? entry.id,
-          entry,
-        ]),
-      );
-
       await updateTimetableSettings({
         startTime: formatTimetableSettingHour(nextStartHour),
         endTime: formatTimetableSettingHour(nextEndHour),
       });
 
-      const deletionResults = await Promise.allSettled(
-        [...schedulesById.entries()].map(async ([scheduleId, entry]) => {
-          if (!entry.isLocalFallback) {
-            await deleteTimetableEntry(Number(scheduleId));
-          }
-          return scheduleId;
-        }),
-      );
-
-      deletionResults.forEach((result) => {
-        if (result.status === "fulfilled") {
-          removeSchedule(result.value);
-        }
-      });
-
       applyTimeRange(nextStartHour, nextEndHour);
-
-      if (deletionResults.some((result) => result.status === "rejected")) {
-        setErrorMessage(
-          "시간은 변경했지만 범위를 벗어난 일정 일부를 삭제하지 못했습니다.",
-        );
-      }
     } catch (error) {
       console.error("시간표 표시 범위 수정 API 호출에 실패했습니다.", error);
       setErrorMessage("시간표 표시 시간을 변경하지 못했습니다.");
@@ -223,6 +199,13 @@ export function TimeTableTimeSetting() {
           </p>
         )}
       </div>
+
+      {isOverlapModalOpen && (
+        <TimeTableOverlapModal
+          title="시간표가 겹쳐 변경할 수 없습니다"
+          onConfirm={() => setIsOverlapModalOpen(false)}
+        />
+      )}
     </section>
   );
 }

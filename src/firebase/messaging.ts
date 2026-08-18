@@ -12,7 +12,7 @@ import { firebaseApp } from './firebase';
 
 export type FcmRegistration = {
   installationId: string;
-  token: string;
+  fcmToken: string;
 };
 
 export async function requestFcmRegistration(): Promise<FcmRegistration> {
@@ -26,21 +26,33 @@ export async function requestFcmRegistration(): Promise<FcmRegistration> {
     throw new Error('알림 권한이 허용되지 않았습니다.');
   }
 
-  const serviceWorkerRegistration =
-    (await navigator.serviceWorker.getRegistration('/')) ??
-    (await navigator.serviceWorker.register('/service-worker.js', {
+  const existingRegistration =
+    await navigator.serviceWorker.getRegistration('/');
+
+  if (!existingRegistration) {
+    await navigator.serviceWorker.register('/service-worker.js', {
       scope: '/',
-    }));
+    });
+  }
+
+  // register()는 서비스 워커가 설치·활성화되기 전에 반환될 수 있다.
+  // PushManager.subscribe()에는 active 상태의 등록 객체가 필요하다.
+  const serviceWorkerRegistration =
+    await navigator.serviceWorker.ready;
   const messaging = getMessaging(firebaseApp);
 
-  const token = await getToken(messaging, {
+  const fcmToken = await getToken(messaging, {
     vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
     serviceWorkerRegistration,
   });
 
+  if (!fcmToken) {
+    throw new Error('FCM 토큰을 발급받지 못했습니다.');
+  }
+
   const installationId = await getId(getInstallations(firebaseApp));
 
-  return { installationId, token };
+  return { installationId, fcmToken };
 }
 
 export async function listenForForegroundMessages(
