@@ -19,6 +19,7 @@ import { TaskMosaicProgress } from "@/components/task-playlist/TaskMosaicProgres
 import { TaskPlayerHeader } from "@/components/task-playlist/TaskPlayerHeader";
 import { useCurrentTaskTimer } from "@/hooks/useCurrentTaskTimer";
 import { useTaskSession } from "@/hooks/useTaskSession";
+import { useTaskCombinations } from "@/hooks/useTaskCombinations";
 import { useTodayRecommendedMinutes } from "@/hooks/useTodayRecommendedMinutes";
 import { useToast } from "@/hooks/useToast";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
@@ -33,7 +34,13 @@ import { getTaskPlayerControls } from "@/utils/taskPlayerControls";
 
 import type { TaskFeedbackResponse } from "@/types/taskFeedbackApi";
 
-export function TaskPlaylistPage() {
+interface TaskPlaylistPageProps {
+  dailyRecommendationRefreshKey: number;
+}
+
+export function TaskPlaylistPage({
+  dailyRecommendationRefreshKey,
+}: TaskPlaylistPageProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -111,7 +118,13 @@ export function TaskPlaylistPage() {
     recommendedMinutes,
     isLoadingRecommendedMinutes,
     recommendationTimeError,
-  } = useTodayRecommendedMinutes();
+  } = useTodayRecommendedMinutes(
+    dailyRecommendationRefreshKey,
+  );
+  const {
+    combinations: recommendationModeCombinations,
+    hiddenDuplicateModeIds,
+  } = useTaskCombinations(dailyRecommendationRefreshKey);
 
   const hasPlaylistStarted =
     hasStarted || displayedPlaylistElapsedSeconds > 0;
@@ -209,6 +222,31 @@ export function TaskPlaylistPage() {
       );
     } catch {
       return;
+    }
+  };
+
+  const pauseCurrentSessionBeforePlaylistChange = async () => {
+    if (!isPlaying) {
+      return true;
+    }
+
+    if (
+      !session ||
+      isLoadingSession ||
+      isUpdatingSession
+    ) {
+      return false;
+    }
+
+    try {
+      return await updateTimerWithSession(
+        "PAUSED",
+        currentTaskElapsedSeconds,
+        changeSessionStatus,
+        toggleTimer,
+      );
+    } catch {
+      return false;
     }
   };
 
@@ -335,9 +373,10 @@ export function TaskPlaylistPage() {
           </button>
 
           <div className="relative flex items-center justify-center">
-            {hasSeenCompletionTooltip && (
-              <RecommendedTimeGuide />
-            )}
+            {hasSeenCompletionTooltip &&
+              !hasPlaylistStarted && (
+                <RecommendedTimeGuide />
+              )}
 
             <p className="whitespace-nowrap text-center text-[32px] font-bold text-black-100">
               {hasPlaylistStarted
@@ -397,6 +436,11 @@ export function TaskPlaylistPage() {
         open={isBottomSheetOpen}
         onOpenChange={setIsBottomSheetOpen}
         onShowToast={showFeedbackToast}
+        onBeforeCurrentTaskChange={
+          pauseCurrentSessionBeforePlaylistChange
+        }
+        hiddenDuplicateModeIds={hiddenDuplicateModeIds}
+        modeCombinations={recommendationModeCombinations}
       />
 
       <TaskFeedbackSheet

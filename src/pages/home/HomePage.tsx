@@ -24,6 +24,7 @@ const HOME_TOP_BAR_HEIGHT = 50;
 
 interface HomePageProps {
   refreshKey: number;
+  dailyRecommendationRefreshKey: number;
   onAddTask: () => void;
   onTaskClick: (taskId: number) => void;
 }
@@ -72,6 +73,7 @@ function HomeEmptyState() {
 
 export function HomePage({
   refreshKey,
+  dailyRecommendationRefreshKey,
   onAddTask,
   onTaskClick,
 }: HomePageProps) {
@@ -96,7 +98,9 @@ export function HomePage({
     loadingRecommendations,
     recommendationError,
   } = useTodayRecommendations(
-    refreshKey + completionRefreshKey,
+    refreshKey +
+      completionRefreshKey +
+      dailyRecommendationRefreshKey,
   );
 
   const completedTaskId = useTaskCompletionStore(
@@ -304,7 +308,10 @@ export function HomePage({
             />
 
             <TaskCombinationSection
-              refreshKey={refreshKey}
+              refreshKey={
+                refreshKey +
+                dailyRecommendationRefreshKey
+              }
             />
           </div>
 

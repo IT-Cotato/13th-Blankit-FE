@@ -18,6 +18,18 @@ export function TaskCombinationSection({
     combinationError,
   } = useTaskCombinations(refreshKey);
 
+  const visibleCombinations = combinations.filter(
+    (combination) => combination.tasks.length > 0,
+  );
+
+  if (
+    !loadingCombinations &&
+    !combinationError &&
+    visibleCombinations.length === 0
+  ) {
+    return null;
+  }
+
   return (
     <section>
       <h2 className="text-[16px] font-semibold leading-[150%] tracking-[-0.015em] text-black-100">
@@ -32,23 +44,17 @@ export function TaskCombinationSection({
         <p className="mt-5 text-[13px] font-medium text-red-400">
           {combinationError}
         </p>
-      ) : combinations.length === 0 ? (
-        <p className="mt-5 text-[13px] font-medium text-black-600">
-          추천할 과업 조합이 없습니다.
-        </p>
       ) : (
         <div className="mt-5 flex flex-wrap items-start justify-between gap-y-5">
-        {combinations.map((combination) => (
-          <TaskCombinationCard
-            key={combination.id}
-            combination={combination}
-            onClick={() =>
-              navigate(
-                `/task-combinations/${combination.id}`,
-              )
-            }
-          />
-        ))}
+          {visibleCombinations.map((combination) => (
+            <TaskCombinationCard
+              key={combination.id}
+              combination={combination}
+              onClick={() =>
+                navigate(`/task-combinations/${combination.id}`)
+              }
+            />
+          ))}
         </div>
       )}
     </section>

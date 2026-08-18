@@ -69,7 +69,7 @@ export function SimilarTaskSheet({
         </h2>
       </header>
 
-      <div className="shrink-0 px-5">
+      <div className="shrink-0 px-5 pb-4">
         <label className="flex h-12 items-center rounded-[6px] bg-black-800 px-4">
           <input
             type="search"
@@ -154,7 +154,7 @@ export function SimilarTaskSheet({
         )}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-4">
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-4">
         {loading ? (
           <div className="flex h-full min-h-40 items-center justify-center">
             <p className="text-[14px] font-semibold text-black-500">

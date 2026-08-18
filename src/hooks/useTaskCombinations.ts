@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 
 import { getRecommendationModes } from "@/api/recommendations";
-import { mapRecommendationModes } from "@/utils/taskCombinationMapper";
+import { mapRecommendationModesWithVisibility } from "@/utils/taskCombinationMapper";
 
-import type { TaskCombination } from "@/types/taskCombination";
+import type {
+  CombinationModeId,
+  TaskCombination,
+} from "@/types/taskCombination";
 
 export function useTaskCombinations(refreshKey = 0) {
   const [combinations, setCombinations] = useState<
@@ -14,6 +17,8 @@ export function useTaskCombinations(refreshKey = 0) {
   const [combinationError, setCombinationError] = useState<
     string | null
   >(null);
+  const [hiddenDuplicateModeIds, setHiddenDuplicateModeIds] =
+    useState<CombinationModeId[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -29,13 +34,20 @@ export function useTaskCombinations(refreshKey = 0) {
           return;
         }
 
-        setCombinations(mapRecommendationModes(response));
+        const mappedModes =
+          mapRecommendationModesWithVisibility(response);
+
+        setCombinations(mappedModes.combinations);
+        setHiddenDuplicateModeIds(
+          mappedModes.hiddenDuplicateModeIds,
+        );
       } catch {
         if (cancelled) {
           return;
         }
 
         setCombinations([]);
+        setHiddenDuplicateModeIds([]);
         setCombinationError(
           "과업 조합 추천을 불러오지 못했습니다.",
         );
@@ -57,5 +69,6 @@ export function useTaskCombinations(refreshKey = 0) {
     combinations,
     loadingCombinations,
     combinationError,
+    hiddenDuplicateModeIds,
   };
 }

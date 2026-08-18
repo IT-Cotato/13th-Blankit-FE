@@ -12,6 +12,7 @@ interface UsePlaylistDeleteOptions {
   deletingSelectedTasks: boolean;
   setDeletingSelectedTasks: (deleting: boolean) => void;
   onShowToast: (message: string) => void;
+  onBeforeCurrentTaskChange: () => Promise<boolean>;
 }
 
 export function usePlaylistDelete({
@@ -20,6 +21,7 @@ export function usePlaylistDelete({
   deletingSelectedTasks,
   setDeletingSelectedTasks,
   onShowToast,
+  onBeforeCurrentTaskChange,
 }: UsePlaylistDeleteOptions) {
   const removeTasks = usePlaylistStore(
     (state) => state.removeTasks,
@@ -114,6 +116,19 @@ export function usePlaylistDelete({
     setDeletingSelectedTasks(true);
 
     try {
+      const deletingCurrentTask = selectedTasks.some(
+        (task) => task.id === playlist[0]?.id,
+      );
+
+      if (deletingCurrentTask) {
+        const paused =
+          await onBeforeCurrentTaskChange();
+
+        if (!paused) {
+          return;
+        }
+      }
+
       const results = await Promise.allSettled(
         deletableTasks.map(({ playlistItemId }) =>
           deletePlaylistItem(playlistItemId),

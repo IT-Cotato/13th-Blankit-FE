@@ -249,9 +249,9 @@ export const createPlaylistFeedback: PlaylistStoreCreator<
           ? draft.progress
           : current.playlist[0].progressRate,
       };
-      const completedTaskElapsedSeconds =
+      const runningSeconds =
         getElapsedSeconds(
-          current.elapsedSeconds,
+          0,
           current.startedAt,
           current.isPlaying,
           now,
@@ -268,7 +268,7 @@ export const createPlaylistFeedback: PlaylistStoreCreator<
         feedbackDrafts,
         accumulatedElapsedSeconds:
           current.accumulatedElapsedSeconds +
-          completedTaskElapsedSeconds,
+          runningSeconds,
         ...EMPTY_CURRENT_TASK_TIMER_STATE,
       };
     });
