@@ -20,6 +20,8 @@ const MINUTES = Array.from(
   { length: 12 },
   (_, index) => String(index * 5).padStart(2, "0"),
 );
+const LAST_PICKER_HOUR = 23;
+const LAST_SELECTABLE_MINUTES = 23 * 60 + 55;
 const ITEM_HEIGHT = 32;
 
 type WheelColumnProps = {
@@ -126,14 +128,19 @@ export function TimeTableTimeWheel({
   initialEntry,
 }: TimeTableTimeWheelProps) {
   const startHour = useTimeTableStore((state) => state.startHour);
-  const endHour = useTimeTableStore((state) => state.endHour);
+  const maxSelectableMinutes = LAST_SELECTABLE_MINUTES;
   const hours = Array.from(
-    { length: endHour - startHour + 1 },
+    { length: Math.max(1, LAST_PICKER_HOUR - startHour + 1) },
     (_, index) => index + startHour,
+  ).filter((hour) => hour <= LAST_PICKER_HOUR);
+  const initialStartMinutes = Math.min(
+    startHour * 60 + (initialEntry?.startSlot ?? 0) * 5,
+    maxSelectableMinutes,
   );
-  const initialStartMinutes = startHour * 60 + (initialEntry?.startSlot ?? 0) * 5;
-  const initialEndMinutes =
-    startHour * 60 + ((initialEntry?.endSlot ?? 11) + 1) * 5;
+  const initialEndMinutes = Math.min(
+    startHour * 60 + ((initialEntry?.endSlot ?? 11) + 1) * 5,
+    maxSelectableMinutes,
+  );
   const [step, setStep] = useState<PickerStep>(
     mode === "edit-time" ? "time" : "day",
   );
@@ -150,9 +157,7 @@ export function TimeTableTimeWheel({
   const [endMinuteIndex, setEndMinuteIndex] = useState(
     Math.floor((initialEndMinutes % 60) / 5),
   );
-  const displayHourCount = Math.max(1, endHour - startHour);
   const selectedEndHour = hours[endHourIndex];
-  const endMinuteOptions = selectedEndHour === 24 ? ["00"] : MINUTES;
 
   const handleComplete = () => {
     if (step === "day") {
@@ -166,15 +171,17 @@ export function TimeTableTimeWheel({
 
     const startMinutes = hours[startHourIndex] * 60 + Number(MINUTES[startMinuteIndex]);
     const endMinutes =
-      selectedEndHour * 60 +
-      (selectedEndHour === 24 ? 0 : Number(MINUTES[endMinuteIndex]));
-    const safeEndMinutes = Math.max(startMinutes + 30, endMinutes);
+      selectedEndHour * 60 + Number(MINUTES[endMinuteIndex]);
+    const safeEndMinutes = Math.min(
+      maxSelectableMinutes,
+      Math.max(startMinutes + 30, endMinutes),
+    );
 
     onComplete({
       dayIndex,
       startSlot: Math.max(0, Math.round((startMinutes - startHour * 60) / 5)),
       endSlot: Math.min(
-        displayHourCount * 12 - 1,
+        Math.floor((maxSelectableMinutes - startHour * 60) / 5) - 1,
         Math.round((safeEndMinutes - startHour * 60) / 5) - 1,
       ),
     });
@@ -237,19 +244,15 @@ export function TimeTableTimeWheel({
                 <WheelColumn
                   options={hours.map((hour) => String(hour).padStart(2, "0"))}
                   value={endHourIndex}
-                  onChange={(index) => {
-                    setEndHourIndex(index);
-                    if (hours[index] === 24) setEndMinuteIndex(0);
-                  }}
+                  onChange={setEndHourIndex}
                   className="relative z-10 w-1/2"
                 />
                 <WheelColumn
-                  key={selectedEndHour === 24 ? "end-minute-midnight" : "end-minute"}
-                  options={endMinuteOptions}
-                  value={selectedEndHour === 24 ? 0 : endMinuteIndex}
+                  options={MINUTES}
+                  value={endMinuteIndex}
                   onChange={setEndMinuteIndex}
                   className="relative z-10 w-1/2"
-                  circular={selectedEndHour !== 24}
+                  circular
                 />
               </div>
             </div>

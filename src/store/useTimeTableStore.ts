@@ -20,6 +20,11 @@ type TimeTableState = {
   setStartHour: (hour: number) => void;
   setEndHour: (hour: number) => void;
   applyTimeRange: (startHour: number, endHour: number) => void;
+  replaceTimetable: (
+    entries: TimeTableEntry[],
+    startHour: number,
+    endHour: number,
+  ) => void;
   setEntries: (entries: TimeTableEntry[]) => void;
   addEntries: (entries: TimeTableEntry[]) => void;
   replaceSchedule: (scheduleId: string, entries: TimeTableEntry[]) => void;
@@ -56,6 +61,8 @@ export const useTimeTableStore = create<TimeTableState>()(
             })),
           };
         }),
+      replaceTimetable: (entries, startHour, endHour) =>
+        set({ entries, startHour, endHour }),
       setEntries: (entries) =>
         set((state) => ({
           entries: [

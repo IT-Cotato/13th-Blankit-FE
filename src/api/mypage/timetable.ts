@@ -6,6 +6,8 @@ import type {
   TimetableSettingsRequest,
   TimetableSettingsResponse,
   TimetableUpdateRequest,
+  TimetablesWithDisplayResponse,
+  TimetableWithDisplayResponse,
 } from "@/types/timetableApi";
 
 export async function getTimetable(): Promise<TimetableResponse[]> {
@@ -18,11 +20,10 @@ export async function getTimetable(): Promise<TimetableResponse[]> {
 export async function createTimetableEntries(
   payload: TimetableRequest[],
 ): Promise<TimetableResponse[]> {
-  const response = await apiClient.post<ApiEnvelope<TimetableResponse[]>>(
-    "/api/timetable",
-    payload,
-  );
-  return response.data.data;
+  const response = await apiClient.post<
+    ApiEnvelope<TimetablesWithDisplayResponse>
+  >("/api/timetable", payload);
+  return response.data.data.timetables;
 }
 
 export async function importEverytimeTimetable(
@@ -39,11 +40,10 @@ export async function updateTimetableEntry(
   timetableId: number,
   payload: TimetableUpdateRequest,
 ): Promise<TimetableResponse> {
-  const response = await apiClient.patch<ApiEnvelope<TimetableResponse>>(
-    `/api/timetable/${timetableId}`,
-    payload,
-  );
-  return response.data.data;
+  const response = await apiClient.patch<
+    ApiEnvelope<TimetableWithDisplayResponse>
+  >(`/api/timetable/${timetableId}`, payload);
+  return response.data.data.timetable;
 }
 
 export async function deleteTimetableEntry(timetableId: number): Promise<void> {

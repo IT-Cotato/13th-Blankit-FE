@@ -40,15 +40,34 @@ function toggleTimeRange(
     { length: toggledRange.endSlot - toggledRange.startSlot + 1 },
     (_, index) => toggledRange.startSlot + index,
   );
-  const shouldRemove = toggledSlots.every((slot) =>
-    selectedSlots.has(`${toggledRange.dayIndex}-${slot}`),
+  const overlappingEntries = entries.filter(
+    (entry) =>
+      entry.dayIndex === toggledRange.dayIndex &&
+      toggledRange.startSlot <= entry.endSlot &&
+      toggledRange.endSlot >= entry.startSlot,
   );
 
-  toggledSlots.forEach((slot) => {
-    const key = `${toggledRange.dayIndex}-${slot}`;
-    if (shouldRemove) selectedSlots.delete(key);
-    else selectedSlots.add(key);
-  });
+  if (overlappingEntries.length === 0) {
+    toggledSlots.forEach((slot) => {
+      selectedSlots.add(`${toggledRange.dayIndex}-${slot}`);
+    });
+  } else {
+    overlappingEntries.forEach((entry) => {
+      const coversEntireEntry =
+        toggledRange.startSlot <= entry.startSlot &&
+        toggledRange.endSlot >= entry.endSlot;
+      const deleteStartSlot = coversEntireEntry
+        ? entry.startSlot
+        : Math.max(entry.startSlot, toggledRange.startSlot);
+      const deleteEndSlot = coversEntireEntry
+        ? entry.endSlot
+        : Math.min(entry.endSlot, toggledRange.endSlot);
+
+      for (let slot = deleteStartSlot; slot <= deleteEndSlot; slot += 1) {
+        selectedSlots.delete(`${entry.dayIndex}-${slot}`);
+      }
+    });
+  }
 
   const nextEntries: TimeRange[] = [];
 
@@ -85,6 +104,10 @@ export function WeeklyTimeTable({
   const displayHourCount = Math.max(1, endHour - startHour);
   const halfHourSlotCount = displayHourCount * 2;
   const timeSlotCount = halfHourSlotCount * 6;
+  const maxEditableEndSlot = Math.max(
+    0,
+    Math.floor((Math.min(endHour * 60, 23 * 60 + 55) - startHour * 60) / 5) - 1,
+  );
   const [dragSelection, setDragSelection] = useState<DragSelection | null>(null);
 
   const getGridPosition = (event: PointerEvent<HTMLDivElement>) => {
@@ -123,9 +146,13 @@ export function WeeklyTimeTable({
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
 
-    const startSlot = Math.min(dragSelection.startSlot, dragSelection.currentSlot);
+    const { slotIndex: releasedSlot } = getGridPosition(event);
+    const startSlot = Math.min(dragSelection.startSlot, releasedSlot);
     const endSlot =
-      Math.max(dragSelection.startSlot, dragSelection.currentSlot) + 5;
+      Math.min(
+        Math.max(dragSelection.startSlot, releasedSlot) + 5,
+        maxEditableEndSlot,
+      );
     onEntriesChange?.(
       toggleTimeRange(entries, {
         dayIndex: dragSelection.dayIndex,
@@ -140,7 +167,10 @@ export function WeeklyTimeTable({
     ? toggleTimeRange(entries, {
         dayIndex: dragSelection.dayIndex,
         startSlot: Math.min(dragSelection.startSlot, dragSelection.currentSlot),
-        endSlot: Math.max(dragSelection.startSlot, dragSelection.currentSlot) + 5,
+        endSlot: Math.min(
+          Math.max(dragSelection.startSlot, dragSelection.currentSlot) + 5,
+          maxEditableEndSlot,
+        ),
       }, timeSlotCount)
     : entries;
 
