@@ -117,9 +117,10 @@ export const CalendarPage = () => {
     >({});
 
     // 선택한 날짜가 마감일인 과업 목록 (default 모드 바텀시트, GET /api/tasks?date=)
-    const [fetchedDateTasks, setFetchedDateTasks] = useState<
-        TaskListResponse[]
-    >([]);
+    const [fetchedDateTasksResult, setFetchedDateTasksResult] = useState<{
+        date: string;
+        tasks: TaskListResponse[];
+    } | null>(null);
 
     // 선택한 날짜의 피드백(완료된 과업 목록 + 소요/권장 시간)
     const [dailyFeedbackResult, setDailyFeedbackResult] = useState<{
@@ -221,11 +222,17 @@ export const CalendarPage = () => {
                 const result = await getTasks({ date: selectedDate });
 
                 if (!isCancelled) {
-                    setFetchedDateTasks(result.content);
+                    setFetchedDateTasksResult({
+                        date: selectedDate,
+                        tasks: result.content,
+                    });
                 }
             } catch {
                 if (!isCancelled) {
-                    setFetchedDateTasks([]);
+                    setFetchedDateTasksResult({
+                        date: selectedDate,
+                        tasks: [],
+                    });
                 }
             }
         };
@@ -272,8 +279,12 @@ export const CalendarPage = () => {
             ? dailyFeedbackResult.data
             : null;
 
-    // selectedDate가 없으면 빈 배열, 있으면 fetch된 값을 렌더링 시점에 파생
-    const selectedDateTasks = selectedDate ? fetchedDateTasks : [];
+    // selectedDate와 응답의 date가 일치할 때만 노출, 그 외엔 빈 배열
+    // (dailyFeedbackResult와 동일한 패턴 - isCancelled 가드에 더한 이중 안전장치)
+    const selectedDateTasks =
+        fetchedDateTasksResult && fetchedDateTasksResult.date === selectedDate
+            ? fetchedDateTasksResult.tasks
+            : [];
 
     const monthDays = useMemo(
         () =>
@@ -296,9 +307,31 @@ export const CalendarPage = () => {
     };
 
     const goToMonth = (offset: 1 | -1) => {
-        setCurrentMonth(
-            (prev) => new Date(prev.getFullYear(), prev.getMonth() + offset, 1),
-        );
+        setCurrentMonth((prev) => {
+            const nextMonth = new Date(
+                prev.getFullYear(),
+                prev.getMonth() + offset,
+                1,
+            );
+
+            // +1(다음 달)이면 그 달의 1일, -1(이전 달)이면 그 달의 마지막 날을 자동 선택
+            const targetDate =
+                offset === 1
+                    ? new Date(nextMonth.getFullYear(), nextMonth.getMonth(), 1)
+                    : new Date(
+                          nextMonth.getFullYear(),
+                          nextMonth.getMonth() + 1,
+                          0, // 다음 달의 0일 = 이번 달의 마지막 날
+                      );
+
+            const targetYyyy = String(targetDate.getFullYear());
+            const targetMm = String(targetDate.getMonth() + 1).padStart(2, "0");
+            const targetDd = String(targetDate.getDate()).padStart(2, "0");
+
+            setSelectedDate(`${targetYyyy}-${targetMm}-${targetDd}`);
+
+            return nextMonth;
+        });
     };
 
     const touchStartX = useRef<number | null>(null);
