@@ -21,7 +21,11 @@ import {
     fetchKakaoSocialAuthResult,
 } from "@/api/socialAuth/kakao";
 
-export const LoginPage = () => {
+interface LoginPageProps {
+    onShowToast: (message: string) => void;
+}
+
+export const LoginPage = ({ onShowToast }: LoginPageProps) => {
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
     const { processSocialAuthResult } = useSocialAuth();
     const hasRunCallbackRef = useRef(false);
@@ -63,13 +67,13 @@ export const LoginPage = () => {
                     await processSocialAuthResult("KAKAO", socialAuthResult);
                 }
             } catch (error) {
-                alert(getAuthErrorMessage(error));
+                onShowToast(getAuthErrorMessage(error));
                 navigate("/login", { replace: true });
             }
         };
 
         handleCallback();
-    }, [processSocialAuthResult, navigate]);
+    }, [processSocialAuthResult, navigate, onShowToast]);
 
     const handleGoogleLogin = () => {
         window.location.href = buildGoogleAuthUrl();
