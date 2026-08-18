@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 import {
   deletePushSubscription,
@@ -13,6 +14,14 @@ import { NotificationSettingItem } from '@/components/mypage/NotificationSetting
 import { requestFcmRegistration } from '@/firebase/messaging';
 
 const SUBSCRIPTION_ID_STORAGE_KEY = 'blankit-push-subscription-id';
+
+function getErrorMessage(error: unknown, fallback: string) {
+  if (axios.isAxiosError(error)) {
+    return error.response?.data?.message ?? fallback;
+  }
+
+  return error instanceof Error ? error.message : fallback;
+}
 
 function getBrowserName() {
   const userAgent = navigator.userAgent;
@@ -42,11 +51,29 @@ export function NotificationSetting() {
     let cancelled = false;
 
     void getNotificationSettings()
-      .then((data) => {
-        if (!cancelled) setSettings(data);
+      .then(async (data) => {
+        if (cancelled) return;
+
+        setSettings(data);
+
+        const hasEnabledSetting =
+          data.isServiceAlarmEnabled || data.is30minPackAlarmEnabled;
+
+        // PWA 재설치나 브라우저 데이터 초기화 후에는 FID와 FCM 토큰이
+        // 달라질 수 있으므로, 이미 허용된 권한을 다시 묻지 않고 갱신한다.
+        if (
+          hasEnabledSetting &&
+          Notification.permission === 'granted'
+        ) {
+          await ensurePushSubscription();
+        }
       })
-      .catch(() => {
-        if (!cancelled) setErrorMessage('알림 설정을 불러오지 못했습니다.');
+      .catch((error) => {
+        if (!cancelled) {
+          setErrorMessage(
+            getErrorMessage(error, '알림 설정을 불러오지 못했습니다.'),
+          );
+        }
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
@@ -58,13 +85,14 @@ export function NotificationSetting() {
   }, []);
 
   async function ensurePushSubscription() {
-    const { installationId, token } = await requestFcmRegistration();
+    const { installationId, fcmToken } = await requestFcmRegistration();
 
     if (import.meta.env.DEV) {
-      console.log('[FCM test token]', token);
+      console.log('[FCM test token]', fcmToken);
     }
     const subscription = await registerPushSubscription({
       installationId,
+      fcmToken,
       deviceName: getDeviceName(),
       browser: getBrowserName(),
     });
@@ -106,9 +134,7 @@ export function NotificationSetting() {
       }
     } catch (error) {
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : '알림 설정을 변경하지 못했습니다.',
+        getErrorMessage(error, '알림 설정을 변경하지 못했습니다.'),
       );
     } finally {
       setIsLoading(false);

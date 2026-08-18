@@ -16,6 +16,7 @@ import { useExpiredTasks } from "@/hooks/useExpiredTasks";
 import { useDailyRecommendationRefresh } from "@/hooks/useDailyRecommendationRefresh";
 import { useDailyElapsedTimeSync } from "@/hooks/useDailyElapsedTimeSync";
 import { usePlaylistRefresh } from "@/hooks/usePlaylistRefresh";
+import { listenForForegroundMessages } from "@/firebase/messaging";
 import { useAuthStore } from "@/store/authStore";
 import { useTaskCompletionStore } from "@/store/useTaskCompletionStore";
 
@@ -79,6 +80,39 @@ function App() {
       (state) =>
         state.isAuthenticated,
     );
+
+  useEffect(() => {
+    let unsubscribe: () => void = () => undefined;
+    let cancelled = false;
+
+    void listenForForegroundMessages(async (payload) => {
+      if (Notification.permission !== "granted") return;
+
+      const registration = await navigator.serviceWorker.ready;
+      const title = payload.notification?.title ?? payload.data?.title ?? "Blankit";
+
+      await registration.showNotification(title, {
+        body: payload.notification?.body ?? payload.data?.body ?? "",
+        icon: "/icon/192x192.png",
+        badge: "/icon/192x192.png",
+        data: {
+          url: payload.data?.url ?? "/",
+        },
+      });
+    }).then((stopListening) => {
+      if (cancelled) {
+        stopListening();
+        return;
+      }
+
+      unsubscribe = stopListening;
+    });
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, []);
 
   const authenticatedUserId =
     useAuthStore(
