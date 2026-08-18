@@ -19,6 +19,7 @@ import { TaskMosaicProgress } from "@/components/task-playlist/TaskMosaicProgres
 import { TaskPlayerHeader } from "@/components/task-playlist/TaskPlayerHeader";
 import { useCurrentTaskTimer } from "@/hooks/useCurrentTaskTimer";
 import { useTaskSession } from "@/hooks/useTaskSession";
+import { useTaskCombinations } from "@/hooks/useTaskCombinations";
 import { useTodayRecommendedMinutes } from "@/hooks/useTodayRecommendedMinutes";
 import { useToast } from "@/hooks/useToast";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
@@ -118,6 +119,9 @@ export function TaskPlaylistPage({
     isLoadingRecommendedMinutes,
     recommendationTimeError,
   } = useTodayRecommendedMinutes(
+    dailyRecommendationRefreshKey,
+  );
+  const { hiddenDuplicateModeIds } = useTaskCombinations(
     dailyRecommendationRefreshKey,
   );
 
@@ -434,6 +438,7 @@ export function TaskPlaylistPage({
         onBeforeCurrentTaskChange={
           pauseCurrentSessionBeforePlaylistChange
         }
+        hiddenDuplicateModeIds={hiddenDuplicateModeIds}
       />
 
       <TaskFeedbackSheet

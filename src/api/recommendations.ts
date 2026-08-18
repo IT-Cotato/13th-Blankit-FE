@@ -6,71 +6,26 @@ import type {
   RecommendationModesResponse,
   TodayRecommendationResponse,
 } from "@/types/recommendationApi";
-import { useAuthStore } from "@/store/authStore";
-import { getKstDateKey } from "@/utils/kstDate";
 
-interface DailyRequestCacheEntry<T> {
-  dateKey: string;
-  hasData: boolean;
-  data?: T;
-  pending?: Promise<T>;
-}
-
-export function createDailyRequestCache<T>(
+function createSharedRequest<T>(
   request: () => Promise<T>,
-  getDateKey: () => string = getKstDateKey,
 ) {
-  let entry: DailyRequestCacheEntry<T> | null = null;
+  let pending: Promise<T> | null = null;
 
   const get = () => {
-    const dateKey = getDateKey();
-
-    if (entry?.dateKey === dateKey) {
-      if (entry.hasData) {
-        return Promise.resolve(entry.data as T);
-      }
-
-      if (entry.pending) {
-        return entry.pending;
-      }
+    if (pending) {
+      return pending;
     }
 
-    const nextEntry: DailyRequestCacheEntry<T> = {
-      dateKey,
-      hasData: false,
-    };
-
-    const pending = request()
-      .then((data) => {
-        if (entry === nextEntry) {
-          nextEntry.data = data;
-          nextEntry.hasData = true;
-          nextEntry.pending = undefined;
-        }
-
-        return data;
-      })
-      .catch((error: unknown) => {
-        if (entry === nextEntry) {
-          entry = null;
-        }
-
-        throw error;
-      });
-
-    nextEntry.pending = pending;
-    entry = nextEntry;
+    pending = request().finally(() => {
+      pending = null;
+    });
 
     return pending;
   };
 
-  const invalidate = () => {
-    entry = null;
-  };
-
   return {
     get,
-    invalidate,
   };
 }
 
@@ -92,26 +47,17 @@ Promise<RecommendationModesResponse> {
   return response.data.data;
 }
 
-function getRecommendationCacheKey() {
-  const userId = useAuthStore.getState().user?.userId ??
-    "anonymous";
-
-  return `${userId}:${getKstDateKey()}`;
-}
-
-const todayRecommendationCache = createDailyRequestCache(
+const todayRecommendationRequest = createSharedRequest(
   requestTodayRecommendation,
-  getRecommendationCacheKey,
 );
 
-const recommendationModesCache = createDailyRequestCache(
+const recommendationModesRequest = createSharedRequest(
   requestRecommendationModes,
-  getRecommendationCacheKey,
 );
 
 export async function getTodayRecommendation():
 Promise<TodayRecommendationResponse> {
-  return todayRecommendationCache.get();
+  return todayRecommendationRequest.get();
 }
 
 export async function getAllRecommendations():
@@ -125,10 +71,5 @@ Promise<AllRecommendationResponse> {
 
 export async function getRecommendationModes():
 Promise<RecommendationModesResponse> {
-  return recommendationModesCache.get();
-}
-
-export function invalidateDailyRecommendationCache() {
-  todayRecommendationCache.invalidate();
-  recommendationModesCache.invalidate();
+  return recommendationModesRequest.get();
 }

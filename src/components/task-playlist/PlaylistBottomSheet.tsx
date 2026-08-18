@@ -10,12 +10,14 @@ import { usePlaylistReorder } from "@/hooks/usePlaylistReorder";
 import { usePlaylistStore } from "@/store/usePlaylistStore";
 
 import type { PlaylistFilter } from "@/components/task-playlist/playlistBottomSheetModes";
+import type { CombinationModeId } from "@/types/taskCombination";
 
 interface PlaylistBottomSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onShowToast: (message: string) => void;
   onBeforeCurrentTaskChange: () => Promise<boolean>;
+  hiddenDuplicateModeIds?: CombinationModeId[];
 }
 
 export function PlaylistBottomSheet({
@@ -23,6 +25,7 @@ export function PlaylistBottomSheet({
   onOpenChange,
   onShowToast,
   onBeforeCurrentTaskChange,
+  hiddenDuplicateModeIds = [],
 }: PlaylistBottomSheetProps) {
   const playlist = usePlaylistStore(
     (state) => state.playlist,
@@ -46,10 +49,12 @@ export function PlaylistBottomSheet({
     () =>
       filter === "all"
         ? playlist
+        : hiddenDuplicateModeIds.includes(filter)
+          ? []
         : playlist.filter(
             (task) => task.sourceMode === filter,
           ),
-    [filter, playlist],
+    [filter, hiddenDuplicateModeIds, playlist],
   );
 
   const {

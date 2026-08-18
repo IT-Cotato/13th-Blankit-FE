@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import {
   getRecommendationModes,
   getTodayRecommendation,
-  invalidateDailyRecommendationCache,
 } from "@/api/recommendations";
 import {
   getKstDateKey,
@@ -52,7 +51,6 @@ export function useDailyRecommendationRefresh(
       }
 
       lastDateKey = currentDateKey;
-      invalidateDailyRecommendationCache();
       refreshDailyRecommendations();
       setRefreshKey((current) => current + 1);
     };
