@@ -13,6 +13,8 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { SplashScreen } from "@/components/splash/SplashScreen";
 import { ExpiredTaskToast } from "@/components/task/ExpiredTaskToast";
 import { useExpiredTasks } from "@/hooks/useExpiredTasks";
+import { useDailyRecommendationRefresh } from "@/hooks/useDailyRecommendationRefresh";
+import { useDailyElapsedTimeSync } from "@/hooks/useDailyElapsedTimeSync";
 import { usePlaylistRefresh } from "@/hooks/usePlaylistRefresh";
 import { useAuthStore } from "@/store/authStore";
 import { useTaskCompletionStore } from "@/store/useTaskCompletionStore";
@@ -83,6 +85,15 @@ function App() {
       (state) =>
         state.user?.userId ?? null,
     );
+
+  const dailyRecommendationRefreshKey =
+    useDailyRecommendationRefresh(
+      isAppReady && isAuthenticated,
+    );
+
+  useDailyElapsedTimeSync(
+    isAppReady && isAuthenticated,
+  );
 
   const currentPlaylistTask =
     usePlaylistStore(
@@ -219,6 +230,9 @@ function App() {
                   refreshKey={
                     taskManager.taskDataVersion
                   }
+                  dailyRecommendationRefreshKey={
+                    dailyRecommendationRefreshKey
+                  }
                   onAddTask={
                     taskManager.openComposer
                   }
@@ -275,7 +289,11 @@ function App() {
             <Route
               path="/task-playlist"
               element={
-                <TaskPlaylistPage />
+                <TaskPlaylistPage
+                  dailyRecommendationRefreshKey={
+                    dailyRecommendationRefreshKey
+                  }
+                />
               }
             />
 
@@ -339,7 +357,11 @@ function App() {
           <Route
             path="/task-combinations/:modeId"
             element={
-              <TaskCombinationDetailPage />
+              <TaskCombinationDetailPage
+                dailyRecommendationRefreshKey={
+                  dailyRecommendationRefreshKey
+                }
+              />
             }
           />
 
@@ -370,6 +392,9 @@ function App() {
               currentPlaylistTask
             }
             onShowToast={showToast}
+            dailyRecommendationRefreshKey={
+              dailyRecommendationRefreshKey
+            }
           />
         )}
 

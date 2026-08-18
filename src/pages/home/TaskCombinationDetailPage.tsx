@@ -12,7 +12,13 @@ import { useTaskCombinations } from "@/hooks/useTaskCombinations";
 import { useToast } from "@/hooks/useToast";
 import { getCombinationAccentClassName } from "@/utils/taskCombinationCategories";
 
-export function TaskCombinationDetailPage() {
+interface TaskCombinationDetailPageProps {
+  dailyRecommendationRefreshKey: number;
+}
+
+export function TaskCombinationDetailPage({
+  dailyRecommendationRefreshKey,
+}: TaskCombinationDetailPageProps) {
   const navigate = useNavigate();
   const { modeId } = useParams();
 
@@ -20,7 +26,9 @@ export function TaskCombinationDetailPage() {
     combinations,
     loadingCombinations,
     combinationError,
-  } = useTaskCombinations();
+  } = useTaskCombinations(
+    dailyRecommendationRefreshKey,
+  );
 
   const combination = combinations.find(
     (item) => item.id === modeId?.toUpperCase(),
