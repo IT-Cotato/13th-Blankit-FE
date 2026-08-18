@@ -54,6 +54,20 @@ export const isInvalidCredentialsError = (
     );
 };
 
+// 이미 다른 기기에서 로그인 중인 계정으로 재로그인 시도 시
+export const isAnotherDeviceLoggedInError = (
+    error: unknown,
+): error is AuthAxiosError => {
+    if (!isAxiosError<AuthErrorResponseBody>(error)) {
+        return false;
+    }
+
+    return (
+        error.response?.status === 409 &&
+        error.response?.data?.code === "ANOTHER_DEVICE_ALREADY_LOGGED_IN"
+    );
+};
+
 // Refresh Token 저장/갱신 시 서버 쪽 충돌(동시 재발급 등)이 발생 시
 export const isRefreshTokenConflictError = (
     error: unknown,

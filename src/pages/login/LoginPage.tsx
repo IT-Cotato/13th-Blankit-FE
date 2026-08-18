@@ -9,6 +9,7 @@ import { SocialLoginButton } from "@/components/login/SocialLoginButton";
 import { useSocialAuth } from "@/hooks/useSocialAuth";
 import { useAuthStore } from "@/store/authStore";
 import { isValidOauthState } from "@/lib/oauthState";
+import { getAuthErrorMessage } from "@/lib/getAuthErrorMessage";
 import {
     buildGoogleAuthUrl,
     fetchGoogleSocialAuthResult,
@@ -20,11 +21,40 @@ import {
     fetchKakaoSocialAuthResult,
 } from "@/api/socialAuth/kakao";
 
-export const LoginPage = () => {
+interface LoginPageProps {
+    onShowToast: (message: string) => void;
+    onSetToastBottom: (bottom: number | null) => void;
+}
+
+export const LoginPage = ({
+    onShowToast,
+    onSetToastBottom,
+}: LoginPageProps) => {
+    const navRef = useRef<HTMLElement>(null);
+
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
     const { processSocialAuthResult } = useSocialAuth();
     const hasRunCallbackRef = useRef(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const updateToastPosition = () => {
+            if (!navRef.current) return;
+
+            const navTop = navRef.current.getBoundingClientRect().top;
+            const bottom = window.innerHeight - navTop + 20;
+
+            onSetToastBottom(bottom);
+        };
+
+        updateToastPosition();
+        window.addEventListener("resize", updateToastPosition);
+
+        return () => {
+            window.removeEventListener("resize", updateToastPosition);
+            onSetToastBottom(null);
+        };
+    }, [onSetToastBottom]);
 
     useEffect(() => {
         if (hasRunCallbackRef.current) return;
@@ -61,14 +91,14 @@ export const LoginPage = () => {
                         await fetchKakaoSocialAuthResult(kakaoCode);
                     await processSocialAuthResult("KAKAO", socialAuthResult);
                 }
-            } catch {
-                alert("로그인에 실패했습니다.");
+            } catch (error) {
+                onShowToast(getAuthErrorMessage(error));
                 navigate("/login", { replace: true });
             }
         };
 
         handleCallback();
-    }, [processSocialAuthResult, navigate]);
+    }, [processSocialAuthResult, navigate, onShowToast]);
 
     const handleGoogleLogin = () => {
         window.location.href = buildGoogleAuthUrl();
@@ -95,6 +125,7 @@ export const LoginPage = () => {
 
                 {/* nav: 남는 공간의 나머지를 흡수, 버튼은 nav 하단 정렬 */}
                 <nav
+                    ref={navRef}
                     aria-label="소셜 로그인"
                     className="flex min-h-0 w-[163px] max-h-[220px] flex-1 flex-col items-center justify-center gap-5 pb-8"
                 >

@@ -2,7 +2,12 @@ import { useNavigate } from "react-router-dom";
 
 import { fetchSocialLogin, fetchSocialSignup } from "@/api/auth";
 import { useAuthStore } from "@/store/authStore";
-import { isUserNotFoundError } from "@/lib/isUserNotFoundError";
+import { getInstallationId } from "@/lib/installationId";
+import {
+    isAnotherDeviceLoggedInError,
+    isRefreshTokenConflictError,
+    isUserNotFoundError,
+} from "@/lib/isUserNotFoundError";
 import type { SocialAuthResult, SocialProvider } from "@/types/auth";
 
 export const useSocialAuth = () => {
@@ -13,11 +18,14 @@ export const useSocialAuth = () => {
         provider: SocialProvider,
         socialAuthResult: SocialAuthResult,
     ) => {
+        const installationId = getInstallationId();
+
         try {
             const loginData = await fetchSocialLogin({
                 socialProvider: provider,
                 socialId: socialAuthResult.socialId,
                 socialToken: socialAuthResult.socialToken,
+                installationId,
             });
 
             setAuth(loginData);
@@ -25,6 +33,15 @@ export const useSocialAuth = () => {
             navigate("/");
             return;
         } catch (error) {
+            // 다른 기기에서 이미 로그인 중이거나(409) Refresh Token 처리 충돌(409)인 경우
+            // 회원가입 대상이 아니므로 그대로 호출부(LoginPage)로 재던져 에러 메시지 처리에 맡김
+            if (
+                isAnotherDeviceLoggedInError(error) ||
+                isRefreshTokenConflictError(error)
+            ) {
+                throw error;
+            }
+
             if (!isUserNotFoundError(error)) {
                 throw error;
             }
@@ -37,7 +54,8 @@ export const useSocialAuth = () => {
             email: socialAuthResult.email,
             nickname: socialAuthResult.nickname,
             profileImageUrl: socialAuthResult.profileImageUrl,
-            recommendedDailyTime: null, // TODO: 백엔드에서 DB 명세 수정 후 수정사항 반영 예정
+            recommendedDailyTime: null,
+            installationId,
         });
 
         setAuth(signupData);
