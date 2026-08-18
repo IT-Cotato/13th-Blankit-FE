@@ -9,6 +9,7 @@ import { SocialLoginButton } from "@/components/login/SocialLoginButton";
 import { useSocialAuth } from "@/hooks/useSocialAuth";
 import { useAuthStore } from "@/store/authStore";
 import { isValidOauthState } from "@/lib/oauthState";
+import { getAuthErrorMessage } from "@/lib/getAuthErrorMessage";
 import {
     buildGoogleAuthUrl,
     fetchGoogleSocialAuthResult,
@@ -61,8 +62,8 @@ export const LoginPage = () => {
                         await fetchKakaoSocialAuthResult(kakaoCode);
                     await processSocialAuthResult("KAKAO", socialAuthResult);
                 }
-            } catch {
-                alert("로그인에 실패했습니다.");
+            } catch (error) {
+                alert(getAuthErrorMessage(error));
                 navigate("/login", { replace: true });
             }
         };

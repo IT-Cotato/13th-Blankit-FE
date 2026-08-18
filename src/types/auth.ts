@@ -12,6 +12,7 @@ export interface SocialLoginRequest {
     socialProvider: SocialProvider;
     socialId: string;
     socialToken: string;
+    installationId: string;
 }
 
 export interface SocialSignupRequest {
@@ -21,7 +22,8 @@ export interface SocialSignupRequest {
     email: string;
     nickname: string;
     profileImageUrl: string;
-    recommendedDailyTime: number | null; // TODO: 백엔드에서 DB 명세 수정 후 수정사항 반영 예정
+    recommendedDailyTime: number | null;
+    installationId: string;
 }
 
 export interface AuthUser {
