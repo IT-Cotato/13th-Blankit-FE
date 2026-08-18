@@ -42,30 +42,30 @@ export function Toast({
                                   : "bottom-[190px]"
                           }`
                         : `
-              fixed left-1/2 z-[120]
-              flex h-[41px] w-fit min-w-[158px]
-              max-w-[calc(100vw-32px)]
-              -translate-x-1/2
-              items-center justify-center
-              whitespace-nowrap
-              rounded-[6px]
-              border-[1.5px] border-black-800
-              bg-black-850
-              px-4 py-2.5
-              text-center text-[14px] font-medium
-              leading-[150%] tracking-[-0.015em]
-              text-black-100
-              shadow-[0_10px_60px_0_rgba(0,0,0,0.6)]
-              ${
-                  variant === "login"
-                      ? bottom === null
-                          ? "bottom-[130px]"
-                          : ""
-                      : aboveBottomNavigation
-                        ? "bottom-[calc(102px+env(safe-area-inset-bottom))]"
-                        : "bottom-4"
-              }
-            `
+    fixed left-1/2 z-[120]
+    flex min-h-[41px] w-max min-w-[158px]
+    -translate-x-1/2
+    items-center justify-center
+    rounded-[6px]
+    border-[1.5px] border-black-800
+    bg-black-850
+    px-4 py-2.5
+    text-center text-[14px] font-medium
+    leading-[150%] tracking-[-0.015em]
+    text-black-100
+    shadow-[0_10px_60px_0_rgba(0,0,0,0.6)]
+    ${
+        variant === "login"
+            ? `${
+                  bottom === null ? "bottom-[130px]" : ""
+              } max-w-[calc(100vw-16px)] whitespace-pre-line`
+            : `${
+                  aboveBottomNavigation
+                      ? "bottom-[calc(102px+env(safe-area-inset-bottom))]"
+                      : "bottom-4"
+              } max-w-[calc(100vw-32px)] whitespace-nowrap`
+    }
+`
                 }
             >
                 {message}

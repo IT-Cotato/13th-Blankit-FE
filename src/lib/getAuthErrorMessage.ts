@@ -8,7 +8,7 @@ import {
 // 로그인/회원가입 흐름에서 발생한 에러를 사용자에게 보여줄 문구로 변환
 export function getAuthErrorMessage(error: unknown): string {
     if (isAnotherDeviceLoggedInError(error)) {
-        return "다른 기기에서 이미 로그인 중입니다.";
+        return "다른 기기에서 이미 로그인 중입니다.\n이전 기기 로그아웃 후 다시 시도해주세요.";
     }
 
     if (isRefreshTokenConflictError(error)) {
