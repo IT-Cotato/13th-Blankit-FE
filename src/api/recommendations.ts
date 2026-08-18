@@ -1,4 +1,6 @@
 import { apiClient } from "@/api/client";
+import { useAuthStore } from "@/store/authStore";
+import { getKstDateKey } from "@/utils/kstDate";
 
 import type { ApiEnvelope } from "@/types/auth";
 import type {
@@ -10,23 +12,43 @@ import type {
 function createSharedRequest<T>(
   request: () => Promise<T>,
 ) {
-  let pending: Promise<T> | null = null;
+  let pending: {
+    key: string;
+    promise: Promise<T>;
+  } | null = null;
 
-  const get = () => {
-    if (pending) {
-      return pending;
+  const get = (key: string) => {
+    if (pending?.key === key) {
+      return pending.promise;
     }
 
-    pending = request().finally(() => {
-      pending = null;
-    });
+    const promise = request();
+    pending = { key, promise };
 
-    return pending;
+    const clearPendingRequest = () => {
+      if (pending?.promise === promise) {
+        pending = null;
+      }
+    };
+
+    void promise.then(
+      clearPendingRequest,
+      clearPendingRequest,
+    );
+
+    return promise;
   };
 
   return {
     get,
   };
+}
+
+function getRecommendationRequestKey() {
+  const userId =
+    useAuthStore.getState().user?.userId ?? "anonymous";
+
+  return `${userId}:${getKstDateKey()}`;
 }
 
 async function requestTodayRecommendation():
@@ -57,7 +79,9 @@ const recommendationModesRequest = createSharedRequest(
 
 export async function getTodayRecommendation():
 Promise<TodayRecommendationResponse> {
-  return todayRecommendationRequest.get();
+  return todayRecommendationRequest.get(
+    getRecommendationRequestKey(),
+  );
 }
 
 export async function getAllRecommendations():
@@ -71,5 +95,7 @@ Promise<AllRecommendationResponse> {
 
 export async function getRecommendationModes():
 Promise<RecommendationModesResponse> {
-  return recommendationModesRequest.get();
+  return recommendationModesRequest.get(
+    getRecommendationRequestKey(),
+  );
 }
