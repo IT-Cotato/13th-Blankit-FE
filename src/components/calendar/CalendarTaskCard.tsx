@@ -1,12 +1,13 @@
 import { CategoryIconBadge } from "@/components/category/CategoryIconBadge";
 import { CATEGORY_ICON_MAP } from "@/constants/category";
-import type { Task } from "@/types/task";
+import type { TaskListResponse } from "@/types/taskApi";
 
 interface CalendarTaskCardProps {
-    task: Task;
+    task: TaskListResponse;
 }
 
-function formatEstimatedTime(minutes: number) {
+function formatEstimatedTime(minutes: number | null) {
+    if (minutes === null) return "소요 시간 미정";
     if (minutes < 60) return `${minutes}분 소요`;
     const hours = Math.floor(minutes / 60);
     const restMinutes = minutes % 60;
@@ -35,7 +36,7 @@ export function CalendarTaskCard({ task }: CalendarTaskCardProps) {
                         {task.title}
                     </p>
 
-                    <p className="text-[12px] font-medium text-black-500">
+                    <p className="text-[12px] font-medium text-black-650">
                         {formatEstimatedTime(task.estimatedTime)}
                     </p>
                 </div>
