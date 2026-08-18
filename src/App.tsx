@@ -14,6 +14,7 @@ import { SplashScreen } from "@/components/splash/SplashScreen";
 import { ExpiredTaskToast } from "@/components/task/ExpiredTaskToast";
 import { useExpiredTasks } from "@/hooks/useExpiredTasks";
 import { useDailyRecommendationRefresh } from "@/hooks/useDailyRecommendationRefresh";
+import { useDailyElapsedTimeSync } from "@/hooks/useDailyElapsedTimeSync";
 import { usePlaylistRefresh } from "@/hooks/usePlaylistRefresh";
 import { useAuthStore } from "@/store/authStore";
 import { useTaskCompletionStore } from "@/store/useTaskCompletionStore";
@@ -89,6 +90,10 @@ function App() {
     useDailyRecommendationRefresh(
       isAppReady && isAuthenticated,
     );
+
+  useDailyElapsedTimeSync(
+    isAppReady && isAuthenticated,
+  );
 
   const currentPlaylistTask =
     usePlaylistStore(

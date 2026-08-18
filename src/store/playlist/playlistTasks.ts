@@ -25,10 +25,7 @@ export const createPlaylistTasks: PlaylistStoreCreator<
         state.playlist,
         playlist,
       )
-        ? playlist.length === 0 ||
-          state.playlist.length === 0
-          ? EMPTY_PLAYLIST_TIMER_STATE
-          : EMPTY_CURRENT_TASK_TIMER_STATE
+        ? EMPTY_CURRENT_TASK_TIMER_STATE
         : {}),
     }));
   },
@@ -47,9 +44,7 @@ export const createPlaylistTasks: PlaylistStoreCreator<
           state.playlist,
           playlist,
         )
-          ? playlist.length === 0
-            ? EMPTY_PLAYLIST_TIMER_STATE
-            : EMPTY_CURRENT_TASK_TIMER_STATE
+          ? EMPTY_CURRENT_TASK_TIMER_STATE
           : {}),
       };
     });
@@ -76,10 +71,8 @@ export const createPlaylistTasks: PlaylistStoreCreator<
       return {
         playlist,
         accumulatedElapsedSeconds:
-          playlist.length > 0
-            ? state.accumulatedElapsedSeconds +
-              runningSeconds
-            : 0,
+          state.accumulatedElapsedSeconds +
+          runningSeconds,
         ...EMPTY_CURRENT_TASK_TIMER_STATE,
       };
     });

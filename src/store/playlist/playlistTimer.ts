@@ -47,6 +47,25 @@ export const createPlaylistTimer: PlaylistStoreCreator<
     }));
   },
 
+  syncDailyElapsedSeconds: (
+    elapsedSeconds,
+    resetRunningSegment = false,
+    now = Date.now(),
+  ) => {
+    const safeElapsedSeconds = Number.isFinite(
+      elapsedSeconds,
+    )
+      ? Math.max(0, Math.floor(elapsedSeconds))
+      : 0;
+
+    set((state) => ({
+      accumulatedElapsedSeconds: safeElapsedSeconds,
+      ...(resetRunningSegment && state.isPlaying
+        ? { startedAt: now }
+        : {}),
+    }));
+  },
+
   playCurrentTask: (now = Date.now()) => {
     const state = get();
 
