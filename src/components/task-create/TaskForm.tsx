@@ -1,9 +1,4 @@
-import {
-  forwardRef,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 
 import { TaskInputPanel } from "@/components/task-create/TaskInputPanel";
 import { AlarmSelectionSheet } from "@/components/task-create/alarm/AlarmSelectionSheet";
@@ -20,255 +15,194 @@ import { useTaskSubmission } from "@/components/task-create/hooks/useTaskSubmiss
 import { reminderOffsetToAlarmOption } from "@/components/task-create/utils/reminderMappers";
 import { repeatRuleResponseToSettings } from "@/components/task-create/utils/repeatRuleMappers";
 
-import type { TaskCreateRequest, TaskDetailResponse, TaskFormOptionsResponse, TaskUpdateRequest } from "@/types/taskApi";
+import type {
+    TaskCreateRequest,
+    TaskDetailResponse,
+    TaskFormOptionsResponse,
+    TaskUpdateRequest,
+} from "@/types/taskApi";
 
 export interface TaskFormHandle {
-  focus: () => void;
+    focus: () => void;
 }
 
 interface TaskFormProps {
-  formOptions:
-    TaskFormOptionsResponse | null;
-  title: string;
-  task: TaskDetailResponse | null;
-  onTitleChange: (title: string) => void;
-  onClose: () => void;
-  onComplete: (
-    request: TaskCreateRequest,
-  ) => void | Promise<void>;
-  onUpdate: (
-    taskId: number,
-    request: TaskUpdateRequest,
-  ) => void | Promise<void>;
+    formOptions: TaskFormOptionsResponse | null;
+    title: string;
+    task: TaskDetailResponse | null;
+    onTitleChange: (title: string) => void;
+    onClose: () => void;
+    onComplete: (request: TaskCreateRequest) => void | Promise<void>;
+    onUpdate: (
+        taskId: number,
+        request: TaskUpdateRequest,
+    ) => void | Promise<void>;
 }
 
-export const TaskForm = forwardRef<
-  TaskFormHandle,
-  TaskFormProps
->(function TaskForm(
-  {
-    formOptions,
-    title,
-    task,
-    onTitleChange,
-    onClose,
-    onComplete,
-    onUpdate,
-  },
-  ref,
-) {
-  const [step, setStep] = useState<
-    "composer" | "similar"
-  >("composer");
+export const TaskForm = forwardRef<TaskFormHandle, TaskFormProps>(
+    function TaskForm(
+        {
+            formOptions,
+            title,
+            task,
+            onTitleChange,
+            onClose,
+            onComplete,
+            onUpdate,
+        },
+        ref,
+    ) {
+        const [step, setStep] = useState<"composer" | "similar">("composer");
 
-  const inputRef =
-    useRef<HTMLInputElement>(null);
+        const inputRef = useRef<HTMLInputElement>(null);
 
-  function focusTaskInput() {
-    requestAnimationFrame(() => {
-      inputRef.current?.focus();
-    });
-  }
+        function focusTaskInput() {
+            requestAnimationFrame(() => {
+                inputRef.current?.focus();
+            });
+        }
 
-  const initialAlarm: AlarmOption =
-    task
-      ? reminderOffsetToAlarmOption(
-          task.notificationSetting
-            .notifyBefore,
-        )
-      : formOptions
-        ? reminderOffsetToAlarmOption(
-            formOptions
-              .defaultReminderOffsetMinutes,
-          )
-        : "1일 전";
+        const initialAlarm: AlarmOption = task
+            ? reminderOffsetToAlarmOption(task.notificationSetting.notifyBefore)
+            : formOptions
+              ? reminderOffsetToAlarmOption(
+                    formOptions.defaultReminderOffsetMinutes,
+                )
+              : "1일 전";
 
-  const reminderOptions: AlarmOption[] =
-    formOptions?.reminderOptions.map(
-      reminderOffsetToAlarmOption,
-    ) ?? [
-      "1일 전",
-      "3일 전",
-      "일주일 전",
-    ];
+        const reminderOptions: AlarmOption[] = formOptions?.reminderOptions.map(
+            reminderOffsetToAlarmOption,
+        ) ?? ["1일 전", "3일 전", "일주일 전"];
 
-  const categoryFlow = useCategoryFlow({
-    onReturnToComposer: focusTaskInput,
-    initialCategory: task?.category ?? null,
-    initialCategories: formOptions?.categories ?? []
-  });
+        const categoryFlow = useCategoryFlow({
+            onReturnToComposer: focusTaskInput,
+            initialCategory: task?.category ?? null,
+            initialCategories: formOptions?.categories ?? [],
+        });
 
-  const alarmFlow = useAlarmFlow({
-    onReturnToComposer: focusTaskInput,
-    initialAlarm,
-  });
+        const alarmFlow = useAlarmFlow({
+            onReturnToComposer: focusTaskInput,
+            initialAlarm,
+        });
 
-  const initialRepeatSettings =
-    task?.repeatRule
-      ? repeatRuleResponseToSettings(
-          task.repeatRule,
-        )
-      : null;
+        const initialRepeatSettings = task?.repeatRule
+            ? repeatRuleResponseToSettings(task.repeatRule)
+            : null;
 
-  const dateFlow = useDateFlow({
-    onReturnToComposer: focusTaskInput,
+        const dateFlow = useDateFlow({
+            onReturnToComposer: focusTaskInput,
 
-    initialDate:
-      task && !task.repeatRule
-        ? new Date(
-            `${task.deadline}T00:00:00`,
-          )
-        : null,
+            initialDate:
+                task && !task.repeatRule
+                    ? new Date(`${task.deadline}T00:00:00`)
+                    : null,
 
-    initialRepeat:
-      initialRepeatSettings,
-  });
+            initialRepeat: initialRepeatSettings,
+        });
 
-  const isComposerVisible =
-    step === "composer" &&
-    categoryFlow.view === "composer" &&
-    alarmFlow.view === "composer" &&
-    !dateFlow.open;
+        const isComposerVisible =
+            step === "composer" &&
+            categoryFlow.view === "composer" &&
+            alarmFlow.view === "composer" &&
+            !dateFlow.open;
 
-  const hasDeadline =
-    dateFlow.selectedDate !== null ||
-    dateFlow.repeatSettings !== null;
+        const hasDeadline =
+            dateFlow.selectedDate !== null || dateFlow.repeatSettings !== null;
 
-  const canContinue =
-    title.trim().length > 0 &&
-    hasDeadline &&
-    categoryFlow.selectedCategory !== null;
+        const canContinue =
+            title.trim().length > 0 &&
+            hasDeadline &&
+            categoryFlow.selectedCategory !== null;
 
-  const firstRepeatDate =
-    dateFlow.repeatSettings
-      ? getFirstRepeatDate(
-          dateFlow.repeatSettings,
-        )
-      : null;
+        const firstRepeatDate = dateFlow.repeatSettings
+            ? getFirstRepeatDate(dateFlow.repeatSettings)
+            : null;
 
-  const selectedDeadline =
-    dateFlow.selectedDate ??
-    firstRepeatDate;
+        const selectedDeadline = dateFlow.selectedDate ?? firstRepeatDate;
 
-  const dateLabel = selectedDeadline
-    ? formatDeadline(selectedDeadline)
-    : dateFlow.repeatSettings
-      ? "반복 설정"
-      : "날짜 선택";
+        const dateLabel = selectedDeadline
+            ? formatDeadline(selectedDeadline)
+            : dateFlow.repeatSettings
+              ? "반복 설정"
+              : "날짜 선택";
 
-  const { submitting, submitTask } =
-    useTaskSubmission({
-      title,
-      task,
-      selectedDate: dateFlow.selectedDate,
-      repeatSettings: dateFlow.repeatSettings,
-      selectedCategory:
-        categoryFlow.selectedCategory,
-      selectedAlarm:
-        alarmFlow.selectedAlarm,
-      onCreate: onComplete,
-      onUpdate,
-    });
+        const { submitting, submitTask } = useTaskSubmission({
+            title,
+            task,
+            selectedDate: dateFlow.selectedDate,
+            repeatSettings: dateFlow.repeatSettings,
+            selectedCategory: categoryFlow.selectedCategory,
+            selectedAlarm: alarmFlow.selectedAlarm,
+            onCreate: onComplete,
+            onUpdate,
+        });
 
-  useImperativeHandle(ref, () => ({
-    focus() {
-      inputRef.current?.focus();
+        useImperativeHandle(ref, () => ({
+            focus() {
+                inputRef.current?.focus();
+            },
+        }));
+
+        return (
+            <>
+                <div inert={categoryFlow.view !== "composer"}>
+                    <button
+                        type="button"
+                        aria-label="과업 입력 닫기"
+                        onClick={onClose}
+                        className="fixed inset-0 z-[60] cursor-default bg-black/80"
+                    />
+
+                    <TaskInputPanel
+                        visible={isComposerVisible}
+                        editing={task !== null}
+                        title={title}
+                        canContinue={canContinue}
+                        dateLabel={dateLabel}
+                        category={categoryFlow.selectedCategory}
+                        alarm={alarmFlow.selectedAlarm}
+                        inputRef={inputRef}
+                        onTitleChange={onTitleChange}
+                        onContinue={() => setStep("similar")}
+                        onOpenDate={dateFlow.openDateSheet}
+                        onOpenCategory={categoryFlow.openCategories}
+                        onOpenAlarm={alarmFlow.openAlarms}
+                    />
+
+                    {step === "similar" && (
+                        <SimilarTaskSheet
+                            categories={categoryFlow.categories}
+                            submitting={submitting}
+                            onBack={() => {
+                                setStep("composer");
+                                focusTaskInput();
+                            }}
+                            onComplete={submitTask}
+                        />
+                    )}
+
+                    {alarmFlow.view === "alarm-list" && (
+                        <AlarmSelectionSheet
+                            options={reminderOptions}
+                            selectedAlarm={alarmFlow.selectedAlarm}
+                            onSelect={alarmFlow.selectAlarm}
+                            onClose={alarmFlow.closeAlarms}
+                        />
+                    )}
+
+                    {dateFlow.open && (
+                        <DateSelectionSheet
+                            initialDate={dateFlow.selectedDate}
+                            initialRepeat={dateFlow.repeatSettings}
+                            onBack={dateFlow.closeDateSheet}
+                            onConfirm={dateFlow.confirmDate}
+                            onConfirmRepeat={dateFlow.confirmRepeat}
+                        />
+                    )}
+                </div>
+
+                <TaskCategoryPicker categoryFlow={categoryFlow} />
+            </>
+        );
     },
-  }));
-
-  return (
-    <>
-      <div
-        inert={
-          categoryFlow.view !== "composer"
-        }
-      >
-        <button
-          type="button"
-          aria-label="과업 입력 닫기"
-          onClick={onClose}
-          className="fixed inset-0 z-[60] cursor-default bg-black/80"
-        />
-
-      <TaskInputPanel
-        visible={isComposerVisible}
-        editing={task !== null}
-        title={title}
-        canContinue={canContinue}
-        dateLabel={dateLabel}
-        category={
-          categoryFlow.selectedCategory
-        }
-        alarm={alarmFlow.selectedAlarm}
-        inputRef={inputRef}
-        onTitleChange={onTitleChange}
-        onContinue={() =>
-          setStep("similar")
-        }
-        onOpenDate={
-          dateFlow.openDateSheet
-        }
-        onOpenCategory={
-          categoryFlow.openCategories
-        }
-        onOpenAlarm={
-          alarmFlow.openAlarms
-        }
-      />
-
-      {step === "similar" && (
-        <SimilarTaskSheet
-          categories={categoryFlow.categories}
-          submitting={submitting}
-          onBack={() => {
-            setStep("composer");
-            focusTaskInput();
-          }}
-          onComplete={submitTask}
-        />
-      )}
-
-      {alarmFlow.view ===
-        "alarm-list" && (
-        <AlarmSelectionSheet
-          options={reminderOptions}
-          selectedAlarm={
-            alarmFlow.selectedAlarm
-          }
-          onSelect={
-            alarmFlow.selectAlarm
-          }
-          onClose={
-            alarmFlow.closeAlarms
-          }
-        />
-      )}
-
-      {dateFlow.open && (
-        <DateSelectionSheet
-          initialDate={
-            dateFlow.selectedDate
-          }
-          initialRepeat={
-            dateFlow.repeatSettings
-          }
-          onBack={
-            dateFlow.closeDateSheet
-          }
-          onConfirm={
-            dateFlow.confirmDate
-          }
-          onConfirmRepeat={
-            dateFlow.confirmRepeat
-          }
-        />
-      )}
-      </div>
-
-      <TaskCategoryPicker
-        categoryFlow={categoryFlow}
-      />
-
-    </>
-  );
-});
+);
