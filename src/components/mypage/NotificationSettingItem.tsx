@@ -3,6 +3,7 @@ type NotificationSettingItemProps = {
   description: string;
   enabled: boolean;
   onToggle: () => void;
+  onContentClick?: () => void;
 };
 
 export function NotificationSettingItem({
@@ -10,17 +11,23 @@ export function NotificationSettingItem({
   description,
   enabled,
   onToggle,
+  onContentClick,
 }: NotificationSettingItemProps) {
   return (
     <div className="flex w-full items-center justify-between">
-      <div className="min-w-0 flex-1 pr-4">
+      <button
+        type="button"
+        onClick={onContentClick}
+        disabled={!onContentClick}
+        className="min-w-0 flex-1 pr-4 text-left disabled:cursor-default"
+      >
         <h2 className="w-full text-base font-medium leading-6 tracking-[-0.24px] text-black-100">
           {name}
         </h2>
         <p className="mt-0.5 text-xs font-normal leading-[18px] tracking-[-0.18px] text-black-700">
           {description}
         </p>
-      </div>
+      </button>
 
       <button
         type="button"

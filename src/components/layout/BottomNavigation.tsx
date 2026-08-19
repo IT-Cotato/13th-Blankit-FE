@@ -18,6 +18,7 @@ const bottomNavItems = [
             "/home/search",
             "/task-combinations",
             "/task-playlist",
+            "/pack-noti",
         ],
         icon: homeBlackIcon,
         activeIcon: homeGreenIcon,
