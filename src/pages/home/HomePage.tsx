@@ -20,6 +20,9 @@ import { useTaskCompletionStore } from "@/store/useTaskCompletionStore";
 
 import { shouldShowDockedTaskTimeBar } from "@/utils/homeDockedTaskTimeBar";
 
+import { NotificationPermissionModal } from "@/components/notification/NotificationPermissionModal";
+import { useInitialNotificationPermission } from "@/components/notification/useInitialNotificationPermission";
+
 const HOME_TOP_BAR_HEIGHT = 50;
 
 interface HomePageProps {
@@ -123,6 +126,15 @@ export function HomePage({
     message: startTaskToastMessage,
     showToast: showStartTaskToast,
   } = useToast();
+
+  const {
+    open: notificationPermissionModalOpen,
+    isSubmitting: notificationPermissionSubmitting,
+    allow: allowInitialNotification,
+    close: closeInitialNotification,
+  } = useInitialNotificationPermission({
+    onShowToast: showStartTaskToast,
+  });
 
   const {
     message: completionToastMessage,
@@ -334,6 +346,15 @@ export function HomePage({
         message={completionToastMessage}
         variant="taskCombination"
         centeredWithBackdrop
+      />
+
+      <NotificationPermissionModal
+        open={notificationPermissionModalOpen}
+        submitting={notificationPermissionSubmitting}
+        onAllow={() => {
+          void allowInitialNotification();
+        }}
+        onClose={closeInitialNotification}
       />
     </>
   );
