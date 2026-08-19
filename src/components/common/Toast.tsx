@@ -1,3 +1,7 @@
+import { useEffect, useState } from "react";
+
+const TOAST_TRANSITION_MS = 200;
+
 interface ToastProps {
   message: string | null;
   aboveBottomNavigation?: boolean;
@@ -11,7 +15,47 @@ export function Toast({
   variant = "default",
   centeredWithBackdrop = false,
 }: ToastProps) {
-  if (!message) {
+  const [renderedMessage, setRenderedMessage] =
+    useState<string | null>(message);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    let renderFrame: number | undefined;
+    let visibilityFrame: number | undefined;
+    let removalTimer: number | undefined;
+
+    if (message) {
+      renderFrame = window.requestAnimationFrame(() => {
+        setRenderedMessage(message);
+        visibilityFrame = window.requestAnimationFrame(() => {
+          setIsVisible(true);
+        });
+      });
+    } else {
+      renderFrame = window.requestAnimationFrame(() => {
+        setIsVisible(false);
+      });
+      removalTimer = window.setTimeout(() => {
+        setRenderedMessage(null);
+      }, TOAST_TRANSITION_MS);
+    }
+
+    return () => {
+      if (renderFrame !== undefined) {
+        window.cancelAnimationFrame(renderFrame);
+      }
+
+      if (visibilityFrame !== undefined) {
+        window.cancelAnimationFrame(visibilityFrame);
+      }
+
+      if (removalTimer !== undefined) {
+        window.clearTimeout(removalTimer);
+      }
+    };
+  }, [message]);
+
+  if (!renderedMessage) {
     return null;
   }
 
@@ -20,12 +64,23 @@ export function Toast({
       {centeredWithBackdrop && (
         <div
           aria-hidden="true"
-          className="fixed inset-0 z-[59] bg-black opacity-70"
+          className={`fixed inset-0 z-[59] bg-black transition-opacity duration-200 ${
+            isVisible ? "opacity-70" : "opacity-0"
+          }`}
         />
       )}
 
       <div
         role="status"
+        style={
+          variant === "default"
+            ? {
+                transition: isVisible
+                  ? "transform 200ms ease-out, opacity 200ms ease-out"
+                  : "opacity 180ms ease-in",
+              }
+            : undefined
+        }
         aria-live={
           variant === "taskCombination"
             ? "polite"
@@ -33,7 +88,9 @@ export function Toast({
         }
         className={
           variant === "taskCombination"
-            ? `fixed left-1/2 z-[60] -translate-x-1/2 whitespace-pre-line rounded-[6px] border border-black-750 bg-black-800 px-4 py-3 text-center text-[13px] font-medium text-black-200 shadow-lg ${
+            ? `fixed left-1/2 z-[60] -translate-x-1/2 whitespace-pre-line rounded-[6px] border border-black-750 bg-black-800 px-4 py-3 text-center text-[13px] font-medium text-black-200 shadow-lg transition-opacity duration-200 ${
+                isVisible ? "opacity-100" : "opacity-0"
+              } ${
                 centeredWithBackdrop
                   ? "top-1/2 -translate-y-1/2"
                   : "bottom-[190px]"
@@ -49,10 +106,15 @@ export function Toast({
               border-[1.5px] border-black-800
               bg-black-850
               px-4 py-2.5
-              text-center text-[14px] font-medium
-              leading-[150%] tracking-[-0.015em]
+              text-center font-sans text-[14px] font-medium not-italic
+              leading-[150%] tracking-[-0.21px]
               text-black-100
               shadow-[0_10px_60px_0_rgba(0,0,0,0.6)]
+              ${
+                isVisible
+                  ? "translate-y-0 opacity-100 ease-out"
+                  : "translate-y-0 opacity-0 ease-in"
+              }
               ${
                 aboveBottomNavigation
                   ? "bottom-[calc(102px+env(safe-area-inset-bottom))]"
@@ -61,7 +123,7 @@ export function Toast({
             `
         }
       >
-        {message}
+        {renderedMessage}
       </div>
     </>
   );

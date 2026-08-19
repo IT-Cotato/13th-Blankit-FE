@@ -144,6 +144,17 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  const requestUrl = new URL(request.url);
+  const isLocalDevelopment =
+    requestUrl.hostname === 'localhost' ||
+    requestUrl.hostname === '127.0.0.1';
+
+  // 로컬에서는 FCM 수신을 위해 서비스 워커만 유지하고,
+  // Vite의 HMR 및 최신 소스가 캐시에 가로막히지 않도록 네트워크에 맡긴다.
+  if (isLocalDevelopment) {
+    return;
+  }
+
   /**
    * React Router 같은 SPA navigation 요청
    */
@@ -229,7 +240,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  const url = new URL(request.url);
+  const url = requestUrl;
 
   /**
    * 외부 API나 CDN 요청은 이 Service Worker에서 캐시하지 않는다.

@@ -9,9 +9,11 @@ import {
   updateNotificationSettings,
   type NotificationSettings,
 } from '@/api/mypage/notifications';
+import { Toast } from '@/components/common/Toast';
 import { MyPageDetailTopBar } from '@/components/mypage/MyPageDetailTopBar';
 import { NotificationSettingItem } from '@/components/mypage/NotificationSettingItem';
 import { requestFcmRegistration } from '@/firebase/messaging';
+import { useToast } from '@/hooks/useToast';
 
 const SUBSCRIPTION_ID_STORAGE_KEY = 'blankit-push-subscription-id';
 
@@ -40,6 +42,7 @@ function getDeviceName() {
 
 export function NotificationSetting() {
   const navigate = useNavigate();
+  const { message: toastMessage, showToast } = useToast(2000);
   const [settings, setSettings] = useState<NotificationSettings>({
     isServiceAlarmEnabled: false,
     is30minPackAlarmEnabled: false,
@@ -132,6 +135,12 @@ export function NotificationSetting() {
       ) {
         await removePushSubscription();
       }
+
+      showToast(
+        nextSettings[key]
+          ? '알림을 받습니다.'
+          : '알림을 받지 않습니다.',
+      );
     } catch (error) {
       setErrorMessage(
         getErrorMessage(error, '알림 설정을 변경하지 못했습니다.'),
@@ -162,6 +171,9 @@ export function NotificationSetting() {
           name="30분 Pack! 알림"
           description="자투리 시간에 할 만한 과업을 추천해드려요"
           enabled={settings.is30minPackAlarmEnabled}
+          onContentClick={() => {
+            navigate('/pack-noti?availableMinutes=30');
+          }}
           onToggle={() => {
             if (!isLoading) void toggleSetting('is30minPackAlarmEnabled');
           }}
@@ -173,6 +185,8 @@ export function NotificationSetting() {
           </p>
         )}
       </main>
+
+      <Toast message={toastMessage} aboveBottomNavigation />
     </div>
   );
 }
