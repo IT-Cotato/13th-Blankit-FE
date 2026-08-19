@@ -2,7 +2,13 @@ import { useNavigate } from "react-router-dom";
 
 import { fetchSocialLogin, fetchSocialSignup } from "@/api/auth";
 import { useAuthStore } from "@/store/authStore";
-import { isUserNotFoundError } from "@/lib/isUserNotFoundError";
+import { getInstallationId } from "@/lib/installationId";
+import {
+    isAnotherDeviceLoggedInError,
+    isRefreshTokenConflictError,
+    isUserNotFoundError,
+} from "@/lib/isUserNotFoundError";
+import { markInitialNotificationPermission } from "@/components/notification/notificationPermissionStorage";
 import type { SocialAuthResult, SocialProvider } from "@/types/auth";
 
 export const useSocialAuth = () => {
@@ -13,25 +19,30 @@ export const useSocialAuth = () => {
         provider: SocialProvider,
         socialAuthResult: SocialAuthResult,
     ) => {
+        const installationId = getInstallationId();
+
         try {
             const loginData = await fetchSocialLogin({
                 socialProvider: provider,
                 socialId: socialAuthResult.socialId,
                 socialToken: socialAuthResult.socialToken,
+                installationId,
             });
 
             setAuth(loginData);
 
-            // ========== TEST CODE START ==========
-            // 로그인 성공 시 사용자명 / 소셜 provider / 이메일을 알림창으로 확인
-            alert(
-                `[로그인 성공]\n닉네임: ${loginData.user.nickname}\n소셜: ${loginData.user.socialProvider}\n이메일: ${loginData.user.email}`,
-            );
-            // ========== TEST CODE END ==========
-
             navigate("/");
             return;
         } catch (error) {
+            // 다른 기기에서 이미 로그인 중이거나(409) Refresh Token 처리 충돌(409)인 경우
+            // 회원가입 대상이 아니므로 그대로 호출부(LoginPage)로 재던져 에러 메시지 처리에 맡김
+            if (
+                isAnotherDeviceLoggedInError(error) ||
+                isRefreshTokenConflictError(error)
+            ) {
+                throw error;
+            }
+
             if (!isUserNotFoundError(error)) {
                 throw error;
             }
@@ -44,17 +55,17 @@ export const useSocialAuth = () => {
             email: socialAuthResult.email,
             nickname: socialAuthResult.nickname,
             profileImageUrl: socialAuthResult.profileImageUrl,
-            recommendedDailyTime: null, // TODO: 백엔드에서 DB 명세 수정 후 수정사항 반영 예정
+            recommendedDailyTime: null,
+            installationId,
         });
 
         setAuth(signupData);
 
-        // ========== TEST CODE START ==========
-        // 회원가입(최초 로그인) 성공 시 사용자명 / 소셜 provider / 이메일을 알림창으로 확인
-        alert(
-            `[회원가입 성공]\n닉네임: ${signupData.user.nickname}\n소셜: ${signupData.user.socialProvider}\n이메일: ${signupData.user.email}`,
+        // 회원가입 직후 최초 홈 진입에서만
+        // 알림 권한 안내 모달을 표시하기 위한 플래그
+        markInitialNotificationPermission(
+            signupData.user.userId,
         );
-        // ========== TEST CODE END ==========
 
         navigate("/");
     };

@@ -20,10 +20,14 @@ import { useTaskCompletionStore } from "@/store/useTaskCompletionStore";
 
 import { shouldShowDockedTaskTimeBar } from "@/utils/homeDockedTaskTimeBar";
 
+import { NotificationPermissionModal } from "@/components/notification/NotificationPermissionModal";
+import { useInitialNotificationPermission } from "@/components/notification/useInitialNotificationPermission";
+
 const HOME_TOP_BAR_HEIGHT = 50;
 
 interface HomePageProps {
   refreshKey: number;
+  dailyRecommendationRefreshKey: number;
   onAddTask: () => void;
   onTaskClick: (taskId: number) => void;
 }
@@ -72,6 +76,7 @@ function HomeEmptyState() {
 
 export function HomePage({
   refreshKey,
+  dailyRecommendationRefreshKey,
   onAddTask,
   onTaskClick,
 }: HomePageProps) {
@@ -96,7 +101,9 @@ export function HomePage({
     loadingRecommendations,
     recommendationError,
   } = useTodayRecommendations(
-    refreshKey + completionRefreshKey,
+    refreshKey +
+      completionRefreshKey +
+      dailyRecommendationRefreshKey,
   );
 
   const completedTaskId = useTaskCompletionStore(
@@ -119,6 +126,15 @@ export function HomePage({
     message: startTaskToastMessage,
     showToast: showStartTaskToast,
   } = useToast();
+
+  const {
+    open: notificationPermissionModalOpen,
+    isSubmitting: notificationPermissionSubmitting,
+    allow: allowInitialNotification,
+    close: closeInitialNotification,
+  } = useInitialNotificationPermission({
+    onShowToast: showStartTaskToast,
+  });
 
   const {
     message: completionToastMessage,
@@ -304,7 +320,10 @@ export function HomePage({
             />
 
             <TaskCombinationSection
-              refreshKey={refreshKey}
+              refreshKey={
+                refreshKey +
+                dailyRecommendationRefreshKey
+              }
             />
           </div>
 
@@ -327,6 +346,15 @@ export function HomePage({
         message={completionToastMessage}
         variant="taskCombination"
         centeredWithBackdrop
+      />
+
+      <NotificationPermissionModal
+        open={notificationPermissionModalOpen}
+        submitting={notificationPermissionSubmitting}
+        onAllow={() => {
+          void allowInitialNotification();
+        }}
+        onClose={closeInitialNotification}
       />
     </>
   );

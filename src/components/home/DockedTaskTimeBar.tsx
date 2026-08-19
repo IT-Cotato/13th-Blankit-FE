@@ -27,10 +27,6 @@ export function DockedTaskTimeBar({
         <span className="text-[12px] font-medium text-black-300">
           권장 과업 시간
         </span>
-
-        <span className="text-[11px] font-medium text-black-600">
-          과업 선택하기
-        </span>
       </span>
 
       <span className="text-[32px] font-bold text-black-100">

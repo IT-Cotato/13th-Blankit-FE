@@ -1,4 +1,3 @@
-// src/types/onboarding.ts
 export interface OnboardingCard {
     id: string;
     image: string;
