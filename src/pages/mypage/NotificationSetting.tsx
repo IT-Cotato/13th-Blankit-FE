@@ -12,6 +12,7 @@ import {
 import { Toast } from '@/components/common/Toast';
 import { MyPageDetailTopBar } from '@/components/mypage/MyPageDetailTopBar';
 import { NotificationSettingItem } from '@/components/mypage/NotificationSettingItem';
+import { NotificationPermissionModal } from '@/components/notification/NotificationPermissionModal';
 import { requestFcmRegistration } from '@/firebase/messaging';
 import { useToast } from '@/hooks/useToast';
 
@@ -49,6 +50,9 @@ export function NotificationSetting() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [permissionModalOpen, setPermissionModalOpen] = useState(false);
+  const [pendingSettingKey, setPendingSettingKey] =
+    useState<keyof NotificationSettings | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -150,6 +154,37 @@ export function NotificationSetting() {
     }
   }
 
+  function requestToggle(key: keyof NotificationSettings) {
+    if (isLoading) return;
+
+    if (settings[key]) {
+      void toggleSetting(key);
+      return;
+    }
+
+    setErrorMessage(null);
+    setPendingSettingKey(key);
+    setPermissionModalOpen(true);
+  }
+
+  async function allowPendingNotification() {
+    if (pendingSettingKey === null || isLoading) return;
+
+    try {
+      await toggleSetting(pendingSettingKey);
+    } finally {
+      setPermissionModalOpen(false);
+      setPendingSettingKey(null);
+    }
+  }
+
+  function closePermissionModal() {
+    if (isLoading) return;
+
+    setPermissionModalOpen(false);
+    setPendingSettingKey(null);
+  }
+
   return (
     <div className="min-h-dvh bg-black-900 text-black-100">
       <MyPageDetailTopBar
@@ -164,7 +199,7 @@ export function NotificationSetting() {
           description="과업 마감 전에 알림을 받아보세요"
           enabled={settings.isServiceAlarmEnabled}
           onToggle={() => {
-            if (!isLoading) void toggleSetting('isServiceAlarmEnabled');
+            requestToggle('isServiceAlarmEnabled');
           }}
         />
         <NotificationSettingItem
@@ -175,7 +210,7 @@ export function NotificationSetting() {
             navigate('/pack-noti?availableMinutes=30');
           }}
           onToggle={() => {
-            if (!isLoading) void toggleSetting('is30minPackAlarmEnabled');
+            requestToggle('is30minPackAlarmEnabled');
           }}
         />
 
@@ -187,6 +222,17 @@ export function NotificationSetting() {
       </main>
 
       <Toast message={toastMessage} aboveBottomNavigation />
+
+      <NotificationPermissionModal
+        open={permissionModalOpen}
+        submitting={isLoading}
+        title="Blankit 알림을 허용해주세요"
+        description="선택한 알림을 받으려면 브라우저 또는 기기의 알림 권한이 필요해요."
+        onAllow={() => {
+          void allowPendingNotification();
+        }}
+        onClose={closePermissionModal}
+      />
     </div>
   );
 }

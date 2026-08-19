@@ -3,6 +3,8 @@ import { useEffect, useRef } from "react";
 interface NotificationPermissionModalProps {
   open: boolean;
   submitting?: boolean;
+  title?: string;
+  description?: string;
   onAllow: () => void;
   onClose: () => void;
 }
@@ -10,6 +12,8 @@ interface NotificationPermissionModalProps {
 export function NotificationPermissionModal({
   open,
   submitting = false,
+  title = "마감일을 놓치지 않도록 미리 알려드릴게요",
+  description = "알림을 허용하면 마감일 전에 미리 알림을 보내드려 중요한 과업을 잊지 않을 수 있도록 도와드릴게요.",
   onAllow,
   onClose,
 }: NotificationPermissionModalProps) {
@@ -101,15 +105,14 @@ export function NotificationPermissionModal({
             id="notification-permission-title"
             className="self-stretch text-center text-[16px] font-medium leading-[150%] tracking-[-0.24px] text-black-100"
           >
-            마감일을 놓치지 않도록 미리 알려드릴게요
+            {title}
           </h2>
 
           <p
             id="notification-permission-description"
             className="self-stretch text-center text-[14px] font-normal leading-[150%] tracking-[-0.21px] text-black-650"
           >
-            알림을 허용하면 마감일 전에 미리 알림을 보내드려 중요한
-            과업을 잊지 않을 수 있도록 도와드릴게요.
+            {description}
           </p>
         </div>
 

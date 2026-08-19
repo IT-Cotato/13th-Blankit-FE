@@ -20,10 +20,22 @@ export async function requestFcmRegistration(): Promise<FcmRegistration> {
     throw new Error('이 브라우저는 Firebase 메시징을 지원하지 않습니다.');
   }
 
+  if (Notification.permission === 'denied') {
+    throw new Error(
+      '브라우저 또는 기기 설정에서 Blankit 알림 권한을 허용해주세요.',
+    );
+  }
+
   const permission = await Notification.requestPermission();
 
-  if (permission !== 'granted') {
-    throw new Error('알림 권한이 허용되지 않았습니다.');
+  if (permission === 'default') {
+    throw new Error('알림 권한 요청을 취소했습니다. 다시 시도해주세요.');
+  }
+
+  if (permission === 'denied') {
+    throw new Error(
+      '브라우저 또는 기기 설정에서 Blankit 알림 권한을 허용해주세요.',
+    );
   }
 
   const existingRegistration =
