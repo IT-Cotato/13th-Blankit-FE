@@ -13,6 +13,7 @@ export function NotificationPermissionModal({
   onAllow,
   onClose,
 }: NotificationPermissionModalProps) {
+  const dialogRef = useRef<HTMLElement>(null);
   const allowButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -28,9 +29,47 @@ export function NotificationPermissionModal({
     allowButtonRef.current?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !submitting) {
+      if (event.key === "Escape") {
         event.preventDefault();
-        onClose();
+
+        if (!submitting) {
+          onClose();
+        }
+
+        return;
+      }
+
+      if (event.key !== "Tab") {
+        return;
+      }
+
+      const focusableElements =
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          "button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])",
+        );
+
+      if (!focusableElements?.length) {
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement =
+        focusableElements[
+          focusableElements.length - 1
+        ];
+
+      if (
+        event.shiftKey &&
+        document.activeElement === firstElement
+      ) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (
+        !event.shiftKey &&
+        document.activeElement === lastElement
+      ) {
+        event.preventDefault();
+        firstElement.focus();
       }
     };
 
@@ -49,6 +88,7 @@ export function NotificationPermissionModal({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-5">
       <section
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="notification-permission-title"

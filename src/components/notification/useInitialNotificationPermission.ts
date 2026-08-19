@@ -72,12 +72,12 @@ export function useInitialNotificationPermission({
     useState(false);
 
   useEffect(() => {
-    if (!open) {
+    if (!open || userId === null) {
       return;
     }
 
-    clearInitialNotificationPermission();
-  }, [open]);
+    clearInitialNotificationPermission(userId);
+  }, [open, userId]);
 
   const close = useCallback(() => {
     if (!isSubmitting) {

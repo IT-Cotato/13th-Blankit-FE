@@ -1,13 +1,15 @@
-const INITIAL_NOTIFICATION_USER_ID_KEY =
-  "blankit_initial_notification_user_id";
+const getInitialNotificationPermissionKey = (
+  userId: number,
+) =>
+  `blankit_initial_notification_permission:${userId}`;
 
 export function markInitialNotificationPermission(
   userId: number,
 ) {
   try {
     window.localStorage.setItem(
-      INITIAL_NOTIFICATION_USER_ID_KEY,
-      String(userId),
+      getInitialNotificationPermissionKey(userId),
+      "true",
     );
   } catch (error) {
     console.error(
@@ -23,8 +25,8 @@ export function hasInitialNotificationPermission(
   try {
     return (
       window.localStorage.getItem(
-        INITIAL_NOTIFICATION_USER_ID_KEY,
-      ) === String(userId)
+        getInitialNotificationPermissionKey(userId),
+      ) === "true"
     );
   } catch (error) {
     console.error(
@@ -36,10 +38,12 @@ export function hasInitialNotificationPermission(
   }
 }
 
-export function clearInitialNotificationPermission() {
+export function clearInitialNotificationPermission(
+  userId: number,
+) {
   try {
     window.localStorage.removeItem(
-      INITIAL_NOTIFICATION_USER_ID_KEY,
+      getInitialNotificationPermissionKey(userId),
     );
   } catch (error) {
     console.error(
