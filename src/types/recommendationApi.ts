@@ -25,6 +25,24 @@ export interface AllRecommendationResponse {
   tasks: RecommendedTaskItem[];
 }
 
+export interface ThirtyMinutePackTaskItem {
+  taskId: number;
+  title: string;
+  categoryName: string;
+  categoryColor: string;
+  categoryIconKey: string;
+  currentProgressRate: number;
+  remainingEstimatedMinutes: number;
+  progressPerMinute: number;
+  expectedProgressIncrease: number;
+  memo: string | null;
+}
+
+export interface ThirtyMinutePackRecommendationResponse {
+  availableMinutes: number;
+  tasks: ThirtyMinutePackTaskItem[];
+}
+
 export interface ModeTaskItemResponse {
   taskId: number;
   title: string;

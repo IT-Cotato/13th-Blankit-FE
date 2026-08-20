@@ -26,6 +26,7 @@ import { SearchPage } from "./pages/home/SearchPage";
 import { TaskCombinationDetailPage } from "./pages/home/TaskCombinationDetailPage";
 import { TaskRecommendationsPage } from "./pages/home/TaskRecommendationsPage";
 import { LoginPage } from "./pages/login/LoginPage";
+import { PackNoti } from "./pages/PackNoti";
 import { CompletedTask } from "./pages/mypage/CompletedTask";
 import { EverytimeTimeTableLink } from "./pages/mypage/EverytimeTimeTableLink";
 import { MyPage } from "./pages/mypage/MyPage";
@@ -241,6 +242,8 @@ function App() {
                                 />
                             }
                         />
+
+                        <Route path="/pack-noti" element={<PackNoti />} />
 
                         <Route
                             path="/mypage/priority-setting"

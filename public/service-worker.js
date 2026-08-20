@@ -1,4 +1,4 @@
-const CACHE_NAME = 'blankit-v4';
+const CACHE_NAME = 'blankit-v6';
 
 console.log('[SW] 현재 Service Worker 실행:', CACHE_NAME);
 
@@ -23,6 +23,22 @@ function sameOriginUrl(value) {
   } catch {
     return null;
   }
+}
+
+function addPushEntryMarker(value) {
+  const safeUrl = sameOriginUrl(value);
+
+  if (!safeUrl) {
+    return '/';
+  }
+
+  const url = new URL(safeUrl, self.location.origin);
+
+  if (url.pathname === '/pack-noti') {
+    url.searchParams.set('source', 'push');
+  }
+
+  return `${url.pathname}${url.search}`;
 }
 
 self.addEventListener('install', (event) => {
@@ -144,6 +160,17 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  const requestUrl = new URL(request.url);
+  const isLocalDevelopment =
+    requestUrl.hostname === 'localhost' ||
+    requestUrl.hostname === '127.0.0.1';
+
+  // 로컬에서는 FCM 수신을 위해 서비스 워커만 유지하고,
+  // Vite의 HMR 및 최신 소스가 캐시에 가로막히지 않도록 네트워크에 맡긴다.
+  if (isLocalDevelopment) {
+    return;
+  }
+
   /**
    * React Router 같은 SPA navigation 요청
    */
@@ -229,7 +256,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  const url = new URL(request.url);
+  const url = requestUrl;
 
   /**
    * 외부 API나 CDN 요청은 이 Service Worker에서 캐시하지 않는다.
@@ -338,7 +365,7 @@ self.addEventListener(
       notificationData?.FCM_MSG?.data?.url ??
       notificationData?.FCM_MSG?.fcmOptions?.link ??
       '/';
-    const targetUrl = sameOriginUrl(requestedUrl) ?? '/';
+    const targetUrl = addPushEntryMarker(requestedUrl);
 
     event.waitUntil(
       self.clients
@@ -386,12 +413,12 @@ importScripts(
 );
 
 firebase.initializeApp({
-  apiKey: 'AIzaSyCmTMPAhXxMFjL6gG1mKY2TUzC6PPbt-dA',
-  authDomain: 'blankit-96be7.firebaseapp.com',
-  projectId: 'blankit-96be7',
-  storageBucket: 'blankit-96be7.firebasestorage.app',
-  messagingSenderId: '195901607938',
-  appId: '1:195901607938:web:25c039bd4a9768907c171b',
+  apiKey: 'AIzaSyBZbvI5Z4TgBLOzHoQIk1nR0a7SHsK-rzs',
+  authDomain: 'blankit-25bb0.firebaseapp.com',
+  projectId: 'blankit-25bb0',
+  storageBucket: 'blankit-25bb0.firebasestorage.app',
+  messagingSenderId: '987465174014',
+  appId: '1:987465174014:web:4723d7073611db5b498eaf',
 });
 
 const messaging = firebase.messaging();

@@ -6,6 +6,7 @@ import type { ApiEnvelope } from "@/types/auth";
 import type {
   AllRecommendationResponse,
   RecommendationModesResponse,
+  ThirtyMinutePackRecommendationResponse,
   TodayRecommendationResponse,
 } from "@/types/recommendationApi";
 
@@ -89,6 +90,18 @@ Promise<AllRecommendationResponse> {
   const response = await apiClient.get<
     ApiEnvelope<AllRecommendationResponse>
   >("/api/recommendations/all");
+
+  return response.data.data;
+}
+
+export async function getThirtyMinutePackRecommendation(
+  availableMinutes: number,
+): Promise<ThirtyMinutePackRecommendationResponse> {
+  const response = await apiClient.get<
+    ApiEnvelope<ThirtyMinutePackRecommendationResponse>
+  >("/api/recommendations/pack30", {
+    params: { availableMinutes },
+  });
 
   return response.data.data;
 }

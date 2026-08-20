@@ -26,6 +26,7 @@ export function EverytimeTimeTableLink() {
   const [isImporting, setIsImporting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const replaceTimetable = useTimeTableStore((state) => state.replaceTimetable);
+  const existingEntries = useTimeTableStore((state) => state.entries);
   const hasSharedUrl = sharedUrl.trim().length > 0;
 
   const handleImport = async () => {
@@ -96,7 +97,10 @@ export function EverytimeTimeTableLink() {
       );
       navigate("/mypage/timetable", {
         replace: true,
-        state: { skipInitialTimetableRefresh: true },
+        state: {
+          skipInitialTimetableRefresh: true,
+          showPackPermissionModal: existingEntries.length === 0,
+        },
       });
     } catch (error) {
       const message = axios.isAxiosError<ApiEnvelope<unknown>>(error)
