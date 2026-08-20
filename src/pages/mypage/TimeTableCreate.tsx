@@ -88,7 +88,10 @@ export function TimeTableCreate() {
 
     addEntries(entriesToAdd);
     navigate("/mypage/timetable", {
-      state: { showPackPermissionModal: wasRegistered },
+      state: {
+        showPackPermissionModal:
+          wasRegistered && savedEntries.length === 0,
+      },
     });
   };
 

@@ -235,7 +235,7 @@ export function WeeklyTimeTable({
                 role={!interactive && onEntryClick ? "button" : undefined}
                 tabIndex={!interactive && onEntryClick ? 0 : undefined}
                 aria-label={!interactive && entry.title ? `${entry.title} 상세 보기` : undefined}
-                className={`absolute transition-[top,height] duration-75 ${interactive ? "pointer-events-none" : "cursor-pointer"}`}
+                className={`absolute z-20 overflow-hidden px-[3px] py-0.5 text-left font-['Pretendard'] text-[8px] font-medium leading-[123%] tracking-[-0.12px] text-black-900 transition-[top,height] duration-75 ${interactive ? "pointer-events-none" : "cursor-pointer"}`}
                 onClick={() => !interactive && onEntryClick?.(index)}
                 onKeyDown={(event) => {
                   if (!interactive && (event.key === "Enter" || event.key === " ")) {
@@ -250,7 +250,13 @@ export function WeeklyTimeTable({
                   width: `${100 / DAYS.length}%`,
                   height: `${(selectedSlotCount / timeSlotCount) * 100}%`,
                 }}
-              />
+              >
+                {entry.title && (
+                  <span className="block max-h-full break-words">
+                    {entry.title}
+                  </span>
+                )}
+              </div>
             );
           })}
 
