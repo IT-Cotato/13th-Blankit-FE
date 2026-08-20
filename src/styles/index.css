@@ -73,7 +73,7 @@
     --color-black-900: #0c0d0e;
 
     /* PC 화면 가로 길이 조정 */
-    --container-app: 375px;
+    --container-app: 641px;
 }
 
 @layer base {

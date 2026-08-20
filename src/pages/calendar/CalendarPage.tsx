@@ -393,6 +393,8 @@ export const CalendarPage = () => {
                         selectedDate={selectedDate}
                         viewMode={viewMode}
                         onSelectDate={handleSelectDate}
+                        onPrevMonth={() => goToMonth(-1)}
+                        onNextMonth={() => goToMonth(1)}
                     />
                 </div>
             </div>
