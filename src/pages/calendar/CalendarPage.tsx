@@ -274,17 +274,9 @@ export const CalendarPage = () => {
         };
     }, [selectedDate]);
 
-    const selectedDailyFeedback =
-        dailyFeedbackResult && dailyFeedbackResult.date === selectedDate
-            ? dailyFeedbackResult.data
-            : null;
+    const selectedDailyFeedback = dailyFeedbackResult?.data ?? null;
 
-    // selectedDate와 응답의 date가 일치할 때만 노출, 그 외엔 빈 배열
-    // (dailyFeedbackResult와 동일한 패턴 - isCancelled 가드에 더한 이중 안전장치)
-    const selectedDateTasks =
-        fetchedDateTasksResult && fetchedDateTasksResult.date === selectedDate
-            ? fetchedDateTasksResult.tasks
-            : [];
+    const selectedDateTasks = fetchedDateTasksResult?.tasks ?? [];
 
     const monthDays = useMemo(
         () =>
