@@ -28,12 +28,14 @@ export interface AllRecommendationResponse {
 export interface ThirtyMinutePackTaskItem {
   taskId: number;
   title: string;
+  categoryName: string;
   categoryColor: string;
   categoryIconKey: string;
   currentProgressRate: number;
   remainingEstimatedMinutes: number;
   progressPerMinute: number;
   expectedProgressIncrease: number;
+  memo: string | null;
 }
 
 export interface ThirtyMinutePackRecommendationResponse {

@@ -7,6 +7,7 @@ import { PackTaskTitle } from "./PackTaskTitle";
 
 interface PackTaskContentProps {
   categoryIconKey: CategoryIconKey;
+  categoryName?: string;
   title: string;
   progressDetail: string;
   onPlay?: () => void;
@@ -14,13 +15,17 @@ interface PackTaskContentProps {
 
 export function PackTaskContent({
   categoryIconKey,
+  categoryName,
   title,
   progressDetail,
   onPlay,
 }: PackTaskContentProps) {
   return (
     <div className="flex h-[152px] w-[123px] flex-col items-center">
-      <PackCategoryIcon iconKey={categoryIconKey} />
+      <PackCategoryIcon
+        iconKey={categoryIconKey}
+        categoryName={categoryName}
+      />
       <PackTaskTitle title={title} />
       <PackTaskProgressDetail detail={progressDetail} />
       <PackPlayButton onClick={onPlay} />

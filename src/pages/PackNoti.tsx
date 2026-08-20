@@ -247,8 +247,11 @@ export function PackNoti() {
                 >
                   <PackTaskContent
                     categoryIconKey={resolveCategoryIconKey(task.categoryIconKey)}
+                    categoryName={task.categoryName}
                     title={task.title}
-                    progressDetail={`${task.currentProgressRate}% 진행`}
+                    progressDetail={
+                      task.memo?.trim() || `${task.currentProgressRate}% 진행`
+                    }
                   />
                 </PackProgressCircle>
                 <div
