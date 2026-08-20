@@ -373,7 +373,7 @@ export const CalendarPage = () => {
     };
 
     return (
-        <div className="flex-1 bg-black-900 px-5 pt-5 text-black-100">
+        <div className="flex-1 bg-black-900  text-black-100">
             <div className="flex flex-col gap-5">
                 <CalendarTopBar
                     monthLabel={MONTH_LABELS[currentMonth.getMonth()]}
@@ -383,7 +383,7 @@ export const CalendarPage = () => {
                 />
 
                 <div
-                    className="touch-pan-y"
+                    className="touch-pan-y px-5"
                     onPointerDown={handlePointerDown}
                     onPointerUp={handlePointerUp}
                     onPointerCancel={handlePointerCancel}
