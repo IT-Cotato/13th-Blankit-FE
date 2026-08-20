@@ -85,7 +85,7 @@ export function DateSelectionSheet({
             role="dialog"
             aria-modal="true"
             aria-label="날짜 선택"
-            className="fixed sm:max-w-[375px] mx-auto bottom-0 left-1/2 z-[70] flex max-h-[calc(100dvh-16px)] w-full -translate-x-1/2 flex-col rounded-t-[20px] bg-black-850 p-5 shadow-[0_10px_60px_rgba(0,0,0,0.6)]"
+            className="fixed sm:max-w-[641px] mx-auto bottom-0 left-1/2 z-[70] flex max-h-[calc(100dvh-16px)] w-full -translate-x-1/2 flex-col rounded-t-[20px] bg-black-850 p-5 shadow-[0_10px_60px_rgba(0,0,0,0.6)]"
         >
             <header className="grid h-6 shrink-0 grid-cols-[24px_1fr_24px] items-center">
                 <button

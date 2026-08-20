@@ -77,7 +77,7 @@ export function TimeTableEntrySheet({
 
     return (
         <div
-            className="fixed sm:max-w-[375px] mx-auto inset-0 z-[100] flex items-end justify-center bg-black/60"
+            className="fixed sm:max-w-[641px] mx-auto inset-0 z-[100] flex items-end justify-center bg-black/60"
             onPointerDown={(event) => {
                 if (event.target === event.currentTarget) onClose();
             }}
