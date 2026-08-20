@@ -47,6 +47,7 @@ export function TimeTableCreate() {
     });
 
     let entriesToAdd: TimeTableEntry[] = localEntries;
+    let wasRegistered = false;
 
     try {
       const createdEntries = await createTimetableEntries(
@@ -55,6 +56,7 @@ export function TimeTableCreate() {
       entriesToAdd = createdEntries.map((entry) =>
         mapTimetableResponse(entry, startHour),
       );
+      wasRegistered = createdEntries.length > 0;
     } catch (error) {
       console.error(
         "시간표 추가 API 호출에 실패해 로컬 데이터를 표시합니다.",
@@ -85,7 +87,9 @@ export function TimeTableCreate() {
     }
 
     addEntries(entriesToAdd);
-    navigate("/mypage/timetable");
+    navigate("/mypage/timetable", {
+      state: { showPackPermissionModal: wasRegistered },
+    });
   };
 
   return (
