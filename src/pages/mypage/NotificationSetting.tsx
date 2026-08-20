@@ -154,11 +154,17 @@ export function NotificationSetting() {
     }
   }
 
-  function requestToggle(key: keyof NotificationSettings) {
+  async function requestToggle(key: keyof NotificationSettings) {
     if (isLoading) return;
 
     if (settings[key]) {
-      void toggleSetting(key);
+      await toggleSetting(key);
+      return;
+    }
+
+    // Pack 알림은 설정 화면에서 직접 켜며 별도 안내 모달을 띄우지 않는다.
+    if (key === 'is30minPackAlarmEnabled') {
+      await toggleSetting(key);
       return;
     }
 
@@ -199,18 +205,15 @@ export function NotificationSetting() {
           description="과업 마감 전에 알림을 받아보세요"
           enabled={settings.isServiceAlarmEnabled}
           onToggle={() => {
-            requestToggle('isServiceAlarmEnabled');
+            void requestToggle('isServiceAlarmEnabled');
           }}
         />
         <NotificationSettingItem
           name="30분 Pack! 알림"
           description="자투리 시간에 할 만한 과업을 추천해드려요"
           enabled={settings.is30minPackAlarmEnabled}
-          onContentClick={() => {
-            navigate('/pack-noti?availableMinutes=30');
-          }}
           onToggle={() => {
-            requestToggle('is30minPackAlarmEnabled');
+            void requestToggle('is30minPackAlarmEnabled');
           }}
         />
 

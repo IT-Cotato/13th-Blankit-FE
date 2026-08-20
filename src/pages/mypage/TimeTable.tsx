@@ -7,7 +7,12 @@ import { TimeTableDeleteModal } from "@/components/mypage/timetable/TimeTableDel
 import { TimeTableDetailSheet } from "@/components/mypage/timetable/TimeTableDetailSheet";
 import { TimeTableEntrySheet } from "@/components/mypage/timetable/TimeTableEntrySheet";
 import { WeeklyTimeTable } from "@/components/mypage/timetable/WeeklyTimeTable";
+import { NotificationPermissionModal } from "@/components/notification/NotificationPermissionModal";
 import { useTimeTableStore, type TimeTableEntry } from "@/store/useTimeTableStore";
+import {
+  getNotificationSettings,
+  updateNotificationSettings,
+} from "@/api/mypage/notifications";
 import {
   deleteTimetableEntry,
   getTimetable,
@@ -19,6 +24,7 @@ import {
   mapTimetableRequest,
   mapTimetableResponse,
 } from "@/utils/timetableApiMapper";
+import { ensurePushSubscription } from "@/utils/pushSubscription";
 
 type ActionIconProps = {
   src: string;
@@ -65,6 +71,11 @@ export function TimeTable() {
   const [selectedEntry, setSelectedEntry] = useState<TimeTableEntry | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [isPackModalOpen, setIsPackModalOpen] = useState(
+    location.state?.showPackPermissionModal === true,
+  );
+  const [isPackPermissionSubmitting, setIsPackPermissionSubmitting] =
+    useState(false);
   const [editEntries, setEditEntries] = useState<
     Omit<TimeTableEntry, "id">[]
   >([]);
@@ -82,6 +93,18 @@ export function TimeTable() {
             first.startSlot - second.startSlot,
         )
     : [];
+
+  useEffect(() => {
+    if (location.state?.showPackPermissionModal === true) {
+      navigate(location.pathname, {
+        replace: true,
+        state: {
+          ...location.state,
+          showPackPermissionModal: false,
+        },
+      });
+    }
+  }, [location.pathname, location.state, navigate]);
 
   useEffect(() => {
     if (skipInitialRefreshRef.current) {
@@ -278,6 +301,43 @@ export function TimeTable() {
           }}
         />
       )}
+
+      <NotificationPermissionModal
+        open={isPackModalOpen}
+        submitting={isPackPermissionSubmitting}
+        title="자투리 시간 PACK!"
+        description="알림을 허용하면 자투리 시간에 할 수 있는 과업을 추천해드릴게요."
+        onAllow={() => {
+          if (isPackPermissionSubmitting) return;
+
+          void (async () => {
+            setIsPackPermissionSubmitting(true);
+
+            try {
+              const settings = await getNotificationSettings();
+
+              if (!settings.is30minPackAlarmEnabled) {
+                await ensurePushSubscription();
+                await updateNotificationSettings({
+                  ...settings,
+                  is30minPackAlarmEnabled: true,
+                });
+              }
+
+              setIsPackModalOpen(false);
+            } catch (error) {
+              console.error("30분 Pack 알림을 설정하지 못했습니다.", error);
+            } finally {
+              setIsPackPermissionSubmitting(false);
+            }
+          })();
+        }}
+        onClose={() => {
+          if (!isPackPermissionSubmitting) {
+            setIsPackModalOpen(false);
+          }
+        }}
+      />
     </div>
   );
 }

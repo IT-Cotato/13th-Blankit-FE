@@ -114,13 +114,13 @@ export function TimeTableEntrySheet({
                             value={title}
                             onChange={(event) => setTitle(event.target.value)}
                             placeholder="제목(필수 입력)"
-                            className="h-[42px] w-full self-stretch rounded-md border-0 bg-black-800 px-3 py-1 text-left text-sm font-medium leading-[150%] tracking-[-0.21px] text-black-100 outline-none placeholder:text-black-600"
+                            className="h-[42px] w-full self-stretch rounded-md border-0 bg-black-800 px-3 py-1 text-left text-base font-medium leading-[150%] tracking-[-0.21px] text-black-100 outline-none placeholder:text-black-600"
                         />
                         <input
                             value={place}
                             onChange={(event) => setPlace(event.target.value)}
                             placeholder="장소(선택 입력)"
-                            className="h-[42px] w-full rounded-md border-0 bg-black-800 px-3 text-sm font-medium tracking-[-0.21px] text-black-100 outline-none placeholder:text-black-600"
+                            className="h-[42px] w-full rounded-md border-0 bg-black-800 px-3 text-base font-medium tracking-[-0.21px] text-black-100 outline-none placeholder:text-black-600"
                         />
 
                         <TimeTableColorPicker

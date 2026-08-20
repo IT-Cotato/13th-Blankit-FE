@@ -96,7 +96,10 @@ export function EverytimeTimeTableLink() {
       );
       navigate("/mypage/timetable", {
         replace: true,
-        state: { skipInitialTimetableRefresh: true },
+        state: {
+          skipInitialTimetableRefresh: true,
+          showPackPermissionModal: true,
+        },
       });
     } catch (error) {
       const message = axios.isAxiosError<ApiEnvelope<unknown>>(error)

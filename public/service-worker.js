@@ -1,4 +1,4 @@
-const CACHE_NAME = 'blankit-v5';
+const CACHE_NAME = 'blankit-v6';
 
 console.log('[SW] 현재 Service Worker 실행:', CACHE_NAME);
 
@@ -23,6 +23,22 @@ function sameOriginUrl(value) {
   } catch {
     return null;
   }
+}
+
+function addPushEntryMarker(value) {
+  const safeUrl = sameOriginUrl(value);
+
+  if (!safeUrl) {
+    return '/';
+  }
+
+  const url = new URL(safeUrl, self.location.origin);
+
+  if (url.pathname === '/pack-noti') {
+    url.searchParams.set('source', 'push');
+  }
+
+  return `${url.pathname}${url.search}`;
 }
 
 self.addEventListener('install', (event) => {
@@ -349,7 +365,7 @@ self.addEventListener(
       notificationData?.FCM_MSG?.data?.url ??
       notificationData?.FCM_MSG?.fcmOptions?.link ??
       '/';
-    const targetUrl = sameOriginUrl(requestedUrl) ?? '/';
+    const targetUrl = addPushEntryMarker(requestedUrl);
 
     event.waitUntil(
       self.clients
