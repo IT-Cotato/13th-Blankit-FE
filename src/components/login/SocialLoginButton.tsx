@@ -6,6 +6,7 @@ interface SocialLoginButtonProps {
     backgroundColor: string;
     textColor: string;
     onClick: () => void;
+    disabled?: boolean;
 }
 
 export const SocialLoginButton = ({
@@ -14,12 +15,14 @@ export const SocialLoginButton = ({
     backgroundColor,
     textColor,
     onClick,
+    disabled = false,
 }: SocialLoginButtonProps) => {
     return (
         <button
             type="button"
             onClick={onClick}
-            className="flex h-[42px] w-full items-center justify-center gap-2 self-stretch rounded-lg px-[30px] pb-[11px] pt-[10px]"
+            disabled={disabled}
+            className="flex h-[42px] w-full items-center justify-center gap-2 self-stretch rounded-lg px-[30px] pb-[11px] pt-[10px] disabled:cursor-not-allowed"
             style={{ backgroundColor, color: textColor }}
         >
             {icon}

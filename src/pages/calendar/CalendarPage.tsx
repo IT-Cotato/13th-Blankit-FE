@@ -140,24 +140,12 @@ export const CalendarPage = () => {
 
                 if (isCancelled) return;
 
-                // // === 테스트 로그: API 원본 응답 확인 ===
-                // console.log("[monthlyStats] raw result:", result);
-                // console.log(
-                //     "[monthlyStats] date keys from API:",
-                //     result.dailyStats.map((s) => s.date),
-                // );
-                // // === 테스트 ===
-
                 const statsByDate = result.dailyStats.reduce<
                     Record<string, DailyStat>
                 >((accumulator, stat) => {
                     accumulator[stat.date] = stat;
                     return accumulator;
                 }, {});
-
-                // // === 테스트 ===
-                // console.log("[monthlyStats] statsByDate map:", statsByDate);
-                // // === 테스트 ===
 
                 // 기존에 로드해둔 다른 달 데이터는 유지하고, 이번 달 데이터만 추가/갱신
                 setDailyStatsByDate((prev) => ({ ...prev, ...statsByDate }));
