@@ -140,24 +140,12 @@ export const CalendarPage = () => {
 
                 if (isCancelled) return;
 
-                // // === 테스트 로그: API 원본 응답 확인 ===
-                // console.log("[monthlyStats] raw result:", result);
-                // console.log(
-                //     "[monthlyStats] date keys from API:",
-                //     result.dailyStats.map((s) => s.date),
-                // );
-                // // === 테스트 ===
-
                 const statsByDate = result.dailyStats.reduce<
                     Record<string, DailyStat>
                 >((accumulator, stat) => {
                     accumulator[stat.date] = stat;
                     return accumulator;
                 }, {});
-
-                // // === 테스트 ===
-                // console.log("[monthlyStats] statsByDate map:", statsByDate);
-                // // === 테스트 ===
 
                 // 기존에 로드해둔 다른 달 데이터는 유지하고, 이번 달 데이터만 추가/갱신
                 setDailyStatsByDate((prev) => ({ ...prev, ...statsByDate }));
@@ -274,17 +262,9 @@ export const CalendarPage = () => {
         };
     }, [selectedDate]);
 
-    const selectedDailyFeedback =
-        dailyFeedbackResult && dailyFeedbackResult.date === selectedDate
-            ? dailyFeedbackResult.data
-            : null;
+    const selectedDailyFeedback = dailyFeedbackResult?.data ?? null;
 
-    // selectedDate와 응답의 date가 일치할 때만 노출, 그 외엔 빈 배열
-    // (dailyFeedbackResult와 동일한 패턴 - isCancelled 가드에 더한 이중 안전장치)
-    const selectedDateTasks =
-        fetchedDateTasksResult && fetchedDateTasksResult.date === selectedDate
-            ? fetchedDateTasksResult.tasks
-            : [];
+    const selectedDateTasks = fetchedDateTasksResult?.tasks ?? [];
 
     const monthDays = useMemo(
         () =>
@@ -373,7 +353,7 @@ export const CalendarPage = () => {
     };
 
     return (
-        <div className="flex-1 bg-black-900 px-5 pt-5 text-black-100">
+        <div className="flex-1 bg-black-900  text-black-100">
             <div className="flex flex-col gap-5">
                 <CalendarTopBar
                     monthLabel={MONTH_LABELS[currentMonth.getMonth()]}
@@ -383,7 +363,7 @@ export const CalendarPage = () => {
                 />
 
                 <div
-                    className="touch-pan-y"
+                    className="touch-pan-y px-5"
                     onPointerDown={handlePointerDown}
                     onPointerUp={handlePointerUp}
                     onPointerCancel={handlePointerCancel}
@@ -393,6 +373,8 @@ export const CalendarPage = () => {
                         selectedDate={selectedDate}
                         viewMode={viewMode}
                         onSelectDate={handleSelectDate}
+                        onPrevMonth={() => goToMonth(-1)}
+                        onNextMonth={() => goToMonth(1)}
                     />
                 </div>
             </div>

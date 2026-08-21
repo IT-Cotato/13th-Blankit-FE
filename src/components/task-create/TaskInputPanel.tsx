@@ -56,7 +56,7 @@ export function TaskInputPanel({
             aria-modal="true"
             aria-label={editing ? "과업 수정" : "과업 추가"}
             aria-hidden={!visible}
-            className={`fixed sm:max-w-[375px] mx-auto inset-x-0 bottom-0 z-[70] min-h-[150px] rounded-t-[24px] bg-black-850 px-5 pb-5 pt-6 transition-opacity ${
+            className={`fixed sm:max-w-[641px] mx-auto inset-x-0 bottom-0 z-[70] min-h-[150px] rounded-t-[24px] bg-black-850 px-5 pb-5 pt-6 transition-opacity ${
                 visible ? "opacity-100" : "pointer-events-none opacity-0"
             }`}
         >

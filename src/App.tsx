@@ -192,7 +192,7 @@ function App() {
     }
 
     return (
-        <>
+        <div className="min-h-dvh bg-black-900">
             <main className={mainClassName}>
                 <Routes>
                     <Route
@@ -360,7 +360,7 @@ function App() {
                 aboveBottomNavigation={pageHasBottomNavigation}
                 bottom={toastBottom}
             />
-        </>
+        </div>
     );
 }
 

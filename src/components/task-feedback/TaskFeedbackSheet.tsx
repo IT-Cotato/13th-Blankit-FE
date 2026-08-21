@@ -210,7 +210,7 @@ export function TaskFeedbackSheet({
 
     return (
         <>
-            <div className="fixed sm:max-w-[375px] mx-auto inset-0 z-[55] flex items-end bg-black/60">
+            <div className="fixed sm:max-w-[641px] mx-auto inset-0 z-[55] flex items-end bg-black/60">
                 <section
                     role="dialog"
                     aria-modal="true"

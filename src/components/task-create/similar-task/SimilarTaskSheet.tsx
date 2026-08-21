@@ -41,7 +41,7 @@ export function SimilarTaskSheet({
             role="dialog"
             aria-modal="true"
             aria-label="비슷한 과업 선택 화면"
-            className="fixed sm:max-w-[375px] mx-auto inset-0 z-[80] flex flex-col rounded-t-[24px] bg-black-850 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]"
+            className="fixed sm:max-w-[641px] mx-auto inset-0 z-[80] flex flex-col rounded-t-[24px] bg-black-850 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]"
         >
             <header className="relative flex h-[58px] shrink-0 items-center justify-center px-5">
                 <button

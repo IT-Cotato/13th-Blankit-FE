@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { CalendarDateBadge } from "@/components/calendar/CalendarDateBadge";
 import { CalendarEmptyState } from "@/components/calendar/CalendarEmptyState";
 import { CalendarTaskCard } from "@/components/calendar/CalendarTaskCard";
@@ -12,11 +13,7 @@ interface CalendarTaskSheetProps {
     selectedDate: string | null;
     tasks: TaskListResponse[];
     viewMode: CalendarViewMode;
-    // 통계 모드에서 선택 날짜의 상세 데이터. 아직 fetch 전이거나 로딩 중이면 null.
     dailyFeedback: DailyFeedbackData | null;
-    // 선택 날짜의 월별 요약 통계 (actualMinutes/recommendedMinutes).
-    // viewMode와 무관하게 항상 존재할 수 있는 데이터라, 날짜 뱃지 채움 비율은
-    // 이 값을 기준으로 계산합니다. 데이터가 아직 없으면 null.
     dailyStat: DailyStat | null;
     onTaskClick?: (taskId: string) => void;
 }
@@ -33,6 +30,26 @@ export const CalendarTaskSheet = ({
         useBottomSheetSnap({
             contentBottomSelector: "#calendar-grid",
         });
+
+    // EmptyState의 내부 레이아웃 선택(flex-row/flex-col)과 무관하게 정해지는,
+    // 콘텐츠 영역 자체의 가용 높이. sheetHeight(드래그로 결정)에서 파생되므로
+    // 자기참조 없이 안정적으로 측정 가능
+    const contentAreaRef = useRef<HTMLDivElement>(null);
+    const [contentAreaHeight, setContentAreaHeight] = useState(0);
+
+    useEffect(() => {
+        const element = contentAreaRef.current;
+        if (!element) return;
+
+        const resizeObserver = new ResizeObserver((entries) => {
+            const entry = entries[0];
+            if (!entry) return;
+            setContentAreaHeight(entry.contentRect.height);
+        });
+
+        resizeObserver.observe(element);
+        return () => resizeObserver.disconnect();
+    }, []);
 
     const isListScrollable = isFull && !isDragging;
 
@@ -51,7 +68,7 @@ export const CalendarTaskSheet = ({
 
     return (
         <div
-            className="fixed sm:max-w-[375px] mx-auto inset-x-0 z-60 flex justify-center"
+            className="fixed sm:max-w-[641px] mx-auto inset-x-0 z-60 flex justify-center"
             style={{ bottom: navBarHeight }}
         >
             <div
@@ -78,6 +95,7 @@ export const CalendarTaskSheet = ({
                 </div>
 
                 <div
+                    ref={contentAreaRef}
                     className={`mt-4 flex w-full flex-1 flex-col items-start gap-3 ${
                         isListScrollable ? "overflow-y-auto" : "overflow-hidden"
                     }`}
@@ -85,6 +103,7 @@ export const CalendarTaskSheet = ({
                     {showEmptyState ? (
                         <CalendarEmptyState
                             recommendedMinutes={fillMinutes.recommendedMinutes}
+                            availableHeight={contentAreaHeight}
                         />
                     ) : viewMode === "stats" ? (
                         <ul className="flex w-full flex-col gap-3">
