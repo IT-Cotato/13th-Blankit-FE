@@ -17,6 +17,7 @@ import {
   mapTimetableRequest,
   mapTimetableResponse,
 } from "@/utils/timetableApiMapper";
+import { calculateTimetableEndHour } from "@/utils/timetableDisplayRange";
 
 type DraftEntry = Omit<TimeTableEntry, "id">;
 
@@ -64,15 +65,11 @@ export function TimeTableCreate() {
       );
     }
 
-    const latestEndMinutes = Math.max(
-      ...localEntries.map(
-        (entry) => startHour * 60 + (entry.endSlot + 1) * 5,
-      ),
+    const calculatedEndHour = calculateTimetableEndHour(
+      [...savedEntries, ...entriesToAdd],
+      startHour,
     );
-    const expandedEndHour = Math.min(
-      24,
-      Math.max(endHour, Math.ceil(latestEndMinutes / 60)),
-    );
+    const expandedEndHour = Math.max(endHour, calculatedEndHour);
 
     if (expandedEndHour > endHour) {
       try {
