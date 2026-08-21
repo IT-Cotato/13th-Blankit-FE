@@ -123,42 +123,35 @@ export const LoginPage = ({
         return <Navigate to="/" replace />;
     }
     return (
-        <div className="flex h-full min-h-0 flex-col items-center bg-black-900">
-            <main className="flex w-full min-h-0 flex-1 flex-col items-center ">
-                <div className="flex min-h-0 w-full flex-1 items-center justify-center">
-                    <img
-                        src={logoImage}
-                        alt="Blankit 로고"
-                        className="h-[81.85px] w-[81.66px] shrink-0"
-                    />
-                </div>
-
-                {/* nav: 남는 공간의 나머지를 흡수, 버튼은 nav 하단 정렬 */}
-                <nav
-                    ref={navRef}
-                    aria-label="소셜 로그인"
-                    className="flex min-h-0 w-[163px] max-h-[220px] flex-1 flex-col items-center justify-center gap-5 pb-8"
-                >
-                    <SocialLoginButton
-                        icon={
-                            <img src={googleIcon} alt="" className="h-5 w-5" />
-                        }
-                        label="구글로 로그인"
-                        backgroundColor="var(--color-black-100)"
-                        textColor="var(--color-black-850)"
-                        onClick={handleGoogleLogin}
-                    />
-                    <SocialLoginButton
-                        icon={
-                            <img src={kakaoIcon} alt="" className="h-5 w-5" />
-                        }
-                        label="카카오로 로그인"
-                        backgroundColor="#FEE500"
-                        textColor="var(--color-black-850)"
-                        onClick={handleKakaoLogin}
-                    />
-                </nav>
-            </main>
+        <div className="flex min-h-dvh w-full flex-col items-center bg-black-900">
+            <div className="flex min-h-0 w-full flex-1 items-center justify-center">
+                <img
+                    src={logoImage}
+                    alt="Blankit 로고"
+                    className="h-[81.85px] w-[81.66px] shrink-0"
+                />
+            </div>
+            {/* nav: 남는 공간의 나머지를 흡수, 버튼은 nav 하단 정렬 */}
+            <nav
+                ref={navRef}
+                aria-label="소셜 로그인"
+                className="flex min-h-0 w-[163px] max-h-[220px] flex-1 flex-col items-center justify-center gap-5 pb-8"
+            >
+                <SocialLoginButton
+                    icon={<img src={googleIcon} alt="" className="h-5 w-5" />}
+                    label="구글로 로그인"
+                    backgroundColor="var(--color-black-100)"
+                    textColor="var(--color-black-850)"
+                    onClick={handleGoogleLogin}
+                />
+                <SocialLoginButton
+                    icon={<img src={kakaoIcon} alt="" className="h-5 w-5" />}
+                    label="카카오로 로그인"
+                    backgroundColor="#FEE500"
+                    textColor="var(--color-black-850)"
+                    onClick={handleKakaoLogin}
+                />
+            </nav>
 
             {isProcessingCallback && <LoadingOverlay />}
         </div>

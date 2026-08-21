@@ -192,7 +192,7 @@ function App() {
     }
 
     return (
-        <div className="min-h-screen bg-black-900">
+        <div className="min-h-dvh bg-black-900">
             <main className={mainClassName}>
                 <Routes>
                     <Route
