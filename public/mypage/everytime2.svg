@@ -1,5 +1,10 @@
 <svg width="333" height="290" viewBox="0 0 333 290" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <path d="M0 0H333V278C333 284.627 327.627 290 321 290H12C5.37258 290 0 284.627 0 278V0Z" fill="url(#pattern0_2012_40192)"/>
+<g aria-label="2단계: URL 복사 선택">
+<rect x="11" y="166" width="311" height="38" rx="6" fill="#FF4D5A" fill-opacity="0.12" stroke="#FF4D5A" stroke-width="2"/>
+<circle cx="321" cy="166" r="10" fill="#FF4D5A"/>
+<text x="321" y="166" fill="white" font-family="Arial, sans-serif" font-size="12" font-weight="700" text-anchor="middle" dominant-baseline="central">2</text>
+</g>
 <defs>
 <pattern id="pattern0_2012_40192" patternContentUnits="objectBoundingBox" width="1" height="1">
 <use xlink:href="#image0_2012_40192" transform="matrix(0.000829759 0 0 0.000951491 -0.00034448 -1.27412)"/>
