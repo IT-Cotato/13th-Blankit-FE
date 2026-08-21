@@ -28,16 +28,11 @@ let reissuePromise: Promise<{
 }> | null = null;
 
 // 요청 보낼 때마다 accessToken이 있으면 자동으로 Authorization 헤더에 첨부
-// 토큰 콘솔 출력(테스트용)
 apiClient.interceptors.request.use((config) => {
     const accessToken = useAuthStore.getState().accessToken;
 
     if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
-
-        if (import.meta.env.DEV) {
-            console.log("[apiClient] accessToken 첨부:", accessToken);
-        }
     }
 
     return config;
