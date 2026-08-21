@@ -40,7 +40,7 @@ export const LoginPage = ({
 
     const [isProcessingCallback, setIsProcessingCallback] = useState(() => {
         const searchParameters = new URLSearchParams(window.location.search);
-        const hasKakaoCode = searchParameters.has("code");
+        const hasKakaoCode = Boolean(searchParameters.get("code"));
         const hasGoogleIdToken =
             parseGoogleIdTokenFromHash(window.location.hash) !== null;
         return hasKakaoCode || hasGoogleIdToken;
@@ -143,6 +143,7 @@ export const LoginPage = ({
                     backgroundColor="var(--color-black-100)"
                     textColor="var(--color-black-850)"
                     onClick={handleGoogleLogin}
+                    disabled={isProcessingCallback}
                 />
                 <SocialLoginButton
                     icon={<img src={kakaoIcon} alt="" className="h-5 w-5" />}
