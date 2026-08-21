@@ -192,10 +192,7 @@ function App() {
     }
 
     return (
-        <div
-            className="min-h-screen bg-black-900"
-            style={{ paddingTop: "env(safe-area-inset-top)" }}
-        >
+        <div className="min-h-screen bg-black-900">
             <main className={mainClassName}>
                 <Routes>
                     <Route
