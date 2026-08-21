@@ -123,7 +123,7 @@ export const LoginPage = ({
         return <Navigate to="/" replace />;
     }
     return (
-        <div className="flex h-dvh min-h-dvh flex-col items-center bg-black-900">
+        <div className="flex h-full min-h-0 flex-col items-center bg-black-900">
             <main className="flex w-full min-h-0 flex-1 flex-col items-center ">
                 <div className="flex min-h-0 w-full flex-1 items-center justify-center">
                     <img
