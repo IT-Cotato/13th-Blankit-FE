@@ -64,7 +64,7 @@ export function CategoryFormSheet({
             role="dialog"
             aria-modal="true"
             aria-label={mode === "create" ? "카테고리 추가" : "카테고리 수정"}
-            className="fixed sm:max-w-[375px] mx-auto inset-x-0 z-[70] overflow-y-auto overscroll-contain rounded-t-[24px] bg-black-850 px-5 pb-6 pt-5"
+            className="fixed sm:max-w-[641px] mx-auto inset-x-0 z-[70] overflow-y-auto overscroll-contain rounded-t-[24px] bg-black-850 px-5 pb-6 pt-5"
             style={{
                 bottom: keyboardInset,
                 maxHeight: Math.max(0, viewportHeight - 12),

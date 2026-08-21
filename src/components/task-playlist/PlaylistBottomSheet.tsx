@@ -216,7 +216,7 @@ export function PlaylistBottomSheet({
                 onPointerCancel={(event) => {
                     event.stopPropagation();
                 }}
-                className={`fixed sm:max-w-[375px] mx-auto bottom-[90px] left-0 right-0 z-40 rounded-t-[16px] bg-black-850 transition-[height] duration-300 ${
+                className={`fixed sm:max-w-[641px] mx-auto bottom-[90px] left-0 right-0 z-40 rounded-t-[16px] bg-black-850 transition-[height] duration-300 ${
                     open ? "h-[calc(100dvh-154px)]" : "h-[72px]"
                 }`}
             >

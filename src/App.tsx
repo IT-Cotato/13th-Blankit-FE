@@ -192,7 +192,10 @@ function App() {
     }
 
     return (
-        <>
+        <div
+            className="min-h-screen bg-black-900"
+            style={{ paddingTop: "env(safe-area-inset-top)" }}
+        >
             <main className={mainClassName}>
                 <Routes>
                     <Route
@@ -360,7 +363,7 @@ function App() {
                 aboveBottomNavigation={pageHasBottomNavigation}
                 bottom={toastBottom}
             />
-        </>
+        </div>
     );
 }
 

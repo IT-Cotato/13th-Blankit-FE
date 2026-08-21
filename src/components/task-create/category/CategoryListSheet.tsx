@@ -35,7 +35,7 @@ export function CategoryListSheet({
             role="dialog"
             aria-modal="true"
             aria-label="카테고리 선택"
-            className="fixed sm:max-w-[375px] mx-auto inset-x-0 bottom-0 z-[70] max-h-[calc(100dvh-16px)] min-h-[260px] overflow-y-auto overscroll-contain rounded-t-[24px] bg-black-850 px-5 pb-6 pt-5"
+            className="fixed sm:max-w-[641px] mx-auto inset-x-0 bottom-0 z-[70] max-h-[calc(100dvh-16px)] min-h-[260px] overflow-y-auto overscroll-contain rounded-t-[24px] bg-black-850 px-5 pb-6 pt-5"
         >
             <header className="flex items-center gap-3">
                 <button

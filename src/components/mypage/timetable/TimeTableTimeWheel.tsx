@@ -226,7 +226,7 @@ export function TimeTableTimeWheel({
     return (
         <div className="fixed inset-0 z-[120] flex items-end justify-center bg-black/60">
             <section
-                className="flex w-full sm:max-w-[375px] flex-col items-start gap-5 rounded-t-xl bg-black-850 px-5 pb-5 pt-[21px]"
+                className="flex w-full sm:max-w-[641px] flex-col items-start gap-5 rounded-t-xl bg-black-850 px-5 pb-5 pt-[21px]"
                 style={{ height: "34.4dvh" }}
             >
                 <div className="flex h-6 w-full shrink-0 items-center justify-between">

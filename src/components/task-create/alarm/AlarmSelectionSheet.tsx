@@ -26,7 +26,7 @@ export function AlarmSelectionSheet({
                 role="dialog"
                 aria-modal="true"
                 aria-label="알림 선택"
-                className="fixed sm:max-w-[375px] mx-auto bottom-0 left-1/2 z-[70] flex min-h-[260px] w-full -translate-x-1/2 flex-col rounded-t-[20px] bg-black-850 px-5 pb-[calc(48px+env(safe-area-inset-bottom))] pt-5 shadow-[0_10px_60px_rgba(0,0,0,0.6)]"
+                className="fixed sm:max-w-[641px] mx-auto bottom-0 left-1/2 z-[70] flex min-h-[260px] w-full -translate-x-1/2 flex-col rounded-t-[20px] bg-black-850 px-5 pb-[calc(48px+env(safe-area-inset-bottom))] pt-5 shadow-[0_10px_60px_rgba(0,0,0,0.6)]"
             >
                 <h2 className="text-center text-[16px] font-medium leading-[150%] text-black-100">
                     일정 알림
