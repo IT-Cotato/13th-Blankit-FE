@@ -245,10 +245,10 @@ export function WeeklyTimeTable({
                 }}
                 style={{
                   backgroundColor: entry.color ?? "#32DE56",
-                  left: `${(entry.dayIndex / DAYS.length) * 100}%`,
-                  top: `${(entry.startSlot / timeSlotCount) * 100}%`,
-                  width: `${100 / DAYS.length}%`,
-                  height: `${(selectedSlotCount / timeSlotCount) * 100}%`,
+                  left: `calc(${(entry.dayIndex / DAYS.length) * 100}% + 0.5px)`,
+                  top: `calc(${(entry.startSlot / timeSlotCount) * 100}% + 0.5px)`,
+                  width: `calc(${100 / DAYS.length}% - 1px)`,
+                  height: `calc(${(selectedSlotCount / timeSlotCount) * 100}% - 1px)`,
                 }}
               >
                 {entry.title && (

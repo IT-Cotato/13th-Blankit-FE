@@ -25,6 +25,7 @@ import {
   mapTimetableResponse,
 } from "@/utils/timetableApiMapper";
 import { ensurePushSubscription } from "@/utils/pushSubscription";
+import { calculateTimetableEndHour } from "@/utils/timetableDisplayRange";
 
 type ActionIconProps = {
   src: string;
@@ -213,15 +214,9 @@ export function TimeTable() {
               removeSchedule(selectedScheduleId);
 
               if (remainingEntries.length > 0) {
-                const latestEndMinutes = Math.max(
-                  ...remainingEntries.map(
-                    (entry) =>
-                      startHour * 60 + (entry.endSlot + 1) * 5,
-                  ),
-                );
-                const nextEndHour = Math.min(
-                  24,
-                  Math.max(startHour + 1, Math.ceil(latestEndMinutes / 60)),
+                const nextEndHour = calculateTimetableEndHour(
+                  remainingEntries,
+                  startHour,
                 );
 
                 if (nextEndHour !== endHour) {
@@ -266,7 +261,16 @@ export function TimeTable() {
           onClose={() => setIsEditSheetOpen(false)}
           onComplete={async (details) => {
             const nextEntries = editEntries.map((entry, index) => {
-              const scheduleId = entry.scheduleId ?? `${Date.now()}-${index}`;
+              const originalEntry = selectedSubjectEntries[index];
+              const scheduleId =
+                entry.scheduleId ??
+                originalEntry?.scheduleId ??
+                originalEntry?.id;
+
+              if (!scheduleId) {
+                throw new Error("수정할 시간표 ID를 찾을 수 없습니다.");
+              }
+
               return {
                 ...entry,
                 ...details,

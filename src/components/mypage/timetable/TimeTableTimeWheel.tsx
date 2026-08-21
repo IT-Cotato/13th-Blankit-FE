@@ -211,6 +211,7 @@ export function TimeTableTimeWheel({
         );
 
         onComplete({
+            ...initialEntry,
             dayIndex,
             startSlot: Math.max(
                 0,

@@ -26,8 +26,14 @@ export function TimeTableDataSetting({ onReset }: TimeTableDataSettingProps) {
       >
         <span
           aria-hidden="true"
-          className="h-10 w-10 shrink-0 rounded-md bg-black-700 [aspect-ratio:1/1]"
-        />
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-black-800 [aspect-ratio:1/1]"
+        >
+          <img
+            src="/mypage/reset.svg"
+            alt=""
+            className="h-5 w-5 shrink-0"
+          />
+        </span>
 
         <span className="min-w-0">
           <span className="block text-left text-sm font-medium leading-[150%] tracking-[-0.21px] text-black-100">
@@ -50,8 +56,16 @@ export function TimeTableDataSetting({ onReset }: TimeTableDataSettingProps) {
       >
         <span
           aria-hidden="true"
-          className="h-10 w-10 shrink-0 rounded-md bg-black-700 [aspect-ratio:1/1]"
-        />
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-black-800 [aspect-ratio:1/1]"
+        >
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center gap-2.5 py-0.5">
+            <img
+              src="/mypage/timetable.svg"
+              alt=""
+              className="h-5 w-5 shrink-0"
+            />
+          </span>
+        </span>
         <span className="min-w-0 text-center text-sm font-medium leading-[150%] tracking-[-0.21px] text-black-100">
           에브리타임 시간표 연동
         </span>
