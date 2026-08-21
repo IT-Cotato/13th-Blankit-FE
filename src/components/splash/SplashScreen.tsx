@@ -17,7 +17,7 @@ export const SplashScreen = ({ onFinish }: SplashScreenProps) => {
 
     return (
         <div
-            className="flex h-dvh flex-col overflow-y-auto bg-black-900"
+            className="fixed inset-0 flex flex-col overflow-hidden bg-black-900"
             style={{
                 paddingTop: "env(safe-area-inset-top)",
                 paddingBottom: "env(safe-area-inset-bottom)",
@@ -27,7 +27,7 @@ export const SplashScreen = ({ onFinish }: SplashScreenProps) => {
                 <img
                     src={splashGif}
                     alt="Blankit 로고"
-                    className="h-[min(192px,28dvh)] w-[min(192px,28dvh)]"
+                    className="h-[min(192px,28vh)] w-[min(192px,28vh)]"
                 />
             </div>
             <p className="flex-shrink-0 pb-17.5 text-center text-[14px] font-normal leading-[150%] tracking-[-0.21px] text-black-650">
