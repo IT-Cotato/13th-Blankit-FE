@@ -7,7 +7,6 @@ interface ApiResponse<T> {
     data: T;
 }
 
-// 스웨거 스펙 기준 경로 — stats 쪽 엔드포인트들과 달리 /v1 접두사가 없음 (백엔드 확인 필요할 수 있음)
 const MONTHLY_CALENDAR_TASKS_ENDPOINT_PATH = "/api/tasks/calendar";
 
 export const fetchMonthlyCalendarTasks = async (

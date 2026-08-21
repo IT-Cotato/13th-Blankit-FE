@@ -274,17 +274,9 @@ export const CalendarPage = () => {
         };
     }, [selectedDate]);
 
-    const selectedDailyFeedback =
-        dailyFeedbackResult && dailyFeedbackResult.date === selectedDate
-            ? dailyFeedbackResult.data
-            : null;
+    const selectedDailyFeedback = dailyFeedbackResult?.data ?? null;
 
-    // selectedDate와 응답의 date가 일치할 때만 노출, 그 외엔 빈 배열
-    // (dailyFeedbackResult와 동일한 패턴 - isCancelled 가드에 더한 이중 안전장치)
-    const selectedDateTasks =
-        fetchedDateTasksResult && fetchedDateTasksResult.date === selectedDate
-            ? fetchedDateTasksResult.tasks
-            : [];
+    const selectedDateTasks = fetchedDateTasksResult?.tasks ?? [];
 
     const monthDays = useMemo(
         () =>
@@ -373,7 +365,7 @@ export const CalendarPage = () => {
     };
 
     return (
-        <div className="flex-1 bg-black-900 px-5 pt-5 text-black-100">
+        <div className="flex-1 bg-black-900  text-black-100">
             <div className="flex flex-col gap-5">
                 <CalendarTopBar
                     monthLabel={MONTH_LABELS[currentMonth.getMonth()]}
@@ -383,7 +375,7 @@ export const CalendarPage = () => {
                 />
 
                 <div
-                    className="touch-pan-y"
+                    className="touch-pan-y px-5"
                     onPointerDown={handlePointerDown}
                     onPointerUp={handlePointerUp}
                     onPointerCancel={handlePointerCancel}
@@ -393,6 +385,8 @@ export const CalendarPage = () => {
                         selectedDate={selectedDate}
                         viewMode={viewMode}
                         onSelectDate={handleSelectDate}
+                        onPrevMonth={() => goToMonth(-1)}
+                        onNextMonth={() => goToMonth(1)}
                     />
                 </div>
             </div>
