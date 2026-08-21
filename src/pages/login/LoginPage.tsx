@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 
 import googleIcon from "@/assets/icons/social/google-icon.svg";
@@ -20,6 +20,7 @@ import {
     buildKakaoAuthUrl,
     fetchKakaoSocialAuthResult,
 } from "@/api/socialAuth/kakao";
+import { LoadingOverlay } from "@/components/common/LoadingOverlay";
 
 interface LoginPageProps {
     onShowToast: (message: string) => void;
@@ -36,6 +37,14 @@ export const LoginPage = ({
     const { processSocialAuthResult } = useSocialAuth();
     const hasRunCallbackRef = useRef(false);
     const navigate = useNavigate();
+
+    const [isProcessingCallback, setIsProcessingCallback] = useState(() => {
+        const searchParameters = new URLSearchParams(window.location.search);
+        const hasKakaoCode = searchParameters.has("code");
+        const hasGoogleIdToken =
+            parseGoogleIdTokenFromHash(window.location.hash) !== null;
+        return hasKakaoCode || hasGoogleIdToken;
+    });
 
     useEffect(() => {
         const updateToastPosition = () => {
@@ -70,10 +79,10 @@ export const LoginPage = ({
         const state = googleIdToken
             ? parseGoogleStateFromHash(window.location.hash)
             : searchParameters.get("state");
-
         const handleCallback = async () => {
             if (!isValidOauthState(state)) {
                 alert("잘못된 인증 요청입니다.");
+                setIsProcessingCallback(false);
                 navigate("/login", { replace: true });
                 return;
             }
@@ -92,6 +101,7 @@ export const LoginPage = ({
                     await processSocialAuthResult("KAKAO", socialAuthResult);
                 }
             } catch (error) {
+                setIsProcessingCallback(false);
                 onShowToast(getAuthErrorMessage(error));
                 navigate("/login", { replace: true });
             }
@@ -149,6 +159,8 @@ export const LoginPage = ({
                     />
                 </nav>
             </main>
+
+            {isProcessingCallback && <LoadingOverlay />}
         </div>
     );
 };
